@@ -7,15 +7,23 @@ export const TASK_STATUS = [
 
 type TaskStatus = (typeof TASK_STATUS)[number]['status'];
 
-type TaskTag =
-  | 'new-concept'
-  | 'technical'
-  | 'styling'
-  | 'front-end'
-  | 'interactivity'
-  | 'filtering'
-  | 'design'
-  | 'responsive';
+export const TASK_TAGS = [
+  { tag: 'new-concept', label: 'New Concept', bgColor: 'bg-red-100', textColor: 'text-red-800' },
+  { tag: 'technical', label: 'Technical', bgColor: 'bg-blue-100', textColor: 'text-blue-800' },
+  { tag: 'styling', label: 'Styling', bgColor: 'bg-pink-100', textColor: 'text-pink-800' },
+  { tag: 'front-end', label: 'Front End', bgColor: 'bg-green-100', textColor: 'text-green-800' },
+  {
+    tag: 'interactivity',
+    label: 'Interactivity',
+    bgColor: 'bg-yellow-100',
+    textColor: 'text-yellow-800',
+  },
+  { tag: 'filtering', label: 'Filtering', bgColor: 'bg-orange-100', textColor: 'text-orange-800' },
+  { tag: 'design', label: 'Design', bgColor: 'bg-indigo-100', textColor: 'text-indigo-800' },
+  { tag: 'responsive', label: 'Responsive', bgColor: 'bg-cyan-100', textColor: 'text-cyan-800' },
+] as const;
+
+type TaskTag = (typeof TASK_TAGS)[number]['tag'];
 
 export interface Task {
   id: number;

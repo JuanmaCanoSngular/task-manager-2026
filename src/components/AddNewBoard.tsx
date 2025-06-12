@@ -1,6 +1,6 @@
 export const AddNewBoard = () => {
   return (
-    <div className="text-light dark:text-dark p-4 text-left flex items-center gap-3">
+    <div className="text-light dark:text-dark p-4 text-left flex items-center gap-3 shadow rounded-xl">
       <span className="flex items-center justify-center w-6 h-6">
         <svg
           width="24"
@@ -16,14 +16,14 @@ export const AddNewBoard = () => {
             stroke="white"
             strokeWidth="2"
             strokeLinecap="round"
-            className="dark:stroke-dark"
+            className="dark:stroke-light"
           />
           <path
             d="M7 12H17"
             stroke="white"
             strokeWidth="2"
             strokeLinecap="round"
-            className="dark:stroke-dark"
+            className="dark:stroke-light"
           />
         </svg>
       </span>

@@ -1,6 +1,6 @@
 import { create, StateCreator } from 'zustand';
 import { boardService } from '../services/board.service';
-import { devtools } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { useBoardStore } from './board.store';
 import { Task } from '../interfaces/task.interface';
 
@@ -52,4 +52,4 @@ const storeApi: StateCreator<TaskStore> = (set, get) => ({
   },
 });
 
-export const useTaskStore = create<TaskStore>()(devtools(storeApi));
+export const useTaskStore = create<TaskStore>()(persist(storeApi, { name: 'task-store' }));

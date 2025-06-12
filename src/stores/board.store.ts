@@ -1,7 +1,7 @@
 import { create, StateCreator } from 'zustand';
 import { Board } from '../interfaces/board.interface';
 import { boardService } from '../services/board.service';
-import { devtools, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 interface BoardStore {
   boards: Board[];
@@ -30,6 +30,4 @@ const storeApi: StateCreator<BoardStore> = (set) => ({
   setBoards: (boards) => set({ boards }),
 });
 
-export const useBoardStore = create<BoardStore>()(
-  persist(devtools(storeApi), { name: 'board-store' })
-);
+export const useBoardStore = create<BoardStore>()(persist(storeApi, { name: 'board-store' }));
