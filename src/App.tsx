@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useBoardStore } from './stores/board.store';
 import { useTaskStore } from './stores/task.store';
+import { BoardCard, TaskCard } from './components';
 
 const App = () => {
     const { boards, isLoading: boardsLoading, error: boardsError, fetchBoards } = useBoardStore();
@@ -14,10 +15,6 @@ const App = () => {
     useEffect(() => {
         fetchBoards();
     }, [fetchBoards]);
-
-    const handleBoardClick = (url: string) => {
-        fetchBoardDetails(url);
-    };
 
     if (boardsLoading) {
         return (
@@ -56,37 +53,19 @@ const App = () => {
                         <div>
                             <h2 className="text-2xl font-semibold mb-4">{currentBoard.name}</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {currentBoard.tasks?.map((task) => (
-                                    <div key={task.id} className="bg-white p-4 rounded-lg shadow">
-                                        <h3 className="font-semibold">{task.title}</h3>
-                                        <p className="text-gray-600 text-sm mt-2">{task.title}</p>
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                            {task.tags.map((tag, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
-                                                >
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                                {currentBoard.tasks?.map((task) => <TaskCard task={task} />)}
                             </div>
                         </div>
                     )}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     {boards.map((board) => (
-                        <button
+                        <BoardCard
                             key={board.id}
-                            onClick={() => handleBoardClick(board.link)}
-                            className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow text-left"
-                        >
-                            <h2 className="text-xl font-semibold">{board.name}</h2>
-                            <p className="text-gray-600 mt-2">Click para ver las tareas</p>
-                        </button>
+                            board={board}
+                            fetchBoardDetails={fetchBoardDetails}
+                        />
                     ))}
                 </div>
             )}
