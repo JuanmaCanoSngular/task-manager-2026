@@ -5,14 +5,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        light: '#23272f', // texto principal en modo claro
-        dark: '#fff', // texto principal en modo oscuro
+        light: '#23272f',
+        dark: '#fff',
         background: '#f3f4f6',
         'background-dark': '#181a20',
         card: '#fff',
         'card-dark': '#23272f',
         primary: '#2563eb',
-        'primary-dark': '#b6e3ff',
       },
     },
   },
