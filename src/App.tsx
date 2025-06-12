@@ -27,9 +27,9 @@ const App = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen flex flex-col lg:flex-row gap-4 items-start">
+      <div className="grid grid-rows-[auto_1fr] h-[calc(100vh-8rem)] gap-4 lg:grid-cols-[250px_1fr] lg:grid-rows-none">
         <BoardsList />
-        <div className="flex-1 w-full">
+        <div className="w-full">
           <BoardContent />
         </div>
       </div>

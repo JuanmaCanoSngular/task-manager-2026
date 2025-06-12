@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .card-base {
+    @apply text-light dark:text-dark p-4 rounded-xl shadow-sm transition-shadow text-left flex items-center gap-3;
+  }
+
+  .card-active {
+    @apply shadow-pink-500 bg-white/5 dark:bg-white/5;
+  }
+
+  .card-hover {
+    @apply hover:bg-slate-200 dark:hover:bg-card-dark;
+  }
+}

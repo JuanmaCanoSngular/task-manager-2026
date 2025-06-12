@@ -14,9 +14,7 @@ export const BoardCard = ({ board, fetchBoardDetails }: BoardCardProps) => {
     <button
       key={board.id}
       onClick={() => fetchBoardDetails(board.link)}
-      className={`text-light dark:text-dark p-4 
-        rounded-xl shadow-sm transition-shadow text-left flex items-center gap-3
-        ${isActive ? 'shadow-pink-500 ' : ' hover:bg-slate-200 dark:hover:bg-card-dark'}`}
+      className={`card-base ${isActive ? 'card-active' : 'card-hover'}`}
     >
       <span
         className="flex items-center justify-center w-10 h-10 rounded-full text-xl"

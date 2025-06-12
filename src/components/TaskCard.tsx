@@ -4,7 +4,8 @@ export const TaskCard = ({ task }: { task: Task }) => {
   return (
     <div
       key={task.id}
-      className="bg-card text-light dark:bg-black dark:text-dark p-4 rounded-xl shadow-md flex flex-col gap-2 relative overflow-hidden border border-transparent hover:border-primary dark:hover:border-primary-dark transition-colors duration-300"
+      className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start"
+      draggable
     >
       {task.background && (
         <img
@@ -14,9 +15,9 @@ export const TaskCard = ({ task }: { task: Task }) => {
           style={{ zIndex: 0 }}
         />
       )}
-      <div className={task.background ? 'relative z-10 mt-28' : ''}>
-        <p className="text-sm mb-2">{task.title}</p>
-        <div className="mt-2 flex flex-wrap gap-2">
+      <div className={`relative z-10 w-full ${task.background ? 'mt-28' : ''}`}>
+        <p className="text-sm mb-2 text-left">{task.title}</p>
+        <div className="mt-2 flex flex-wrap gap-2 justify-start">
           {task.tags.map((tag, index) => {
             const tagInfo = TASK_TAGS.find((t) => t.tag === tag);
             if (!tagInfo) return null;

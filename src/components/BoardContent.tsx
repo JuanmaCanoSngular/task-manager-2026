@@ -1,6 +1,7 @@
 import { useTaskStore } from '../stores/task.store';
 import { TaskCard } from './TaskCard';
 import { TASK_STATUS } from '../interfaces/task.interface';
+import { AddNewTask } from './AddNewTask';
 
 export const BoardContent = () => {
   const { currentBoard } = useTaskStore();
@@ -8,8 +9,8 @@ export const BoardContent = () => {
   if (!currentBoard) return null;
 
   return (
-    <div className="w-full dark:bg-card-dark rounded-lg p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="w-full h-full shadow-xl dark:bg-card-dark rounded-lg p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
         {TASK_STATUS.map(({ status, label, color }) => {
           const tasks = currentBoard.tasks?.filter((task) => task.status === status) ?? [];
 
@@ -24,6 +25,7 @@ export const BoardContent = () => {
                   <TaskCard key={task.id} task={task} />
                 ))}
               </div>
+              {status === TASK_STATUS[0].status && <AddNewTask />}
             </div>
           );
         })}
