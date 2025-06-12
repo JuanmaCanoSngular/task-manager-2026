@@ -5,26 +5,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: {
-          DEFAULT: '#f3f4f6',
-          dark: '#181a20',
-        },
-        sidebar: {
-          DEFAULT: '#fff',
-          dark: '#23272f',
-        },
-        card: {
-          DEFAULT: '#fff',
-          dark: '#23272f',
-        },
-        primary: {
-          DEFAULT: '#2563eb',
-          dark: '#b6e3ff',
-        },
-        text: {
-          DEFAULT: '#23272f',
-          dark: '#fff',
-        },
+        light: '#23272f', // texto principal en modo claro
+        dark: '#fff', // texto principal en modo oscuro
+        background: '#f3f4f6',
+        'background-dark': '#181a20',
+        card: '#fff',
+        'card-dark': '#23272f',
+        primary: '#2563eb',
+        'primary-dark': '#b6e3ff',
       },
     },
   },

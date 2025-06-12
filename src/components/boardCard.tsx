@@ -1,4 +1,5 @@
 import { Board } from '../interfaces/board.interface';
+import { useTaskStore } from '../stores/task.store';
 
 interface BoardCardProps {
   board: Board;
@@ -6,14 +7,22 @@ interface BoardCardProps {
 }
 
 export const BoardCard = ({ board, fetchBoardDetails }: BoardCardProps) => {
+  const { currentBoard } = useTaskStore();
+  const isActive = currentBoard && currentBoard.id === board.id;
+
   return (
     <button
       key={board.id}
       onClick={() => fetchBoardDetails(board.link)}
-      className="bg-card text-text dark:bg-card-dark dark:text-text-dark p-4 rounded-lg shadow hover:shadow-md transition-shadow text-left border border-transparent hover:border-primary dark:hover:border-primary-dark"
+      className={`text-light dark:text-dark p-4 rounded-xl shadow hover:shadow-md transition-shadow text-left border flex items-center gap-3 ${isActive ? 'border-primary' : 'border-transparent hover:border-primary dark:hover:border-primary-dark'}`}
     >
-      <h2 className="text-xl font-semibold">{board.name}</h2>
-      <p className="text-gray-400 mt-2">Click para ver las tareas</p>
+      <span
+        className="flex items-center justify-center w-10 h-10 rounded-full text-xl"
+        style={{ backgroundColor: board.color }}
+      >
+        {board.emoji}
+      </span>
+      <h2 className="text-xl">{board.name}</h2>
     </button>
   );
 };

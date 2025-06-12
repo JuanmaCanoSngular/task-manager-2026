@@ -4,7 +4,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
   return (
     <div
       key={task.id}
-      className="bg-card text-text dark:bg-card-dark dark:text-text-dark p-4 rounded-xl shadow-md flex flex-col gap-2 min-h-[150px] relative overflow-hidden border border-transparent hover:border-primary dark:hover:border-primary-dark transition-colors duration-300"
+      className="bg-card text-light dark:bg-black dark:text-dark p-4 rounded-xl shadow-md flex flex-col gap-2 min-h-[150px] relative overflow-hidden border border-transparent hover:border-primary dark:hover:border-primary-dark transition-colors duration-300"
     >
       {task.background && (
         <img
@@ -15,8 +15,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
         />
       )}
       <div className={task.background ? 'relative z-10 mt-28' : ''}>
-        <h3 className="font-semibold text-lg mb-1 truncate">{task.title}</h3>
-        <p className="text-gray-300 text-sm mb-2 truncate">{task.title}</p>
+        <p className="text-gray-300 text-sm mb-2">{task.title}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {task.tags.map((tag, index) => (
             <span
