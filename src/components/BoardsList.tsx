@@ -1,8 +1,8 @@
 import { useBoardStore } from '../stores/board.store';
 import { useTaskStore } from '../stores/task.store';
 import { BoardCard } from './BoardCard';
-import { ToggleTheme } from './ToggleTheme';
 import { AddNewBoard } from './AddNewBoard';
+import { ToggleTheme } from './ToggleTheme';
 
 export const BoardsList = () => {
   const { boards } = useBoardStore();
