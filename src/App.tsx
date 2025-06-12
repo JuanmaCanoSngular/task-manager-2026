@@ -11,20 +11,21 @@ const App = () => {
 
   useEffect(() => {
     fetchBoards();
+    document.documentElement.classList.add('dark');
   }, [fetchBoards]);
 
   if (boardsLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-100">
-        <p className="text-xl text-gray-600">Cargando boards...</p>
+      <div className="h-screen w-full flex items-center justify-center bg-background text-text dark:bg-background-dark dark:text-text-dark">
+        <p className="text-xl text-gray-400">Cargando boards...</p>
       </div>
     );
   }
 
   if (boardsError) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-100">
-        <p className="text-xl text-red-600">Error: {boardsError}</p>
+      <div className="h-screen w-full flex items-center justify-center bg-background text-text dark:bg-background-dark dark:text-text-dark">
+        <p className="text-xl text-red-400">Error: {boardsError}</p>
       </div>
     );
   }
