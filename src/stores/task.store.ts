@@ -1,55 +1,51 @@
 import { create, StateCreator } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
 import { boardService } from '../services/board.service';
-import { persist } from 'zustand/middleware';
-import { useBoardStore } from './board.store';
 import { Task } from '../interfaces/task.interface';
 
 interface TaskStore {
-  currentBoard: CurrentBoard | null;
+  currentBoardId: number | null;
+  tasks: Task[];
   isLoading: boolean;
   error: string | null;
   fetchBoardDetails: (url: string) => Promise<void>;
-  setCurrentBoard: (board: CurrentBoard | null) => void;
-  getCurrentBoardInfo: () => {
-    id: number;
-    name: string;
-    emoji: string;
-    color: string;
-    link: string;
-  } | null;
 }
 
-type CurrentBoard = {
-  id: number;
-  tasks: Task[];
-};
-
-const storeApi: StateCreator<TaskStore> = (set, get) => ({
-  currentBoard: null,
+const storeApi: StateCreator<TaskStore, [['zustand/immer', never]]> = (set) => ({
+  currentBoardId: null,
+  tasks: [],
   isLoading: false,
   error: null,
   fetchBoardDetails: async (url: string) => {
-    set({ isLoading: true, error: null });
+    set((state) => {
+      state.isLoading = true;
+    });
+
     try {
       const board = await boardService.getBoardDetails(url);
-      set({ currentBoard: { id: board.id, tasks: board.tasks || [] }, isLoading: false });
+
+      set((state) => {
+        state.currentBoardId = board.id;
+        state.tasks = board.tasks || [];
+        state.isLoading = false;
+      });
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Error desconocido',
-        isLoading: false,
+      set((state) => {
+        state.error = error instanceof Error ? error.message : 'Error desconocido';
+        state.tasks = [];
+        state.isLoading = false;
       });
     }
   },
-  setCurrentBoard: (board) => set({ currentBoard: board }),
-  getCurrentBoardInfo: () => {
-    const currentBoard = get().currentBoard;
-    if (!currentBoard) return null;
-    const boards = useBoardStore.getState().boards;
-    const board = boards.find((b) => b.id === currentBoard.id);
-    if (!board) return null;
-    const { id, name, emoji, color, link } = board;
-    return { id, name, emoji, color, link };
-  },
 });
 
-export const useTaskStore = create<TaskStore>()(persist(storeApi, { name: 'task-store' }));
+export const useTaskStore = create<TaskStore>()(
+  devtools(
+    immer(
+      persist(storeApi, {
+        name: 'task-store',
+      })
+    )
+  )
+);

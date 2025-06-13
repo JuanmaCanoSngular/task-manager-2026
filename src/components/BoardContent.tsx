@@ -4,15 +4,15 @@ import { TASK_STATUS } from '../interfaces/task.interface';
 import { AddNewTask } from './AddNewTask';
 
 export const BoardContent = () => {
-  const { currentBoard } = useTaskStore();
+  const tasks = useTaskStore((state) => state.tasks);
 
-  if (!currentBoard) return null;
+  if (!tasks.length) return null;
 
   return (
     <div className="w-full h-full shadow-xl dark:bg-card-dark rounded-lg p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
         {TASK_STATUS.map(({ status, label, color }) => {
-          const tasks = currentBoard.tasks?.filter((task) => task.status === status) ?? [];
+          const filteredTasks = tasks?.filter((task) => task.status === status) ?? [];
 
           return (
             <div key={status}>
@@ -21,7 +21,7 @@ export const BoardContent = () => {
                 {label} ({tasks.length})
               </h3>
               <div className="flex flex-col gap-4">
-                {tasks.map((task) => (
+                {filteredTasks.map((task) => (
                   <TaskCard key={task.id} task={task} />
                 ))}
               </div>

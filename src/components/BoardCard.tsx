@@ -3,12 +3,12 @@ import { useTaskStore } from '../stores/task.store';
 
 interface BoardCardProps {
   board: Board;
-  fetchBoardDetails: (link: string) => void;
 }
 
-export const BoardCard = ({ board, fetchBoardDetails }: BoardCardProps) => {
-  const { currentBoard } = useTaskStore();
-  const isActive = currentBoard && currentBoard.id === board.id;
+export const BoardCard = ({ board }: BoardCardProps) => {
+  const currentBoardId = useTaskStore((state) => state.currentBoardId);
+  const fetchBoardDetails = useTaskStore((state) => state.fetchBoardDetails);
+  const isActive = currentBoardId === board.id;
 
   return (
     <button

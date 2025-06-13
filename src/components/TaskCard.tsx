@@ -5,7 +5,6 @@ export const TaskCard = ({ task }: { task: Task }) => {
     <div
       key={task.id}
       className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start"
-      draggable
     >
       {task.background && (
         <img
