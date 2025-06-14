@@ -1,13 +1,13 @@
 import { Board } from '../interfaces/board.interface';
-import { useTaskStore } from '../stores/task.store';
+import { useBoardStore } from '../stores/board.store';
 
 interface BoardCardProps {
   board: Board;
 }
 
 export const BoardCard = ({ board }: BoardCardProps) => {
-  const currentBoardId = useTaskStore((state) => state.currentBoardId);
-  const fetchBoardDetails = useTaskStore((state) => state.fetchBoardDetails);
+  const currentBoardId = useBoardStore((state) => state.currentBoardId);
+  const fetchBoardDetails = useBoardStore((state) => state.fetchBoardDetails);
   const isActive = currentBoardId === board.id;
 
   return (

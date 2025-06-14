@@ -1,10 +1,10 @@
-import { useTaskStore } from '../stores/task.store';
 import { TaskCard } from './TaskCard';
 import { TASK_STATUS } from '../interfaces/task.interface';
 import { AddNewTask } from './AddNewTask';
+import { useBoardStore } from '../stores/board.store';
 
 export const BoardContent = () => {
-  const tasks = useTaskStore((state) => state.tasks);
+  const tasks = useBoardStore((state) => state.currentBoardTasks);
 
   if (!tasks.length) return null;
 
@@ -18,7 +18,7 @@ export const BoardContent = () => {
             <div key={status}>
               <h3 className="font-bold text-lg mb-2 flex items-center">
                 <span className={`${color} rounded-full w-2 h-2 mr-2 inline-block`}></span>
-                {label} ({tasks.length})
+                {label} ({filteredTasks.length})
               </h3>
               <div className="flex flex-col gap-4">
                 {filteredTasks.map((task) => (
