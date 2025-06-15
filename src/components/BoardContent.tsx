@@ -1,12 +1,16 @@
 import { TaskCard } from './TaskCard';
 import { TASK_STATUS } from '../interfaces/task.interface';
-import { AddNewTask } from './AddNewTask';
+import { AddNewTaskButton } from './AddNewTaskButton';
 import { useBoardStore } from '../stores/board.store';
+import { RemoveBoardButton } from './RemoveBoardButton';
 
 export const BoardContent = () => {
   const tasks = useBoardStore((state) => state.currentBoardTasks);
+  const currentBoardId = useBoardStore((state) => state.currentBoardId);
 
-  if (!tasks.length) return null;
+  if (currentBoardId === null) {
+    return;
+  }
 
   return (
     <div className="w-full h-full shadow-xl dark:bg-card-dark rounded-lg p-4">
@@ -25,7 +29,12 @@ export const BoardContent = () => {
                   <TaskCard key={task.id} task={task} />
                 ))}
               </div>
-              {status === TASK_STATUS[0].status && <AddNewTask />}
+              {status === TASK_STATUS[0].status && (
+                <div className="flex flex-col gap-2">
+                  <AddNewTaskButton />
+                  <RemoveBoardButton />
+                </div>
+              )}
             </div>
           );
         })}

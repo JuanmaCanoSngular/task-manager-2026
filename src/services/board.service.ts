@@ -8,7 +8,6 @@ export const boardService = {
   },
 
   async getBoardDetails(url: string): Promise<Board> {
-    console.log('llama a url externa');
     return axios.get<Board>(url).then((response) => response.data);
   },
 };

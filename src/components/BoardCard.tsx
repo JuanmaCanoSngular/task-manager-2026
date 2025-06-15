@@ -13,7 +13,7 @@ export const BoardCard = ({ board }: BoardCardProps) => {
   return (
     <button
       key={board.id}
-      onClick={() => fetchBoardDetails(board.link)}
+      onClick={() => fetchBoardDetails(board.link, board.id)}
       className={`card-base ${isActive ? 'card-active' : 'card-hover'}`}
     >
       <span

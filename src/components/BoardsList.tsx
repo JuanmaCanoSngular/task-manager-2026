@@ -1,6 +1,6 @@
 import { useBoardStore } from '../stores/board.store';
 import { BoardCard } from './BoardCard';
-import { AddNewBoard } from './AddNewBoard';
+import { AddNewBoardButton } from './AddNewBoardButton';
 import { ToggleTheme } from './ToggleTheme';
 
 export const BoardsList = () => {
@@ -12,7 +12,7 @@ export const BoardsList = () => {
         {boards.map((board) => (
           <BoardCard key={board.id} board={board} />
         ))}
-        <AddNewBoard />
+        <AddNewBoardButton />
         <ToggleTheme />
       </div>
     </div>

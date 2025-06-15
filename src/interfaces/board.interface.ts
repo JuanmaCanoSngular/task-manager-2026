@@ -7,4 +7,5 @@ export interface Board {
   color: string;
   link: string;
   tasks?: Task[];
+  isLocal?: boolean;
 }

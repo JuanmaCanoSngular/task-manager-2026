@@ -1,4 +1,4 @@
-export * from './AddNewBoard';
+export * from './AddNewBoardButton';
 export * from './BoardCard';
 export * from './BoardContent';
 export * from './BoardsList';
