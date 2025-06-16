@@ -22,10 +22,10 @@ export const BoardCard = ({ board }: BoardCardProps) => {
 
   return (
     <>
-      <button
+      <div
         key={board.id}
         onClick={() => fetchBoardDetails(board.link, board.id)}
-        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group`}
+        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer`}
       >
         <button
           onClick={handleDelete}
@@ -42,7 +42,7 @@ export const BoardCard = ({ board }: BoardCardProps) => {
           {board.emoji}
         </span>
         <h2 className="text-xl">{board.name}</h2>
-      </button>
+      </div>
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}

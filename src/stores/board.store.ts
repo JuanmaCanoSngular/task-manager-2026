@@ -8,13 +8,11 @@ import { immer } from 'zustand/middleware/immer';
 interface BoardStore {
   currentBoardId: number | null;
   boards: Board[];
-  currentBoardTasks: Task[];
   error: string | null;
   fetchBoards: () => Promise<void>;
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
   addNewBoard: () => void;
   removeBoard: () => void;
-  setCurrentBoard: (boardId: number | null) => void;
   addNewTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
   removeTask: (taskId: number) => void;
@@ -23,7 +21,6 @@ interface BoardStore {
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
   currentBoardId: null,
   boards: [],
-  currentBoardTasks: [],
   error: null,
   fetchBoards: async () => {
     // avoid calling the api if the boards are already in the store
@@ -57,7 +54,6 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     if (existingBoard?.tasks?.length || existingBoard?.isLocal) {
       set((state) => {
         state.currentBoardId = existingBoard.id;
-        state.currentBoardTasks = existingBoard.tasks ?? [];
       });
       return;
     }
@@ -67,7 +63,6 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
 
       set((state) => {
         state.currentBoardId = board.id;
-        state.currentBoardTasks = board.tasks ?? [];
         state.boards = state.boards.map((boardItem) => {
           if (boardItem.id === board.id) {
             return { ...boardItem, tasks: board.tasks };
@@ -78,7 +73,6 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     } catch (error) {
       set((state) => {
         state.error = error instanceof Error ? error.message : 'Error desconocido';
-        state.currentBoardTasks = [];
         state.boards = state.boards.map((board) => {
           if (board.id === state.currentBoardId) {
             return { ...board, tasks: [] };
@@ -108,57 +102,48 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     set((state) => {
       state.boards = state.boards.filter((board) => board.id !== state.currentBoardId);
       state.currentBoardId = null;
-      state.currentBoardTasks = [];
     });
   },
-  setCurrentBoard: (boardId) => set({ currentBoardId: boardId }),
-  addNewTask: (taskData: Omit<Task, 'id'>) =>
+  addNewTask: (taskData: Omit<Task, 'id'>) => {
     set((state) => {
       if (state.currentBoardId === null) return;
 
+      const currentBoard = state.boards.find((board) => board.id === state.currentBoardId);
       const newTask: Task = {
-        id: state.currentBoardTasks.length + 1,
+        id: (currentBoard?.tasks.length ?? 0) + 1,
         ...taskData,
       };
-
-      state.currentBoardTasks.push(newTask);
 
       const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
       if (boardIndex !== -1) {
         state.boards[boardIndex].tasks.push(newTask);
       }
-    }),
-  updateTask: (taskId, taskData) =>
+    });
+  },
+  updateTask: (taskId, taskData) => {
     set((state) => {
-      const taskIndex = state.currentBoardTasks.findIndex((task) => task.id === taskId);
-      if (taskIndex !== -1) {
-        state.currentBoardTasks[taskIndex] = { ...state.currentBoardTasks[taskIndex], ...taskData };
+      const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
+      if (boardIndex === -1) return;
 
-        // Actualizar también en el array de tareas del board
-        const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
-        if (boardIndex !== -1) {
-          const boardTaskIndex = state.boards[boardIndex].tasks.findIndex(
-            (task) => task.id === taskId
-          );
-          if (boardTaskIndex !== -1) {
-            state.boards[boardIndex].tasks[boardTaskIndex] = {
-              ...state.boards[boardIndex].tasks[boardTaskIndex],
-              ...taskData,
-            };
-          }
-        }
+      const taskIndex = state.boards[boardIndex].tasks.findIndex((task) => task.id === taskId);
+      if (taskIndex !== -1) {
+        state.boards[boardIndex].tasks[taskIndex] = {
+          ...state.boards[boardIndex].tasks[taskIndex],
+          ...taskData,
+        };
       }
-    }),
-  removeTask: (taskId: number) =>
+    });
+  },
+  removeTask: (taskId) => {
     set((state) => {
-      state.currentBoardTasks = state.currentBoardTasks.filter((task) => task.id !== taskId);
       const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
       if (boardIndex !== -1) {
         state.boards[boardIndex].tasks = state.boards[boardIndex].tasks.filter(
           (task) => task.id !== taskId
         );
       }
-    }),
+    });
+  },
 });
 
 export const useBoardStore = create<BoardStore>()(

@@ -5,10 +5,8 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const setCurrentBoard = useBoardStore((state) => state.setCurrentBoard);
-
   const handleLogoClick = () => {
-    setCurrentBoard(null);
+    useBoardStore.setState({ currentBoardId: null });
   };
 
   return (

@@ -4,18 +4,21 @@ import { useBoardStore } from '../../stores/board.store';
 import { CreateTaskButton } from '../tasks/CreateTaskButton';
 
 export const BoardContent = () => {
-  const tasks = useBoardStore((state) => state.currentBoardTasks);
   const currentBoardId = useBoardStore((state) => state.currentBoardId);
+  const boards = useBoardStore((state) => state.boards);
 
   if (currentBoardId === null) {
     return;
   }
 
+  const currentBoard = boards.find((board) => board.id === currentBoardId);
+  const tasks = currentBoard?.tasks ?? [];
+
   return (
     <div className="w-full h-full shadow-xl dark:bg-card-dark rounded-lg p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
         {TASK_STATUS.map(({ status, label, color }) => {
-          const filteredTasks = tasks?.filter((task) => task.status === status) ?? [];
+          const filteredTasks = tasks.filter((task) => task.status === status);
 
           return (
             <div key={status}>
