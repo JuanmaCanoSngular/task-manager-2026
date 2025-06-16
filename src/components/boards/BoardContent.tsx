@@ -2,7 +2,6 @@ import { TaskCard } from '../tasks/TaskCard';
 import { TASK_STATUS } from '../../interfaces/task.interface';
 import { useBoardStore } from '../../stores/board.store';
 import { CreateTaskButton } from '../tasks/CreateTaskButton';
-import { RemoveBoardButton } from './RemoveBoardButton';
 
 export const BoardContent = () => {
   const tasks = useBoardStore((state) => state.currentBoardTasks);
@@ -32,7 +31,6 @@ export const BoardContent = () => {
               {status === TASK_STATUS[0].status && (
                 <div className="flex flex-col gap-2 mt-5">
                   <CreateTaskButton />
-                  <RemoveBoardButton />
                 </div>
               )}
             </div>
