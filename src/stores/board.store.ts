@@ -14,6 +14,7 @@ interface BoardStore {
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
   addNewBoard: () => void;
   removeBoard: () => void;
+  addNewTask: (task: Omit<Task, 'id'>) => void;
 }
 
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
@@ -105,6 +106,28 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       state.boards = state.boards.filter((board) => board.id !== state.currentBoardId);
       state.currentBoardId = null;
       state.currentBoardTasks = [];
+    });
+  },
+  addNewTask: (taskData: Omit<Task, 'id'>) => {
+    const newTask: Task = {
+      id: Date.now(), // Usamos timestamp como ID único
+      ...taskData,
+    };
+
+    set((state) => {
+      // Agregar la tarea al tablero actual
+      state.currentBoardTasks.push(newTask);
+
+      // Actualizar la tarea en el array de boards
+      state.boards = state.boards.map((board) => {
+        if (board.id === state.currentBoardId) {
+          return {
+            ...board,
+            tasks: [...(board.tasks || []), newTask],
+          };
+        }
+        return board;
+      });
     });
   },
 });

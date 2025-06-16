@@ -1,4 +1,4 @@
-import { Task, TASK_TAGS } from '../interfaces/task.interface';
+import { Task, TASK_TAGS } from '../../interfaces/task.interface';
 
 export const TaskCard = ({ task }: { task: Task }) => {
   return (
@@ -22,10 +22,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
             if (!tagInfo) return null;
 
             return (
-              <span
-                key={index}
-                className={`px-2 py-1 text-xs rounded font-medium shadow-sm ${tagInfo.bgColor} ${tagInfo.textColor}`}
-              >
+              <span key={index} className={`tag-base ${tagInfo.bgColor} ${tagInfo.textColor}`}>
                 {tagInfo.label}
               </span>
             );

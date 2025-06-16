@@ -1,7 +1,7 @@
-import { useBoardStore } from '../stores/board.store';
+import { useBoardStore } from '../../stores/board.store';
 import { BoardCard } from './BoardCard';
 import { AddNewBoardButton } from './AddNewBoardButton';
-import { ToggleTheme } from './ToggleTheme';
+import { ToggleTheme } from '../layout/ToggleTheme';
 
 export const BoardsList = () => {
   const boards = useBoardStore((state) => state.boards);

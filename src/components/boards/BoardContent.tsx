@@ -1,7 +1,7 @@
-import { TaskCard } from './TaskCard';
-import { TASK_STATUS } from '../interfaces/task.interface';
-import { AddNewTaskButton } from './AddNewTaskButton';
-import { useBoardStore } from '../stores/board.store';
+import { TaskCard } from '../tasks/TaskCard';
+import { TASK_STATUS } from '../../interfaces/task.interface';
+import { AddNewTaskButton } from '../tasks/AddNewTaskButton';
+import { useBoardStore } from '../../stores/board.store';
 import { RemoveBoardButton } from './RemoveBoardButton';
 
 export const BoardContent = () => {
@@ -30,7 +30,7 @@ export const BoardContent = () => {
                 ))}
               </div>
               {status === TASK_STATUS[0].status && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 mt-5">
                   <AddNewTaskButton />
                   <RemoveBoardButton />
                 </div>

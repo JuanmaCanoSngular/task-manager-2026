@@ -1,4 +1,4 @@
-import { useBoardStore } from '../stores/board.store';
+import { useBoardStore } from '../../stores/board.store';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 
@@ -13,30 +13,25 @@ export const RemoveBoardButton = () => {
 
   return (
     <>
-      <button
-        className="bg-red-200 my-2 w-full flex items-center justify-between rounded-lg p-4 hover:bg-red-400 transition-colors duration-300"
-        onClick={() => setIsOpen(true)}
-      >
-        <span className="text-sm font-semibold text-red-800">Remove board</span>
-        <span className="text-2xl font-bold text-red-800">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-trash-2"
-          >
-            <path d="M3 6h18" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            <path d="M10 11v6" />
-            <path d="M14 11v6" />
-          </svg>
-        </span>
+      <button className="btn-remove w-full" onClick={() => setIsOpen(true)}>
+        <span className="text-sm font-semibold">Remove board</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="lucide lucide-trash-2"
+        >
+          <path d="M3 6h18" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <path d="M10 11v6" />
+          <path d="M14 11v6" />
+        </svg>
       </button>
 
       <Transition appear show={isOpen} as={Fragment}>
@@ -82,15 +77,11 @@ export const RemoveBoardButton = () => {
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
-                      className="rounded-md bg-gray-100 dark:bg-gray-700 px-4 py-2 text-sm font-medium text-light dark:text-dark hover:bg-gray-200 dark:hover:bg-gray-600"
+                      className="btn-secondary"
                     >
                       Cancel
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleRemove}
-                      className="rounded-md bg-red-200 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-400 transition-colors duration-300"
-                    >
+                    <button type="button" onClick={handleRemove} className="btn-remove">
                       Remove
                     </button>
                   </div>

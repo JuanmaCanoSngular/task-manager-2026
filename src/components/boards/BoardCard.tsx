@@ -1,5 +1,5 @@
-import { Board } from '../interfaces/board.interface';
-import { useBoardStore } from '../stores/board.store';
+import { Board } from '../../interfaces/board.interface';
+import { useBoardStore } from '../../stores/board.store';
 
 interface BoardCardProps {
   board: Board;
