@@ -6,6 +6,6 @@ export interface Board {
   emoji: string;
   color: string;
   link: string;
-  tasks?: Task[];
+  tasks: Task[];
   isLocal?: boolean;
 }

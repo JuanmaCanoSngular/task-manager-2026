@@ -1,9 +1,9 @@
 import { create, StateCreator } from 'zustand';
 import { Board } from '../interfaces/board.interface';
+import { Task } from '../interfaces/task.interface';
 import { boardService } from '../services/board.service';
 import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { Task } from '../interfaces/task.interface';
 
 interface BoardStore {
   currentBoardId: number | null;
@@ -14,7 +14,9 @@ interface BoardStore {
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
   addNewBoard: () => void;
   removeBoard: () => void;
+  setCurrentBoard: (boardId: number) => void;
   addNewTask: (task: Omit<Task, 'id'>) => void;
+  updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
 }
 
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
@@ -108,28 +110,30 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       state.currentBoardTasks = [];
     });
   },
-  addNewTask: (taskData: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      id: Date.now(), // Usamos timestamp como ID único
-      ...taskData,
-    };
-
+  setCurrentBoard: (boardId) => set({ currentBoardId: boardId }),
+  addNewTask: (taskData: Omit<Task, 'id'>) =>
     set((state) => {
-      // Agregar la tarea al tablero actual
+      if (state.currentBoardId === null) return;
+
+      const newTask: Task = {
+        id: state.currentBoardTasks.length + 1,
+        ...taskData,
+      };
+
       state.currentBoardTasks.push(newTask);
 
-      // Actualizar la tarea en el array de boards
-      state.boards = state.boards.map((board) => {
-        if (board.id === state.currentBoardId) {
-          return {
-            ...board,
-            tasks: [...(board.tasks || []), newTask],
-          };
-        }
-        return board;
-      });
-    });
-  },
+      const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
+      if (boardIndex !== -1) {
+        state.boards[boardIndex].tasks.push(newTask);
+      }
+    }),
+  updateTask: (taskId, taskData) =>
+    set((state) => {
+      const taskIndex = state.currentBoardTasks.findIndex((task) => task.id === taskId);
+      if (taskIndex !== -1) {
+        state.currentBoardTasks[taskIndex] = { ...state.currentBoardTasks[taskIndex], ...taskData };
+      }
+    }),
 });
 
 export const useBoardStore = create<BoardStore>()(

@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useBoardStore } from './stores/board.store';
-import { BoardsList, Layout, BoardContent } from './components';
+import { BoardsList } from './components/boards/BoardsList';
+import { BoardContent } from './components/boards/BoardContent';
+import { Layout } from './components/layout/Layout';
 
 const App = () => {
   const error = useBoardStore((state) => state.error);
