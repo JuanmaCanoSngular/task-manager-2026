@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { MoonIcon, SunIcon } from '@heroicons/react/20/solid';
+import { useThemeStore } from '../../stores/theme.store';
 
 const getButtonClasses = (active: boolean, pos: 'left' | 'right') =>
   `flex items-center justify-center w-1/2 px-4 py-2 focus:outline-none transition-colors duration-200 ${
@@ -11,7 +12,7 @@ const getButtonClasses = (active: boolean, pos: 'left' | 'right') =>
   }`;
 
 export const ToggleTheme = () => {
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, setTheme } = useThemeStore();
 
   useEffect(() => {
     if (isDark) {
@@ -24,18 +25,18 @@ export const ToggleTheme = () => {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
-      setIsDark(e.matches);
+      setTheme(e.matches);
     };
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  }, [setTheme]);
 
   return (
     <div className="flex bg-card-dark rounded-lg w-full">
       <button
         className={getButtonClasses(isDark, 'left')}
-        onClick={() => setIsDark(true)}
+        onClick={() => setTheme(true)}
         aria-pressed={isDark}
       >
         <MoonIcon
@@ -47,7 +48,7 @@ export const ToggleTheme = () => {
       </button>
       <button
         className={getButtonClasses(!isDark, 'right')}
-        onClick={() => setIsDark(false)}
+        onClick={() => setTheme(false)}
         aria-pressed={!isDark}
       >
         <SunIcon

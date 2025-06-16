@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    @apply transition-colors duration-200;
+  }
+}
+
 @layer components {
   .card-base {
     @apply text-light dark:text-dark p-4 rounded-xl shadow-sm transition-shadow text-left flex items-center gap-3;

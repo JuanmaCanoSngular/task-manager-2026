@@ -1,0 +1,28 @@
+:root {
+  color-scheme: light dark;
+}
+
+/* Transición suave para cambios de tema */
+:root {
+  --transition-duration: 200ms;
+  transition:
+    background-color var(--transition-duration) ease-in-out,
+    color var(--transition-duration) ease-in-out;
+}
+
+/* Preferencias del sistema */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+  }
+}
+
+/* Tema oscuro explícito */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Tema claro explícito */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
