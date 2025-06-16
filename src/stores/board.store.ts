@@ -14,7 +14,7 @@ interface BoardStore {
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
   addNewBoard: () => void;
   removeBoard: () => void;
-  setCurrentBoard: (boardId: number) => void;
+  setCurrentBoard: (boardId: number | null) => void;
   addNewTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
   removeTask: (taskId: number) => void;

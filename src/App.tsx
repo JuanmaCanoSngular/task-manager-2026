@@ -22,7 +22,7 @@ const App = () => {
 
   return (
     <Layout>
-      <div className="grid grid-rows-[auto_1fr] gap-4 lg:grid-cols-[250px_1fr] lg:grid-rows-none">
+      <div className="grid grid-rows-[auto_1fr] gap-4 md:grid-cols-[250px_1fr] md:grid-rows-none">
         <BoardsList />
         <div className="w-full">
           <BoardContent />
