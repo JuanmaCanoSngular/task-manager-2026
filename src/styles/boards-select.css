@@ -1,0 +1,12 @@
+/* Estilos para el select de boards en móvil */
+.board-select select option {
+  padding: 1rem;
+}
+
+.board-select select option:checked {
+  background: linear-gradient(to right, rgb(244 114 182 / 0.1), rgb(192 132 252 / 0.1));
+}
+
+.dark .board-select select option:checked {
+  background: linear-gradient(to right, rgb(244 114 182 / 0.2), rgb(192 132 252 / 0.2));
+}

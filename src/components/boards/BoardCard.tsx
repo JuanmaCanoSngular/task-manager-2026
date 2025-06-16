@@ -20,11 +20,19 @@ export const BoardCard = ({ board }: BoardCardProps) => {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleClick = () => {
+    if (isActive) {
+      useBoardStore.setState({ currentBoardId: null });
+    } else {
+      fetchBoardDetails(board.link, board.id);
+    }
+  };
+
   return (
     <>
       <div
         key={board.id}
-        onClick={() => fetchBoardDetails(board.link, board.id)}
+        onClick={handleClick}
         className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer`}
       >
         <button
