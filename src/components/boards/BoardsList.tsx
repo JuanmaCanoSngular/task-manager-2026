@@ -3,6 +3,7 @@ import { BoardCard } from './BoardCard';
 import { AddNewBoardButton } from './AddNewBoardButton';
 import { BoardSelect } from './BoardSelect';
 import { RemoveBoardMobileButton } from './RemoveBoardMobileButton';
+import { ToggleTheme } from '../layout/ToggleTheme';
 
 export const BoardsList = () => {
   const boards = useBoardStore((state) => state.boards);
@@ -20,6 +21,7 @@ export const BoardsList = () => {
           <BoardCard key={board.id} board={board} />
         ))}
         <AddNewBoardButton />
+        <ToggleTheme />
       </div>
 
       {/* Botones de acción para móvil */}
