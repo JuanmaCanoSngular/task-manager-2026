@@ -27,3 +27,7 @@ coverage
 *.sw?
 
 dist-types/
+
+.env
+.env.local
+.env.*.local

@@ -17,6 +17,7 @@ interface BoardStore {
   setCurrentBoard: (boardId: number) => void;
   addNewTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
+  removeTask: (taskId: number) => void;
 }
 
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
@@ -132,6 +133,30 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       const taskIndex = state.currentBoardTasks.findIndex((task) => task.id === taskId);
       if (taskIndex !== -1) {
         state.currentBoardTasks[taskIndex] = { ...state.currentBoardTasks[taskIndex], ...taskData };
+
+        // Actualizar también en el array de tareas del board
+        const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
+        if (boardIndex !== -1) {
+          const boardTaskIndex = state.boards[boardIndex].tasks.findIndex(
+            (task) => task.id === taskId
+          );
+          if (boardTaskIndex !== -1) {
+            state.boards[boardIndex].tasks[boardTaskIndex] = {
+              ...state.boards[boardIndex].tasks[boardTaskIndex],
+              ...taskData,
+            };
+          }
+        }
+      }
+    }),
+  removeTask: (taskId: number) =>
+    set((state) => {
+      state.currentBoardTasks = state.currentBoardTasks.filter((task) => task.id !== taskId);
+      const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
+      if (boardIndex !== -1) {
+        state.boards[boardIndex].tasks = state.boards[boardIndex].tasks.filter(
+          (task) => task.id !== taskId
+        );
       }
     }),
 });

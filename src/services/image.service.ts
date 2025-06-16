@@ -1,17 +1,9 @@
 import axios from 'axios';
 
-const UNSPLASH_ACCESS_KEY = '8ygVA1Bz8DLx2EMVNYD1flNpcFmvcfaQQqvN_Moa8f0';
+const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 const UNSPLASH_API_URL = 'https://api.unsplash.com';
 
-const CATEGORIES = [
-  'productivity',
-  'workspace',
-  'minimal',
-  'nature',
-  'abstract',
-  'gradient',
-  'pattern',
-];
+const CATEGORIES = ['productivity', 'workspace', 'minimal', 'nature', 'pattern'];
 
 export const imageService = {
   /**

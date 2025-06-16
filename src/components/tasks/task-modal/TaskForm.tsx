@@ -81,6 +81,7 @@ export const TaskForm = ({ mode, initialData, onSubmit, onCancel }: TaskFormProp
         backgroundImage={backgroundImage}
         isLoading={isLoadingImage}
         onGenerate={generateBackground}
+        onRemove={() => setBackgroundImage('')}
       />
 
       <TaskStatus value={status} onChange={setStatus} />
