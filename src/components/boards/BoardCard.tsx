@@ -45,12 +45,12 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         role="button"
         aria-label={`${isActive ? 'Deselect' : 'Select'} board ${board.name}`}
         aria-pressed={isActive}
-        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:border-2 focus:border-blue-500`}
+        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
       >
         {isActive && (
           <button
             onClick={handleDelete}
-            className="absolute bottom-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
+            className="absolute top-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
             aria-label={`Delete board ${board.name}`}
           >
             <TrashIcon className="w-4 h-4 text-white" />

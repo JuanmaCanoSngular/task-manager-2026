@@ -40,7 +40,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
         tabIndex={0}
         role="button"
         aria-label={`Edit task: ${task.title}`}
-        className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:bg-slate-100/80 dark:hover:bg-white/5 hover:shadow-md group focus:outline-none focus:border-2 focus:border-blue-500"
+        className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:bg-slate-100/80 dark:hover:bg-white/5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
       >
         <button
           onClick={handleDelete}
