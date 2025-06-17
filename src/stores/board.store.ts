@@ -12,7 +12,7 @@ interface BoardStore {
   error: string | null;
   fetchBoards: () => Promise<void>;
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
-  addNewBoard: () => void;
+  addNewBoard: (name?: string, emoji?: string, color?: string) => void;
   removeBoard: () => void;
   addNewTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
@@ -86,12 +86,12 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       });
     }
   },
-  addNewBoard: () => {
+  addNewBoard: (name?: string, emoji?: string, color?: string) => {
     const board: Board = {
       id: useBoardStore.getState().boards.length + 1,
-      name: 'Default Board',
-      emoji: generateEmoji(),
-      color: generateRandomColor(),
+      name: name || 'Default Board',
+      emoji: emoji || '',
+      color: color || '',
       link: '',
       tasks: [],
       isLocal: true,
@@ -190,23 +190,4 @@ export const useTasksByStatus = (status: string) => {
       return currentBoard?.tasks.filter((task) => task.status === status) ?? [];
     })
   );
-};
-
-const generateEmoji = () => {
-  const emojiRanges = [
-    [0x1f300, 0x1f5ff], // Misc Symbols and Pictographs
-    [0x1f600, 0x1f64f], // Emoticons
-    [0x1f680, 0x1f6ff], // Transport and Map Symbols
-    [0x1f900, 0x1f9ff], // Supplemental Symbols and Pictographs
-    [0x2600, 0x26ff], // Misc Symbols
-    [0x2700, 0x27bf], // Dingbats
-  ];
-  const range = emojiRanges[Math.floor(Math.random() * emojiRanges.length)];
-  const codePoint = Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
-  return String.fromCodePoint(codePoint);
-};
-
-const generateRandomColor = () => {
-  const randomColor = Math.floor(Math.random() * 16777215);
-  return '#' + randomColor.toString(16).padStart(6, '0');
 };

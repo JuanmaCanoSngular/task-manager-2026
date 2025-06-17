@@ -1,7 +1,15 @@
 import { TASK_STATUS } from '../../interfaces/task.interface';
 import { StatusColumn } from './StatusColumn';
+import { useBoardStore } from '../../stores/board.store';
+import { NoBoardSelected } from './NoBoardSelected';
 
 export const BoardContent = () => {
+  const currentBoardId = useBoardStore((state) => state.currentBoardId);
+
+  if (currentBoardId === null) {
+    return <NoBoardSelected />;
+  }
+
   return (
     <div className="w-full h-full shadow-xl dark:bg-card-dark rounded-lg p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">

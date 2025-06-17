@@ -29,7 +29,7 @@ export const BoardSelectMobile = () => {
         value={currentBoardId ?? -1}
         onChange={handleChange}
         className={`w-full h-16 pl-4 pr-10 rounded-xl bg-card dark:bg-card-dark border-2 appearance-none cursor-pointer [color:transparent] [text-shadow:0_0_0_transparent] transition-all duration-300
-          ${currentBoardId ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-400'}`}
+          ${currentBoardId !== null ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-400'}`}
       >
         <option value={-1} className="text-light dark:text-dark">
           Select board
