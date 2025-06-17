@@ -1,3 +1,4 @@
+import { Droppable } from '@hello-pangea/dnd';
 import { TaskCard } from '../tasks/TaskCard';
 import { useTasksByStatus } from '../../stores/board.store';
 import { CreateTaskButton } from '../tasks/CreateTaskButton';
@@ -21,16 +22,29 @@ export const StatusColumn = ({ status, label, color }: StatusColumnProps) => {
         ></span>
         {label} ({tasks.length})
       </h2>
-      <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-        {status === TASK_STATUS[0].status && (
-          <div className="flex flex-col gap-2">
-            <CreateTaskButton />
+      <Droppable droppableId={status}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto overflow-x-hidden transition-all duration-200 rounded-lg p-2 ${
+              snapshot.isDraggingOver
+                ? 'drop-zone-active bg-blue-50/50 dark:bg-blue-900/20'
+                : 'hover:bg-gray-50/30 dark:hover:bg-white/5'
+            }`}
+          >
+            {tasks.map((task, index) => (
+              <TaskCard key={task.id} task={task} index={index} />
+            ))}
+            {provided.placeholder}
+            {status === TASK_STATUS[0].status && (
+              <div className="flex flex-col gap-2">
+                <CreateTaskButton />
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </Droppable>
     </div>
   );
 };

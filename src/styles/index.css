@@ -157,4 +157,28 @@
   .modal-backdrop-transition-leave-to {
     @apply opacity-0;
   }
+
+  /* Drag and Drop styles */
+  .drag-handle {
+    @apply cursor-grab active:cursor-grabbing;
+  }
+
+  .drag-handle:active {
+    @apply cursor-grabbing;
+  }
+
+  /* Estilos para el área de drop cuando se está arrastrando sobre ella */
+  .drop-zone-active {
+    @apply bg-blue-50/50 dark:bg-blue-900/20 border-2 border-dashed border-blue-300 dark:border-blue-600;
+  }
+
+  /* Estilos para la card mientras se arrastra */
+  .card-dragging {
+    @apply rotate-2 scale-105 shadow-2xl z-50 bg-white dark:bg-gray-800;
+  }
+
+  /* Animación sutil para las cards cuando se mueven */
+  .card-move-transition {
+    @apply transition-all duration-300 ease-out;
+  }
 }

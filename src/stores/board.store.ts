@@ -1,6 +1,6 @@
 import { create, StateCreator } from 'zustand';
 import { Board } from '../interfaces/board.interface';
-import { Task } from '../interfaces/task.interface';
+import { Task, TaskStatus } from '../interfaces/task.interface';
 import { boardService } from '../services/board.service';
 import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -17,6 +17,8 @@ interface BoardStore {
   addNewTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
   removeTask: (taskId: number) => void;
+  moveTask: (taskId: number, newStatus: TaskStatus, destinationIndex?: number) => void;
+  updateTaskOrder: (status: TaskStatus, sourceIndex: number, destinationIndex: number) => void;
 }
 
 // methods that change the state
@@ -143,6 +145,52 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
           (task) => task.id !== taskId
         );
       }
+    });
+  },
+  moveTask: (taskId, newStatus, destinationIndex) => {
+    set((state) => {
+      const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
+      if (boardIndex === -1) return;
+
+      const taskIndex = state.boards[boardIndex].tasks.findIndex((task) => task.id === taskId);
+      if (taskIndex !== -1) {
+        const task = state.boards[boardIndex].tasks[taskIndex];
+        task.status = newStatus as TaskStatus;
+
+        if (destinationIndex !== undefined) {
+          state.boards[boardIndex].tasks.splice(taskIndex, 1);
+
+          const actualDestinationIndex =
+            state.boards[boardIndex].tasks.findIndex((t) => t.status === newStatus) +
+            destinationIndex;
+
+          state.boards[boardIndex].tasks.splice(actualDestinationIndex, 0, task);
+        }
+      }
+    });
+  },
+  updateTaskOrder: (status, sourceIndex, destinationIndex) => {
+    set((state) => {
+      const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
+      if (boardIndex === -1) return;
+
+      const tasksInStatus = state.boards[boardIndex].tasks.filter((task) => task.status === status);
+
+      if (sourceIndex >= tasksInStatus.length || destinationIndex >= tasksInStatus.length) return;
+
+      const taskToMove = tasksInStatus[sourceIndex];
+
+      const realSourceIndex = state.boards[boardIndex].tasks.findIndex(
+        (task) => task.id === taskToMove.id
+      );
+
+      state.boards[boardIndex].tasks.splice(realSourceIndex, 1);
+
+      const realDestinationIndex =
+        state.boards[boardIndex].tasks.findIndex((task) => task.status === status) +
+        destinationIndex;
+
+      state.boards[boardIndex].tasks.splice(realDestinationIndex, 0, taskToMove);
     });
   },
 });
