@@ -1,9 +1,10 @@
-import { useBoardStore } from '../../stores/board.store';
+import { useBoardStore, useCurrentBoard } from '../../stores/board.store';
 import '../../styles/boards-select.css';
 
 export const BoardSelect = () => {
   const boards = useBoardStore((state) => state.boards);
   const currentBoardId = useBoardStore((state) => state.currentBoardId);
+  const currentBoard = useCurrentBoard();
   const fetchBoardDetails = useBoardStore((state) => state.fetchBoardDetails);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -17,8 +18,6 @@ export const BoardSelect = () => {
       fetchBoardDetails(board.link, board.id);
     }
   };
-
-  const currentBoard = boards.find((b) => b.id === currentBoardId);
 
   return (
     <div className="relative board-select">

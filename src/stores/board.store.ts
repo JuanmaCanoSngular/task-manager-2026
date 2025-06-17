@@ -4,6 +4,7 @@ import { Task } from '../interfaces/task.interface';
 import { boardService } from '../services/board.service';
 import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { useShallow } from 'zustand/react/shallow';
 
 interface BoardStore {
   currentBoardId: number | null;
@@ -18,6 +19,9 @@ interface BoardStore {
   removeTask: (taskId: number) => void;
 }
 
+// datos de la store
+// métodos que cambiar en state
+// para acceder a los datos de la store se usan los selectores reactivos
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
   currentBoardId: null,
   boards: [],
@@ -158,6 +162,35 @@ export const useBoardStore = create<BoardStore>()(
     )
   )
 );
+
+// Selectores reactivos para acceder a los datos de la store
+export const useCurrentBoardTasks = () => {
+  return useBoardStore(
+    useShallow((state: BoardStore) => {
+      if (state.currentBoardId === null) return [];
+      return state.boards.find((board: Board) => board.id === state.currentBoardId)?.tasks ?? [];
+    })
+  );
+};
+
+export const useCurrentBoard = () => {
+  return useBoardStore(
+    useShallow((state: BoardStore) => {
+      if (state.currentBoardId === null) return null;
+      return state.boards.find((board: Board) => board.id === state.currentBoardId) ?? null;
+    })
+  );
+};
+
+export const useTasksByStatus = (status: string) => {
+  return useBoardStore(
+    useShallow((state: BoardStore) => {
+      if (state.currentBoardId === null) return [];
+      const currentBoard = state.boards.find((board: Board) => board.id === state.currentBoardId);
+      return currentBoard?.tasks.filter((task) => task.status === status) ?? [];
+    })
+  );
+};
 
 const generateEmoji = () => {
   const emojiRanges = [
