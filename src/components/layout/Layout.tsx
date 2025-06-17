@@ -10,10 +10,10 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-background text-light dark:bg-background-dark dark:text-dark p-4 transition-colors duration-300">
-      <header className="flex justify-center my-6">
+    <div className="h-screen flex flex-col text-light dark:text-dark transition-colors duration-300">
+      <header className="flex-shrink-0 p-4">
         <h1
-          className="text-3xl font-bold cursor-pointer hover:opacity-80 transition-opacity"
+          className="text-3xl font-bold cursor-pointer hover:opacity-80 transition-opacity text-center"
           onClick={handleLogoClick}
         >
           <span className="text-light dark:text-dark">Tasks </span>
@@ -22,7 +22,8 @@ export const Layout = ({ children }: LayoutProps) => {
           </span>
         </h1>
       </header>
-      <section className="flex-1">{children}</section>
-    </main>
+
+      <main className="flex-1">{children}</main>
+    </div>
   );
 };

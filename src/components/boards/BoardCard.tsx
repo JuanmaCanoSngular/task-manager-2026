@@ -35,13 +35,15 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         onClick={handleClick}
         className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer`}
       >
-        <button
-          onClick={handleDelete}
-          className="absolute top-2 right-2 z-20 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
-          title="Eliminar tablero"
-        >
-          <TrashIcon className="w-4 h-4 text-white" />
-        </button>
+        {isActive && (
+          <button
+            onClick={handleDelete}
+            className="absolute top-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
+            title="Eliminar tablero"
+          >
+            <TrashIcon className="w-4 h-4 text-white" />
+          </button>
+        )}
 
         <span
           className="flex items-center justify-center w-10 h-10 rounded-full text-xl"

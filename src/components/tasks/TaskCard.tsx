@@ -25,7 +25,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
     <>
       <div
         onClick={() => setIsOpen(true)}
-        className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group"
+        className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:shadow-md transition-all duration-200 group"
       >
         <button
           onClick={handleDelete}

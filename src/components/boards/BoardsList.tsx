@@ -9,18 +9,21 @@ export const BoardsList = () => {
   const boards = useBoardStore((state) => state.boards);
 
   return (
-    <div className="md:col-span-1 flex flex-col w-full md:w-[250px]">
+    <div className="md:col-span-1 flex flex-col w-full md:w-[250px] h-full">
       {/* Select for mobile */}
       <div className="md:hidden mb-4">
         <BoardSelectMobile />
       </div>
 
       {/* List of boards for desktop */}
-      <div className="hidden md:flex flex-col gap-4">
-        {boards.map((board) => (
-          <BoardCard key={board.id} board={board} />
-        ))}
-        <AddNewBoardButton />
+      <div className="hidden md:flex flex-col h-full justify-between">
+        <div className="flex flex-col gap-4">
+          {boards.map((board) => (
+            <BoardCard key={board.id} board={board} />
+          ))}
+          <AddNewBoardButton />
+        </div>
+
         <ToggleTheme />
       </div>
 

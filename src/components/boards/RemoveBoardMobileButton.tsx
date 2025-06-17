@@ -8,7 +8,7 @@ export const RemoveBoardMobileButton = () => {
   const currentBoardId = useBoardStore((state) => state.currentBoardId);
   const removeBoard = useBoardStore((state) => state.removeBoard);
 
-  if (!currentBoardId) return null;
+  if (currentBoardId === null) return null;
 
   return (
     <>
