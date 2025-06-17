@@ -1,5 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import { XMarkIcon } from '@heroicons/react/20/solid';
 import { Task } from '../../../interfaces/task.interface';
 import { TaskForm } from './TaskForm';
 
@@ -13,37 +14,39 @@ interface TaskModalProps {
 
 export const TaskModal = ({ isOpen, onClose, mode, task, onSubmit }: TaskModalProps) => (
   <Transition appear show={isOpen} as={Fragment}>
-    <Dialog as="div" className="relative z-10" onClose={onClose}>
+    <Dialog as="div" className="relative z-50" onClose={onClose}>
       <Transition.Child
         as={Fragment}
-        enter="ease-out duration-300"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="ease-in duration-200"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
+        enter="modal-backdrop-transition-enter"
+        enterFrom="modal-backdrop-transition-enter-from"
+        enterTo="modal-backdrop-transition-enter-to"
+        leave="modal-backdrop-transition-leave"
+        leaveFrom="modal-backdrop-transition-leave-from"
+        leaveTo="modal-backdrop-transition-leave-to"
       >
-        <div className="fixed inset-0 bg-background/80 dark:bg-background-dark/80" />
+        <div className="modal-backdrop" />
       </Transition.Child>
 
-      <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4 text-center">
+      <div className="modal-container">
+        <div className="modal-wrapper">
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
+            enter="modal-transition-enter"
+            enterFrom="modal-transition-enter-from"
+            enterTo="modal-transition-enter-to"
+            leave="modal-transition-leave"
+            leaveFrom="modal-transition-leave-from"
+            leaveTo="modal-transition-leave-to"
           >
-            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-card dark:bg-card-dark p-6 text-left align-middle shadow-xl transition-all">
-              <Dialog.Title
-                as="h3"
-                className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
-              >
-                {mode === 'create' ? 'Add New Task' : 'Edit Task'}
-              </Dialog.Title>
+            <Dialog.Panel className="modal-panel">
+              <div className="flex items-center justify-between mb-6">
+                <Dialog.Title as="h3" className="modal-title">
+                  {mode === 'create' ? 'Add New Task' : 'Edit Task'}
+                </Dialog.Title>
+                <button onClick={onClose} className="modal-close-button">
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
 
               <TaskForm mode={mode} initialData={task} onSubmit={onSubmit} onCancel={onClose} />
             </Dialog.Panel>

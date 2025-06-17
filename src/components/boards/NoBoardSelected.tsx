@@ -7,7 +7,10 @@ export const NoBoardSelected = () => {
             Please, select a board
           </h3>
           <p className="text-sm text-gray-400 dark:text-gray-500">
-            Choose a board from the sidebar to view its tasks
+            <span className="hidden md:inline">
+              Choose a board from the sidebar to view its tasks
+            </span>
+            <span className="md:hidden">Choose a board from the select menu to view its tasks</span>
           </p>
         </div>
       </div>

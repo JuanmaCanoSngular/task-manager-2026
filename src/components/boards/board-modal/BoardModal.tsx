@@ -14,39 +14,33 @@ export const BoardModal = ({ isOpen, onClose, onSubmit }: BoardModalProps) => (
     <Dialog as="div" className="relative z-50" onClose={onClose}>
       <Transition.Child
         as={Fragment}
-        enter="ease-out duration-300"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="ease-in duration-200"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
+        enter="modal-backdrop-transition-enter"
+        enterFrom="modal-backdrop-transition-enter-from"
+        enterTo="modal-backdrop-transition-enter-to"
+        leave="modal-backdrop-transition-leave"
+        leaveFrom="modal-backdrop-transition-leave-from"
+        leaveTo="modal-backdrop-transition-leave-to"
       >
-        <div className="fixed inset-0 bg-black/25 dark:bg-black/40 backdrop-blur-sm" />
+        <div className="modal-backdrop" />
       </Transition.Child>
 
-      <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4 text-center">
+      <div className="modal-container">
+        <div className="modal-wrapper">
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0 scale-95 translate-y-4"
-            enterTo="opacity-100 scale-100 translate-y-0"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100 scale-100 translate-y-0"
-            leaveTo="opacity-0 scale-95 translate-y-4"
+            enter="modal-transition-enter"
+            enterFrom="modal-transition-enter-from"
+            enterTo="modal-transition-enter-to"
+            leave="modal-transition-leave"
+            leaveFrom="modal-transition-leave-from"
+            leaveTo="modal-transition-leave-to"
           >
-            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-2xl ring-1 ring-black/5 dark:ring-white/10 transition-all">
+            <Dialog.Panel className="modal-panel">
               <div className="flex items-center justify-between mb-6">
-                <Dialog.Title
-                  as="h3"
-                  className="text-xl font-bold leading-6 text-gray-900 dark:text-white"
-                >
+                <Dialog.Title as="h3" className="modal-title">
                   Create new board
                 </Dialog.Title>
-                <button
-                  onClick={onClose}
-                  className="rounded-full p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
+                <button onClick={onClose} className="modal-close-button">
                   <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
