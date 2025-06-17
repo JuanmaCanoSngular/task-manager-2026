@@ -8,13 +8,8 @@ interface ThemeState {
 }
 
 const applyTheme = (isDark: boolean) => {
-  const theme = isDark ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', theme);
-  if (isDark) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+  document.documentElement.classList.toggle('dark', isDark);
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
 };
 
 export const useThemeStore = create<ThemeState>()(
