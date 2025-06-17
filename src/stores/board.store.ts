@@ -19,9 +19,8 @@ interface BoardStore {
   removeTask: (taskId: number) => void;
 }
 
-// datos de la store
-// métodos que cambiar en state
-// para acceder a los datos de la store se usan los selectores reactivos
+// methods that change the state
+// to access the data of the store, use the reactive selectors
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
   currentBoardId: null,
   boards: [],
@@ -87,17 +86,16 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     }
   },
   addNewBoard: (name?: string, emoji?: string, color?: string) => {
-    const board: Board = {
-      id: useBoardStore.getState().boards.length + 1,
-      name: name || 'Default Board',
-      emoji: emoji || '',
-      color: color || '',
-      link: '',
-      tasks: [],
-      isLocal: true,
-    };
-
     set((state) => {
+      const board: Board = {
+        id: getNextBoardId(state.boards),
+        name: name || 'Default Board',
+        emoji: emoji || '',
+        color: color || '',
+        link: '',
+        tasks: [],
+        isLocal: true,
+      };
       state.boards.push(board);
       state.currentBoardId = board.id;
     });
@@ -112,9 +110,8 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     set((state) => {
       if (state.currentBoardId === null) return;
 
-      const currentBoard = state.boards.find((board) => board.id === state.currentBoardId);
       const newTask: Task = {
-        id: (currentBoard?.tasks.length ?? 0) + 1,
+        id: getNextTaskId(state.currentBoardId),
         ...taskData,
       };
 
@@ -190,4 +187,16 @@ export const useTasksByStatus = (status: string) => {
       return currentBoard?.tasks.filter((task) => task.status === status) ?? [];
     })
   );
+};
+
+// function to get the next available task id
+const getNextTaskId = (id: number): number => {
+  const board = useBoardStore.getState().boards.find((board) => board.id === id);
+  const allTaskIds = board?.tasks.map((task) => task.id) ?? [];
+  return allTaskIds.length > 0 ? Math.max(...allTaskIds) + 1 : 1;
+};
+
+const getNextBoardId = (boards: Board[]): number => {
+  const allBoardIds = boards.map((board) => board.id);
+  return allBoardIds.length > 0 ? Math.max(...allBoardIds) + 1 : 1;
 };

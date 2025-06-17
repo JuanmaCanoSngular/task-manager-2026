@@ -33,7 +33,7 @@ export const ToggleTheme = () => {
   }, [setTheme]);
 
   return (
-    <div className="flex bg-card-dark rounded-lg w-full">
+    <div className="flex bg-card-dark rounded-lg w-full mt-4">
       <button
         className={getButtonClasses(isDark, 'left')}
         onClick={() => setTheme(true)}
