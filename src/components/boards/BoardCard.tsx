@@ -28,18 +28,30 @@ export const BoardCard = ({ board }: BoardCardProps) => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <>
       <div
         key={board.id}
         onClick={handleClick}
-        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer`}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={`${isActive ? 'Deselect' : 'Select'} board ${board.name}`}
+        aria-pressed={isActive}
+        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:border-2 focus:border-blue-500`}
       >
         {isActive && (
           <button
             onClick={handleDelete}
-            className="absolute top-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
-            title="Eliminar tablero"
+            className="absolute bottom-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
+            aria-label={`Delete board ${board.name}`}
           >
             <TrashIcon className="w-4 h-4 text-white" />
           </button>
@@ -48,10 +60,11 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         <span
           className="flex items-center justify-center w-10 h-10 rounded-full text-xl"
           style={{ backgroundColor: board.color }}
+          aria-hidden="true"
         >
           {board.emoji}
         </span>
-        <h2 className="text-xl">{board.name}</h2>
+        <h2 className="text-lg">{board.name}</h2>
       </div>
 
       <ConfirmDialog

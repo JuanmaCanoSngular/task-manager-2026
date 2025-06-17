@@ -18,11 +18,15 @@ export const TaskTags = ({ selectedTags, maxTags, showWarning, onToggleTag }: Ta
       </span>
     </div>
     {showWarning && (
-      <p className="text-sm text-red-600 dark:text-red-400">
+      <p className="text-sm text-red-600 dark:text-red-400" role="alert">
         You can select a maximum of {maxTags} tags per task
       </p>
     )}
-    <div className="flex flex-wrap gap-2 pt-1">
+    <div
+      className="flex flex-wrap gap-2 pt-1"
+      role="group"
+      aria-label="Available tags for the task"
+    >
       {TASK_TAGS.map((tag) => (
         <button
           key={tag.tag}
@@ -33,6 +37,8 @@ export const TaskTags = ({ selectedTags, maxTags, showWarning, onToggleTag }: Ta
               ? `${tag.bgColor} ${tag.textColor}`
               : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
+          aria-label={`${selectedTags.includes(tag.tag) ? 'Deselect' : 'Select'} tag ${tag.label}`}
+          aria-pressed={selectedTags.includes(tag.tag)}
         >
           {tag.label}
         </button>

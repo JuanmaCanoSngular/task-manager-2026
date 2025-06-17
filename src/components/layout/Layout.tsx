@@ -16,7 +16,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <button
             onClick={handleLogoClick}
             className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-            aria-label="Volver al inicio"
+            aria-label="Go to home"
           >
             <span className="text-light dark:text-dark">Tasks</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">

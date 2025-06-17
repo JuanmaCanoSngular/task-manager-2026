@@ -14,10 +14,13 @@ export const StatusColumn = ({ status, label, color }: StatusColumnProps) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h3 className="font-bold text-lg mb-2 flex items-center flex-shrink-0">
-        <span className={`${color} rounded-full w-2 h-2 mr-2 inline-block`}></span>
+      <h2 className="font-bold text-lg mb-2 flex items-center flex-shrink-0">
+        <span
+          className={`${color} rounded-full w-2 h-2 mr-2 inline-block`}
+          aria-hidden="true"
+        ></span>
         {label} ({tasks.length})
-      </h3>
+      </h2>
       <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} />

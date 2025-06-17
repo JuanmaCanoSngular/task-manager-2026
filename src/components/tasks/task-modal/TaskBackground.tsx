@@ -24,7 +24,7 @@ export const TaskBackground = ({
             type="button"
             onClick={onRemove}
             className="btn-icon-remove"
-            title="Remove background"
+            aria-label="Remove background image"
           >
             <XMarkIcon className="w-5 h-5" />
           </button>
@@ -34,7 +34,9 @@ export const TaskBackground = ({
           onClick={onGenerate}
           disabled={isLoading}
           className="btn-icon-add"
-          title="Generate new background"
+          aria-label={
+            isLoading ? 'Generating background image...' : 'Generate new background image'
+          }
         >
           {isLoading ? (
             <ArrowPathIcon className="w-5 h-5 animate-spin" />

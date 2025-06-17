@@ -15,7 +15,7 @@ export const CreateTaskButton = () => {
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="btn-add w-full">
+      <button onClick={() => setIsOpen(true)} className="btn-add w-full" aria-label="Add new task">
         <span>Add new task</span>
         <PlusIcon className="w-4 h-4" />
       </button>

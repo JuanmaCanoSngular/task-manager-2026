@@ -22,7 +22,7 @@ export const AddNewBoardButton = () => {
 
   return (
     <>
-      <button onClick={handleOpenModal} className="btn-add w-full">
+      <button onClick={handleOpenModal} className="btn-add w-full" aria-label="Add new board">
         <h2 className="text-xl">Add new board</h2>
         <span className="flex items-center justify-center w-6 h-6">
           <PlusCircleIcon className="w-6 h-6 text-current" />

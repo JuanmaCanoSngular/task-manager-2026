@@ -27,14 +27,18 @@ export const BoardLogo = ({
         type="button"
         onClick={onGenerateNew}
         className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200 hover:scale-105"
-        title="Generate new logos"
+        aria-label="Generate new logos for the board"
       >
         <ArrowPathIcon className="w-4 h-4" />
       </button>
     </div>
 
     <div className="flex justify-center">
-      <div className="grid grid-cols-5 gap-3 w-full">
+      <div
+        className="grid grid-cols-5 gap-3 w-full"
+        role="radiogroup"
+        aria-label="Logo options for the board"
+      >
         {logoOptions.map((logo, index) => (
           <button
             key={index}
@@ -46,7 +50,9 @@ export const BoardLogo = ({
                 : 'hover:scale-105'
             }`}
             style={{ backgroundColor: logo.color }}
-            title={`Select logo ${index + 1}`}
+            aria-label={`Select logo ${index + 1}: ${logo.emoji}`}
+            aria-pressed={selectedIndex === index}
+            role="radio"
           >
             {logo.emoji}
           </button>

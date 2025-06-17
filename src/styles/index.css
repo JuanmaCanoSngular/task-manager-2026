@@ -10,18 +10,17 @@
 
 @layer components {
   .card-base {
-    @apply text-light dark:text-dark p-4 rounded-xl shadow-sm transition-shadow text-left flex items-center gap-3;
+    @apply text-light dark:text-dark p-4 rounded-xl shadow-sm text-left flex items-center gap-3;
   }
 
   .card-active {
     @apply relative bg-gradient-to-r from-pink-400/10 to-purple-400/10 dark:from-pink-400/20 dark:to-purple-400/20
            before:absolute before:inset-0 before:rounded-xl before:p-[1px] before:bg-gradient-to-r before:from-pink-400 before:to-purple-400 before:opacity-50
-           before:content-[''] before:-z-10 scale-[1.02] translate-y-[-2px] transition-all duration-300;
+           before:content-[''] before:-z-10;
   }
 
   .card-hover {
-    @apply hover:bg-slate-200/80 dark:hover:bg-white/10 hover:shadow-md 
-           hover:scale-[1.01] hover:translate-y-[-1px] transition-all duration-200;
+    @apply hover:bg-slate-100/80 dark:hover:bg-white/5 hover:shadow-md;
   }
 
   /* Aplicar hover solo a las cards no activas */

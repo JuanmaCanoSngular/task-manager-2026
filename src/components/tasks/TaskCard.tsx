@@ -21,16 +21,31 @@ export const TaskCard = ({ task }: { task: Task }) => {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleClick = () => {
+    setIsOpen(true);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <>
       <div
-        onClick={() => setIsOpen(true)}
-        className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:shadow-md transition-all duration-200 group"
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={`Edit task: ${task.title}`}
+        className="card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:bg-slate-100/80 dark:hover:bg-white/5 hover:shadow-md group focus:outline-none focus:border-2 focus:border-blue-500"
       >
         <button
           onClick={handleDelete}
           className="absolute top-2 right-2 z-20 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
-          title="Eliminar tarea"
+          aria-label={`Delete task: ${task.title}`}
         >
           <TrashIcon className="w-4 h-4 text-white" />
         </button>
@@ -38,7 +53,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
         {task.background && (
           <img
             src={task.background}
-            alt="background"
+            alt="Task background"
             className="absolute top-0 left-0 w-full h-28 object-cover rounded-t-xl"
             style={{ zIndex: 0 }}
           />
