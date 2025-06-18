@@ -27,6 +27,7 @@ export const StatusColumn = ({ status, label, color }: StatusColumnProps) => {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
+            role="list"
             className={`flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto overflow-x-hidden transition-all duration-200 rounded-lg p-2 ${
               snapshot.isDraggingOver
                 ? 'drop-zone-active bg-blue-50/50 dark:bg-blue-900/20'
