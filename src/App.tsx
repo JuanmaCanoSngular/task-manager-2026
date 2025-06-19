@@ -24,7 +24,7 @@ const App = () => {
   return (
     <Layout>
       {/* Skip links for keyboard navigation */}
-      <div className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50">
+      <div className="absolute -top-40 left-4 z-50 focus-within:top-4">
         <a
           href="#main-content"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
