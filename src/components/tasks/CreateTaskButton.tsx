@@ -13,9 +13,22 @@ export const CreateTaskButton = () => {
     setIsOpen(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsOpen(true);
+    }
+  };
+
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="btn-add w-full" aria-label="Add new task">
+      <button
+        onClick={() => setIsOpen(true)}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+        aria-label="Add new task"
+      >
         <span>Add new task</span>
         <PlusIcon className="w-4 h-4" />
       </button>

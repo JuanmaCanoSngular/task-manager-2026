@@ -20,9 +20,22 @@ export const AddNewBoardButton = () => {
     handleCloseModal();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleOpenModal();
+    }
+  };
+
   return (
     <>
-      <button onClick={handleOpenModal} className="btn-add w-full" aria-label="Add new board">
+      <button
+        onClick={handleOpenModal}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+        aria-label="Add new board"
+      >
         <h2 className="text-xl">Add new board</h2>
         <span className="flex items-center justify-center w-6 h-6">
           <PlusCircleIcon className="w-6 h-6 text-current" />

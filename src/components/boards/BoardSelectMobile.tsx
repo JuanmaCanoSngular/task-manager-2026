@@ -25,9 +25,14 @@ export const BoardSelectMobile = () => {
 
   return (
     <div className="relative board-select">
+      <label htmlFor="board-select" className="sr-only">
+        Select board
+      </label>
       <select
+        id="board-select"
         value={currentBoardId ?? -1}
         onChange={handleChange}
+        aria-label="Select board"
         className={`w-full h-16 pl-4 pr-10 rounded-xl bg-card dark:bg-card-dark border-2 appearance-none cursor-pointer [color:transparent] [text-shadow:0_0_0_transparent] transition-all duration-300
           ${currentBoardId !== null ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-400'}`}
       >
@@ -47,6 +52,7 @@ export const BoardSelectMobile = () => {
             <span
               className="flex items-center justify-center w-10 h-10 rounded-full text-xl mr-3"
               style={{ backgroundColor: currentBoard.color }}
+              aria-hidden="true"
             >
               {currentBoard.emoji}
             </span>
@@ -59,7 +65,7 @@ export const BoardSelectMobile = () => {
 
       {/* arrow */}
       <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-        <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+        <ChevronDownIcon className="w-5 h-5 text-gray-400" aria-hidden="true" />
       </div>
     </div>
   );

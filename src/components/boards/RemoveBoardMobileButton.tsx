@@ -10,12 +10,21 @@ export const RemoveBoardMobileButton = () => {
 
   if (currentBoardId === null) return null;
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
   return (
     <>
       <button
         onClick={() => setIsDeleteDialogOpen(true)}
-        className="btn-remove w-full"
-        title="Remove board"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className="btn-remove w-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-inset"
+        aria-label="Remove current board"
       >
         <h2 className="text-xl">Remove board</h2>
         <span className="flex items-center justify-center w-6 h-6">

@@ -15,11 +15,20 @@ export const ToggleTheme = () => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [setTheme]);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      setTheme(!isDark);
+    }
+  };
+
   return (
     <div
       className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1 w-full"
       role="radiogroup"
       aria-label="Seleccionar tema de color"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
     >
       <button
         className={`flex items-center justify-center w-1/2 px-3 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${

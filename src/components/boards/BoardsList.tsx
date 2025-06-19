@@ -17,12 +17,14 @@ export const BoardsList = () => {
 
       {/* List of boards for desktop */}
       <div className="hidden md:flex flex-col h-full justify-between">
-        <div className="flex flex-col gap-4">
-          {boards.map((board) => (
-            <BoardCard key={board.id} board={board} />
-          ))}
-          <AddNewBoardButton />
-        </div>
+        <nav aria-label="Boards navigation">
+          <div className="flex flex-col gap-4" role="list">
+            {boards.map((board) => (
+              <BoardCard key={board.id} board={board} />
+            ))}
+            <AddNewBoardButton />
+          </div>
+        </nav>
 
         <ToggleTheme />
       </div>

@@ -15,8 +15,8 @@ export const BoardCard = ({ board }: BoardCardProps) => {
   const removeBoard = useBoardStore((state) => state.removeBoard);
   const isActive = currentBoardId === board.id;
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evitar que se seleccione el board
+  const handleDelete = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
     setIsDeleteDialogOpen(true);
   };
 
@@ -35,6 +35,13 @@ export const BoardCard = ({ board }: BoardCardProps) => {
     }
   };
 
+  const handleDeleteKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleDelete(e);
+    }
+  };
+
   return (
     <>
       <div
@@ -42,7 +49,7 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        role="button"
+        role="listitem"
         aria-label={`${isActive ? 'Deselect' : 'Select'} board ${board.name}`}
         aria-pressed={isActive}
         className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
@@ -50,7 +57,9 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         {isActive && (
           <button
             onClick={handleDelete}
-            className="absolute top-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
+            onKeyDown={handleDeleteKeyDown}
+            tabIndex={0}
+            className="absolute top-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             aria-label={`Delete board ${board.name}`}
           >
             <TrashIcon className="w-4 h-4 text-white" />

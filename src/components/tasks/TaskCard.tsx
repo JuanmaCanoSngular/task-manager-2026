@@ -22,8 +22,8 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
     setIsOpen(false);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evitar que se abra el modal de edición
+  const handleDelete = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
     setIsDeleteDialogOpen(true);
   };
 
@@ -38,6 +38,13 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
     }
   };
 
+  const handleDeleteKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleDelete(e);
+    }
+  };
+
   return (
     <>
       <Draggable draggableId={task.id.toString()} index={index}>
@@ -49,7 +56,7 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             onClick={handleClick}
             onKeyDown={handleKeyDown}
             tabIndex={0}
-            role="button"
+            role="listitem"
             aria-label={`Edit task: ${task.title}`}
             className={`card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:bg-slate-100/80 dark:hover:bg-white/5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset card-move-transition drag-handle ${
               snapshot.isDragging ? 'card-dragging' : ''
@@ -60,7 +67,9 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
           >
             <button
               onClick={handleDelete}
-              className="absolute top-2 right-2 z-20 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70"
+              onKeyDown={handleDeleteKeyDown}
+              tabIndex={0}
+              className="absolute top-2 right-2 z-20 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:opacity-100"
               aria-label={`Delete task: ${task.title}`}
             >
               <TrashIcon className="w-4 h-4 text-white" />

@@ -72,8 +72,8 @@ describe('BoardSelectMobile', () => {
     // The select should have value -1
     const select = screen.getByRole('combobox');
     expect(select).toHaveValue('-1');
-    // Should show the placeholder
-    expect(screen.getByText('Select board')).toBeInTheDocument();
+    // Should show the placeholder (there are multiple elements with this text)
+    expect(screen.getAllByText('Select board').length).toBeGreaterThan(0);
     // Should show the 'Select board' text
     expect(screen.getByText('Seleccionar tablero')).toBeInTheDocument();
   });

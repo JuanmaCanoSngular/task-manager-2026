@@ -41,7 +41,7 @@ describe('BoardCard', () => {
     expect(screen.getByText('📝')).toBeInTheDocument();
   });
 
-  test('debe tener role button y atributos aria correctos', async () => {
+  test('debe tener role listitem y atributos aria correctos', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
       useBoardStore: () => ({
         currentBoardId: null,
@@ -51,11 +51,11 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const cardButton = getByRole.button('Select board Test Board');
-    expect(cardButton).toBeInTheDocument();
-    expect(cardButton).toHaveAttribute('aria-label', 'Select board Test Board');
-    expect(cardButton).toHaveAttribute('aria-pressed', 'false');
-    expect(cardButton).toHaveAttribute('tabindex', '0');
+    const cardItem = screen.getByRole('listitem', { name: 'Select board Test Board' });
+    expect(cardItem).toBeInTheDocument();
+    expect(cardItem).toHaveAttribute('aria-label', 'Select board Test Board');
+    expect(cardItem).toHaveAttribute('aria-pressed', 'false');
+    expect(cardItem).toHaveAttribute('tabindex', '0');
   });
 
   test('debe tener estructura semántica correcta', async () => {
@@ -68,9 +68,9 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const cardButton = getByRole.button('Select board Test Board');
-    expect(cardButton).toHaveClass('card-base');
-    expect(cardButton).toHaveClass('relative', 'group', 'cursor-pointer');
+    const cardItem = screen.getByRole('listitem', { name: 'Select board Test Board' });
+    expect(cardItem).toHaveClass('card-base');
+    expect(cardItem).toHaveClass('relative', 'group', 'cursor-pointer');
     expect(getByRole.heading(2)).toBeInTheDocument();
   });
 
@@ -109,8 +109,8 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const cardButton = getByRole.button('Select board Test Board');
-    cardButton.focus();
-    expect(cardButton).toHaveFocus();
+    const cardItem = screen.getByRole('listitem', { name: 'Select board Test Board' });
+    cardItem.focus();
+    expect(cardItem).toHaveFocus();
   });
 });

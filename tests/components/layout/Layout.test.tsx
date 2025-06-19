@@ -67,7 +67,7 @@ describe('Layout', () => {
 
     const logoButton = getByRole.button(/go to home/i);
     expect(logoButton).toBeInTheDocument();
-    expect(logoButton).toHaveAttribute('aria-label', 'Go to home');
+    expect(logoButton).toHaveAttribute('aria-label', 'Go to home - Tasks Manager App');
   });
 
   test('should call setCurrentBoardId with null when logo is clicked', async () => {

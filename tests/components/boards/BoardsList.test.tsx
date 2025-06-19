@@ -305,7 +305,7 @@ describe('BoardsList', () => {
 
     // Verify mobile action buttons are present
     const addButtons = screen.getAllByRole('button', { name: /add new board/i });
-    const removeButton = screen.getByRole('button', { name: /remove board/i });
+    const removeButton = screen.getByRole('button', { name: /remove current board/i });
     expect(addButtons.length).toBeGreaterThan(0);
     expect(removeButton).toBeInTheDocument();
   });

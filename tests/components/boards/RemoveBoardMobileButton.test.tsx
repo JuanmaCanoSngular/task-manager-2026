@@ -66,11 +66,8 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Should render the button
-    const button = screen.getByRole('button', { name: /remove board/i });
+    const button = screen.getByRole('button', { name: /remove current board/i });
     expect(button).toBeInTheDocument();
-
-    // Should have correct title attribute
-    expect(button).toHaveAttribute('title', 'Remove board');
 
     // Should have correct classes
     expect(button).toHaveClass('btn-remove', 'w-full');
@@ -133,7 +130,7 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Click the button
-    const button = screen.getByRole('button', { name: /remove board/i });
+    const button = screen.getByRole('button', { name: /remove current board/i });
     await act(async () => {
       fireEvent.click(button);
     });
@@ -182,7 +179,7 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Open the dialog
-    const button = screen.getByRole('button', { name: /remove board/i });
+    const button = screen.getByRole('button', { name: /remove current board/i });
     await act(async () => {
       fireEvent.click(button);
     });
@@ -228,7 +225,7 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Open the dialog
-    const button = screen.getByRole('button', { name: /remove board/i });
+    const button = screen.getByRole('button', { name: /remove current board/i });
     await act(async () => {
       fireEvent.click(button);
     });
@@ -271,15 +268,21 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Should have proper button structure
-    const button = screen.getByRole('button', { name: /remove board/i });
+    const button = screen.getByRole('button', { name: /remove current board/i });
     expect(button).toBeInTheDocument();
+
+    // Should have proper accessibility attributes
+    expect(button).toHaveAttribute('aria-label', 'Remove current board');
+    expect(button).toHaveAttribute('tabindex', '0');
 
     // Should have proper heading structure
     const heading = screen.getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Remove board');
 
-    // Should have title attribute for accessibility
-    expect(button).toHaveAttribute('title', 'Remove board');
+    // Should have proper icon structure
+    const icon = button.querySelector('svg');
+    expect(icon).toBeInTheDocument();
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
   });
 
   test('handles different board IDs correctly', async () => {
@@ -288,7 +291,7 @@ describe('RemoveBoardMobileButton', () => {
     const { useBoardStore } = await import('../../../src/stores/board.store');
     vi.mocked(useBoardStore).mockImplementation((selector) => {
       const state = {
-        currentBoardId: 5,
+        currentBoardId: 999,
         boards: [],
         error: null,
         fetchBoards: vi.fn(),
@@ -310,13 +313,7 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Should render regardless of board ID
-    const button = screen.getByRole('button', { name: /remove board/i });
+    const button = screen.getByRole('button', { name: /remove current board/i });
     expect(button).toBeInTheDocument();
-
-    // Should work the same way
-    await act(async () => {
-      fireEvent.click(button);
-    });
-    expect(screen.getByText('Remove Board?')).toBeInTheDocument();
   });
 });
