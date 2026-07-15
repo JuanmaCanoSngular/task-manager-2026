@@ -1,10 +1,11 @@
 import { vi } from 'vitest';
 import axios from 'axios';
+// Hoist axios mock to top-level to match Vitest's hoisting behavior
+vi.mock('axios');
 import { Board } from '../../src/interfaces/board.interface';
 
 // Global axios mock for all tests
 export const setupAxiosMock = () => {
-  vi.mock('axios');
   const mockedAxios = vi.mocked(axios);
   // Ensure get always returns a Promise
   (mockedAxios.get as unknown as ReturnType<typeof vi.fn>).mockImplementation(() =>
