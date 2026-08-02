@@ -1,4 +1,5 @@
 import { useBoardStore } from '../../stores/board.store';
+import { ErrorBanner } from '../common/ErrorBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,8 @@ export const Layout = ({ children }: LayoutProps) => {
           </button>
         </h1>
       </header>
+
+      <ErrorBanner />
 
       <main className="flex-1">{children}</main>
     </div>

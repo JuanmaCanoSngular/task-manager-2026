@@ -8,7 +8,7 @@ Demo en vivo: https://task-manager-mu-sandy.vercel.app/
 
 Descripción breve
 -----------------
-Aplicación de gestión de tareas con interfaz tipo Kanban, creada para el reto "Task Manager App" de DevChallenges. Permite crear, editar, mover y filtrar tareas, con soporte para temas (claro/oscuro), accesibilidad y persistencia en el navegador.
+Aplicación de gestión de tareas con interfaz tipo Kanban, creada para el reto "Task Manager App" de DevChallenges. Permite crear, editar, mover y filtrar tareas, con soporte para temas (claro/oscuro), accesibilidad y persistencia remota en Supabase.
 
 Características principales
 -------------------------
@@ -17,7 +17,7 @@ Características principales
 - 🏷 Etiquetas por tarea (hasta 4)
 - 🌗 Tema claro/oscuro con persistencia
 - ♿ Navegación por teclado y soporte ARIA para accesibilidad
-- 💾 Persistencia local usando `localStorage`
+- 💾 Persistencia remota en Supabase (Postgres)
 - 📱 Diseño responsivo (móvil, tablet, escritorio)
 
 Capturas y visuales
@@ -34,6 +34,7 @@ Stack tecnológico
 - Bundler: Vite
 - Estilos: Tailwind CSS
 - State: Zustand (+ immer)
+- Persistencia: Supabase (Postgres)
 - Drag & Drop: @hello-pangea/dnd
 - Componentes accesibles: Headless UI
 - Tests: Vitest + React Testing Library
@@ -61,6 +62,25 @@ npm test
 npm run build
 ```
 
+Configuración de Supabase
+-------------------------
+La app persiste los datos en Supabase. Necesitas un proyecto y sus credenciales.
+
+1. Crea un proyecto en [supabase.com](https://supabase.com).
+2. En el SQL Editor, ejecuta `supabase/schema.sql` (crea las tablas y carga datos de ejemplo).
+3. Crea un archivo `.env` en la raíz (ver `.env.example`) con:
+
+```bash
+VITE_SUPABASE_URL="https://TU-PROYECTO.supabase.co"
+VITE_SUPABASE_ANON_KEY="tu-anon-key"
+```
+
+La `anon key` es pública por diseño (va en el cliente). No subas nunca la
+`service_role` key. `.env` está en `.gitignore`.
+
+> Nota: por ahora no hay autenticación; los datos son compartidos (RLS abierta).
+> El aislamiento por usuario llegará con el login.
+
 Scripts útiles
 --------------
 - `npm run dev` — servidor de desarrollo
@@ -68,6 +88,7 @@ Scripts útiles
 - `npm run preview` — previsualizar build de producción
 - `npm test` — ejecutar tests
 - `npm run lint` — linting del código
+- `npm run typecheck` — comprobación de tipos con TypeScript
 - `npm run format` — formatear con Prettier
 
 Estructura del proyecto

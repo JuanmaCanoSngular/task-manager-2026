@@ -21,7 +21,8 @@ afterEach(() => {
 describe('Layout', () => {
   test('should render children content', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => mockBoardStore(),
+      useBoardStore: (selector: (state: Record<string, unknown>) => unknown) =>
+        selector(mockBoardStore()),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -37,7 +38,8 @@ describe('Layout', () => {
 
   test('should render the header with logo', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => mockBoardStore(),
+      useBoardStore: (selector: (state: Record<string, unknown>) => unknown) =>
+        selector(mockBoardStore()),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -54,7 +56,8 @@ describe('Layout', () => {
 
   test('should have proper accessibility attributes', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => mockBoardStore(),
+      useBoardStore: (selector: (state: Record<string, unknown>) => unknown) =>
+        selector(mockBoardStore()),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -72,10 +75,10 @@ describe('Layout', () => {
   test('should call setCurrentBoardId with null when logo is clicked', async () => {
     const setState = vi.fn();
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: {
-        setState,
-        getState: () => mockBoardStore(),
-      },
+      useBoardStore: Object.assign(
+        (selector: (state: Record<string, unknown>) => unknown) => selector(mockBoardStore()),
+        { setState, getState: () => mockBoardStore() }
+      ),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -93,7 +96,8 @@ describe('Layout', () => {
 
   test('should have proper CSS classes for layout structure', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => mockBoardStore(),
+      useBoardStore: (selector: (state: Record<string, unknown>) => unknown) =>
+        selector(mockBoardStore()),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -111,7 +115,8 @@ describe('Layout', () => {
 
   test('should have proper heading structure', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => mockBoardStore(),
+      useBoardStore: (selector: (state: Record<string, unknown>) => unknown) =>
+        selector(mockBoardStore()),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -129,10 +134,10 @@ describe('Layout', () => {
   test('should handle multiple logo clicks', async () => {
     const setState = vi.fn();
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: {
-        setState,
-        getState: () => mockBoardStore(),
-      },
+      useBoardStore: Object.assign(
+        (selector: (state: Record<string, unknown>) => unknown) => selector(mockBoardStore()),
+        { setState, getState: () => mockBoardStore() }
+      ),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -155,7 +160,8 @@ describe('Layout', () => {
 
   test('should render complex children content', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => mockBoardStore(),
+      useBoardStore: (selector: (state: Record<string, unknown>) => unknown) =>
+        selector(mockBoardStore()),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
@@ -177,7 +183,8 @@ describe('Layout', () => {
 
   test('should have proper semantic HTML structure', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => mockBoardStore(),
+      useBoardStore: (selector: (state: Record<string, unknown>) => unknown) =>
+        selector(mockBoardStore()),
     }));
     const { Layout } = await import('../../../src/components/layout/Layout');
 
