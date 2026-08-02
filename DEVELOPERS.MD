@@ -133,6 +133,27 @@ abordará en la fase de autenticación. La `anon key` es pública por diseño; l
 `service_role` key NUNCA debe ir al cliente ni al repo. `.env` está en
 `.gitignore`.
 
+Autenticación y acceso restringido (Fase 3, en curso)
+-----------------------------------------------------
+El acceso es por invitación: login con Google (Supabase Auth) + aprobación
+manual del owner. Detrás del flag `VITE_AUTH_ENABLED` (en `false` la app
+funciona sin auth, como antes).
+
+Frontend:
+- `src/services/auth.service.ts` — login Google, sesión, estado de acceso, solicitud.
+- `src/hooks/useAuth.ts` — estados `loading` / `signed-out` / `pending` / `approved`.
+- `src/components/auth/` — `Landing`, `PendingAccess`, `AuthGate` (envuelve la app).
+
+Backend (Supabase Edge Functions, en `supabase/functions/`):
+- `request-access` — la invoca el cliente tras el login; crea el perfil
+  `pending` con un token y envía email al owner (Resend) con el enlace de aprobación.
+- `approve-access` — la abre el owner desde el email; valida el token (un solo
+  uso), marca `approved` y provisiona un tablero de ejemplo para el usuario.
+
+Datos: `supabase/auth-schema.sql` (tabla `profiles`, `user_id` en boards/tasks,
+RLS por usuario). NO ejecutar hasta que el login esté integrado: cierra la RLS
+abierta y romperia la app sin auth.
+
 Despliegue
 ----------
 - La app es una SPA estática. En el repo se ha configurado para desplegar en Vercel (ver `README.md`). Para deploy manual, crear build y subir `dist/`.

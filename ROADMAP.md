@@ -29,18 +29,25 @@ La app se mantiene únicamente en español (la internacionalización se descart�
 
 ## Fase 3 — Autenticación
 
-### 4. Login con email y código de verificación de 6 dígitos
-- Opción recomendada para un MVP inicial.
-- Menos fricción que una contraseña tradicional.
-- Más simple de implementar que OAuth en una primera iteración.
+Enfoque elegido: acceso por invitación con login de Google (Supabase Auth) y
+aprobación manual del owner. Se descartó el login por email + código.
 
-### 5. OAuth (segunda fase)
-- Añadir autenticación con Google o GitHub.
-- Se dejaría como mejora posterior una vez que la base funcional esté estable.
+### 4. Login federado con Google
+- Login con Google vía Supabase Auth.
+- El email verificado por Google identifica al usuario.
+
+### 5. Acceso restringido con aprobación manual
+- Al entrar por primera vez se crea una solicitud (perfil `pending`).
+- El owner recibe un email (Resend) con un enlace de aprobación de un solo uso.
+- Al aprobar, se marca `approved` y se provisiona un tablero de ejemplo.
+
+### 6. Multiusuario con RLS
+- `user_id` en boards/tasks y políticas RLS `auth.uid() = user_id`.
+- Cada usuario solo ve y edita sus propios datos.
 
 ## Fase 4 — Agente IA (Gemini)
 
-### 6. Añadir tareas por lenguaje natural desde el móvil
+### 7. Añadir tareas por lenguaje natural desde el móvil
 - Integrar un agente basado en Google Gemini que interprete instrucciones en lenguaje natural (ej.: "añade una tarea para llamar al cliente mañana").
 - El agente traduce la instrucción a una llamada estructurada (function calling) que crea la tarea en el gestor.
 - Acceso desde el móvil (PWA o endpoint ligero) para capturar tareas sobre la marcha.

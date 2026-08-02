@@ -4,8 +4,14 @@ import { BoardsList } from './components/boards/BoardsList';
 import { BoardContent } from './components/boards/BoardContent';
 import { Layout } from './components/layout/Layout';
 import { ToggleTheme } from './components/layout/ToggleTheme';
+import { AuthGate } from './components/auth/AuthGate';
 
-const App = () => {
+// Acceso restringido detrás de login/aprobación. Con el flag desactivado la app
+// funciona sin auth (comportamiento actual). Se activa cuando el flujo de auth
+// (Google + provisión) esté listo en el backend.
+const authEnabled = import.meta.env.VITE_AUTH_ENABLED === 'true';
+
+const AppContent = () => {
   const error = useBoardStore((state) => state.error);
   const fetchBoards = useBoardStore((state) => state.fetchBoards);
 
@@ -57,5 +63,7 @@ const App = () => {
     </Layout>
   );
 };
+
+const App = () => (authEnabled ? <AuthGate>{<AppContent />}</AuthGate> : <AppContent />);
 
 export default App;
