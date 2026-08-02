@@ -30,10 +30,10 @@ describe('BoardContent', () => {
     }));
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
-    expect(screen.getByText(/backlog/i)).toBeInTheDocument();
-    expect(screen.getByText(/in progress/i)).toBeInTheDocument();
-    expect(screen.getByText(/in review/i)).toBeInTheDocument();
-    expect(screen.getByText(/completed/i)).toBeInTheDocument();
+    expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
+    expect(screen.getByText(/en progreso/i)).toBeInTheDocument();
+    expect(screen.getByText(/en revisión/i)).toBeInTheDocument();
+    expect(screen.getByText(/completada/i)).toBeInTheDocument();
   });
 
   test('should have the correct grid structure', async () => {
@@ -49,7 +49,7 @@ describe('BoardContent', () => {
     }));
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
-    const mainContainer = screen.getByText(/backlog/i).closest('div[class*="grid"]');
+    const mainContainer = screen.getByText(/pendiente/i).closest('div[class*="grid"]');
     expect(mainContainer).toHaveClass(
       'grid',
       'grid-cols-1',
@@ -73,7 +73,7 @@ describe('BoardContent', () => {
     }));
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
-    const container = screen.getByText(/backlog/i).closest('div[class*="shadow-xl"]');
+    const container = screen.getByText(/pendiente/i).closest('div[class*="shadow-xl"]');
     expect(container).toHaveClass(
       'w-full',
       'h-full',
@@ -98,10 +98,10 @@ describe('BoardContent', () => {
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
     const columns = [
-      screen.getByText(/backlog/i),
-      screen.getByText(/in progress/i),
-      screen.getByText(/in review/i),
-      screen.getByText(/completed/i),
+      screen.getByText(/pendiente/i),
+      screen.getByText(/en progreso/i),
+      screen.getByText(/en revisión/i),
+      screen.getByText(/completada/i),
     ];
     expect(columns).toHaveLength(4);
   });
@@ -119,10 +119,10 @@ describe('BoardContent', () => {
     }));
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
-    expect(screen.getByText(/backlog/i)).toBeInTheDocument();
-    expect(screen.getByText(/in progress/i)).toBeInTheDocument();
-    expect(screen.getByText(/in review/i)).toBeInTheDocument();
-    expect(screen.getByText(/completed/i)).toBeInTheDocument();
+    expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
+    expect(screen.getByText(/en progreso/i)).toBeInTheDocument();
+    expect(screen.getByText(/en revisión/i)).toBeInTheDocument();
+    expect(screen.getByText(/completada/i)).toBeInTheDocument();
   });
 
   test('should have correct semantic structure for columns', async () => {
@@ -138,10 +138,10 @@ describe('BoardContent', () => {
     }));
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
-    const backlogColumn = screen.getByText(/backlog/i);
-    const inProgressColumn = screen.getByText(/in progress/i);
-    const inReviewColumn = screen.getByText(/in review/i);
-    const completedColumn = screen.getByText(/completed/i);
+    const backlogColumn = screen.getByText(/pendiente/i);
+    const inProgressColumn = screen.getByText(/en progreso/i);
+    const inReviewColumn = screen.getByText(/en revisión/i);
+    const completedColumn = screen.getByText(/completada/i);
     expect(backlogColumn).toBeInTheDocument();
     expect(inProgressColumn).toBeInTheDocument();
     expect(inReviewColumn).toBeInTheDocument();

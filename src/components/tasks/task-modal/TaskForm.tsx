@@ -95,10 +95,10 @@ export const TaskForm = ({ mode, initialData, onSubmit, onCancel }: TaskFormProp
 
       <div className="pt-4 flex justify-end gap-3">
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          Cancelar
         </button>
         <button type="submit" className="btn-add">
-          {mode === 'create' ? 'Add Task' : 'Save Changes'}
+          {mode === 'create' ? 'Añadir tarea' : 'Guardar cambios'}
         </button>
       </div>
     </form>

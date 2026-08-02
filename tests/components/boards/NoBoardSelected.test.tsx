@@ -84,21 +84,21 @@ describe('NoBoardSelected', () => {
     render(<NoBoardSelected />);
 
     // Should render the main heading
-    expect(screen.getByText('Please, select a board')).toBeInTheDocument();
+    expect(screen.getByText('Por favor, selecciona un tablero')).toBeInTheDocument();
 
     // Should render the desktop message
     expect(
-      screen.getByText('Choose a board from the sidebar to view its tasks')
+      screen.getByText('Elige un tablero en la barra lateral para ver sus tareas')
     ).toBeInTheDocument();
 
     // Should render the mobile message
     expect(
-      screen.getByText('Choose a board from the select menu to view its tasks')
+      screen.getByText('Elige un tablero en el menú desplegable para ver sus tareas')
     ).toBeInTheDocument();
 
     // Should not render the reset button
     expect(
-      screen.queryByRole('button', { name: /restore initial boards/i })
+      screen.queryByRole('button', { name: /restaurar tableros iniciales/i })
     ).not.toBeInTheDocument();
   });
 
@@ -128,17 +128,17 @@ describe('NoBoardSelected', () => {
     render(<NoBoardSelected />);
 
     // Should render the no boards heading
-    expect(screen.getByText('No boards available')).toBeInTheDocument();
+    expect(screen.getByText('No hay tableros disponibles')).toBeInTheDocument();
 
     // Should render the description
     expect(
       screen.getByText(
-        'There are no boards to display. Add a new board or restore the initial boards.'
+        'No hay tableros que mostrar. Añade uno nuevo o restaura los tableros iniciales.'
       )
     ).toBeInTheDocument();
 
     // Should render the reset button
-    const resetButton = screen.getByRole('button', { name: /restore initial boards/i });
+    const resetButton = screen.getByRole('button', { name: /restaurar tableros iniciales/i });
     expect(resetButton).toBeInTheDocument();
   });
 
@@ -168,7 +168,7 @@ describe('NoBoardSelected', () => {
     render(<NoBoardSelected />);
 
     // Click the reset button
-    const resetButton = screen.getByRole('button', { name: /restore initial boards/i });
+    const resetButton = screen.getByRole('button', { name: /restaurar tableros iniciales/i });
     fireEvent.click(resetButton);
 
     // Should call fetchBoards
@@ -213,7 +213,7 @@ describe('NoBoardSelected', () => {
 
     // Should have proper heading structure
     const heading = screen.getByRole('heading', { level: 3 });
-    expect(heading).toHaveTextContent('Please, select a board');
+    expect(heading).toHaveTextContent('Por favor, selecciona un tablero');
 
     // Should have proper button structure when no boards
     const { rerender } = render(<NoBoardSelected />);
@@ -239,7 +239,7 @@ describe('NoBoardSelected', () => {
 
     rerender(<NoBoardSelected />);
 
-    const resetButton = screen.getByRole('button', { name: /restore initial boards/i });
+    const resetButton = screen.getByRole('button', { name: /restaurar tableros iniciales/i });
     expect(resetButton).toBeInTheDocument();
   });
 
@@ -280,8 +280,8 @@ describe('NoBoardSelected', () => {
     render(<NoBoardSelected />);
 
     // Should show both desktop and mobile messages
-    const desktopMessage = screen.getByText('Choose a board from the sidebar to view its tasks');
-    const mobileMessage = screen.getByText('Choose a board from the select menu to view its tasks');
+    const desktopMessage = screen.getByText('Elige un tablero en la barra lateral para ver sus tareas');
+    const mobileMessage = screen.getByText('Elige un tablero en el menú desplegable para ver sus tareas');
 
     expect(desktopMessage).toHaveClass('hidden', 'md:inline');
     expect(mobileMessage).toHaveClass('md:hidden');
@@ -313,12 +313,12 @@ describe('NoBoardSelected', () => {
     render(<NoBoardSelected />);
 
     // Should not show the "select a board" message
-    expect(screen.queryByText('Please, select a board')).not.toBeInTheDocument();
+    expect(screen.queryByText('Por favor, selecciona un tablero')).not.toBeInTheDocument();
 
     // Should show the "no boards" message
-    expect(screen.getByText('No boards available')).toBeInTheDocument();
+    expect(screen.getByText('No hay tableros disponibles')).toBeInTheDocument();
 
     // Should show the reset button
-    expect(screen.getByRole('button', { name: /restore initial boards/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /restaurar tableros iniciales/i })).toBeInTheDocument();
   });
 });

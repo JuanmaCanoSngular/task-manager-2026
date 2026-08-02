@@ -24,9 +24,9 @@ export const RemoveBoardMobileButton = () => {
         onKeyDown={handleKeyDown}
         tabIndex={0}
         className="btn-remove w-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-inset"
-        aria-label="Remove current board"
+        aria-label="Eliminar el tablero actual"
       >
-        <h2 className="text-xl">Remove board</h2>
+        <h2 className="text-xl">Eliminar tablero</h2>
         <span className="flex items-center justify-center w-6 h-6">
           <TrashIcon className="w-6 h-6 text-current" />
         </span>
@@ -39,10 +39,10 @@ export const RemoveBoardMobileButton = () => {
           removeBoard();
           setIsDeleteDialogOpen(false);
         }}
-        title="Remove Board?"
-        description="This action cannot be undone. All tasks associated with this board will be deleted."
-        confirmText="Remove"
-        cancelText="Cancel"
+        title="¿Eliminar tablero?"
+        description="Esta acción no se puede deshacer. Se eliminarán todas las tareas asociadas a este tablero."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
       />
     </>
   );

@@ -81,7 +81,7 @@ describe('BoardsList', () => {
     render(<BoardsList />);
 
     // Verify that the component renders without errors even with no boards
-    const addButtons = screen.getAllByRole('button', { name: /add new board/i });
+    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
     expect(addButtons.length).toBeGreaterThan(0);
   });
 
@@ -234,7 +234,7 @@ describe('BoardsList', () => {
     render(<BoardsList />);
 
     // Verify add new board button is present
-    const addButtons = screen.getAllByRole('button', { name: /add new board/i });
+    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
     expect(addButtons.length).toBeGreaterThan(0);
   });
 
@@ -304,8 +304,8 @@ describe('BoardsList', () => {
     render(<BoardsList />);
 
     // Verify mobile action buttons are present
-    const addButtons = screen.getAllByRole('button', { name: /add new board/i });
-    const removeButton = screen.getByRole('button', { name: /remove current board/i });
+    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
+    const removeButton = screen.getByRole('button', { name: /eliminar el tablero actual/i });
     expect(addButtons.length).toBeGreaterThan(0);
     expect(removeButton).toBeInTheDocument();
   });
@@ -344,7 +344,7 @@ describe('BoardsList', () => {
     const boardTexts = screen.getAllByText('Test Board');
     expect(boardTexts.length).toBeGreaterThan(0);
 
-    const addButtons = screen.getAllByRole('button', { name: /add new board/i });
+    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
     expect(addButtons.length).toBeGreaterThan(0);
 
     const themeGroup = screen.getByRole('radiogroup', { name: /seleccionar tema de color/i });

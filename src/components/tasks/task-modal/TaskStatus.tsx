@@ -14,7 +14,7 @@ export const TaskStatus = ({ value, onChange }: TaskStatusProps) => (
   <div className="space-y-2">
     <Listbox value={value} onChange={onChange}>
       <Listbox.Label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Status
+        Estado
       </Listbox.Label>
       <div className="relative mt-1">
         <Listbox.Button className="relative w-full cursor-default rounded-lg border-0 py-3 px-4 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:bg-gray-700 sm:text-sm sm:leading-6">
@@ -23,7 +23,7 @@ export const TaskStatus = ({ value, onChange }: TaskStatusProps) => (
               className={`w-3 h-3 rounded-full ${TASK_STATUS.find((s) => s.status === value)?.color}`}
             />
             <span className="block truncate text-gray-900 dark:text-white">
-              {TASK_STATUS.find((s) => s.status === value)?.label}
+              {TASK_STATUS.find((s) => s.status === value)?.label ?? 'Selecciona un estado'}
             </span>
           </div>
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">

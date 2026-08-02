@@ -79,8 +79,8 @@ describe('ConfirmDialog', () => {
         confirmText: undefined,
         cancelText: undefined,
       });
-      expect(screen.getByText('Confirm')).toBeInTheDocument();
-      expect(screen.getByText('Cancel')).toBeInTheDocument();
+      expect(screen.getByText('Confirmar')).toBeInTheDocument();
+      expect(screen.getByText('Cancelar')).toBeInTheDocument();
     });
 
     test('should use custom button text when provided', () => {

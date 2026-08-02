@@ -50,7 +50,7 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="listitem"
-        aria-label={`${isActive ? 'Deselect' : 'Select'} board ${board.name}`}
+        aria-label={`${isActive ? 'Deseleccionar' : 'Seleccionar'} tablero ${board.name}`}
         aria-pressed={isActive}
         className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
       >
@@ -60,7 +60,7 @@ export const BoardCard = ({ board }: BoardCardProps) => {
             onKeyDown={handleDeleteKeyDown}
             tabIndex={0}
             className="absolute top-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            aria-label={`Delete board ${board.name}`}
+            aria-label={`Eliminar tablero ${board.name}`}
           >
             <TrashIcon className="w-4 h-4 text-white" />
           </button>
@@ -83,10 +83,10 @@ export const BoardCard = ({ board }: BoardCardProps) => {
           removeBoard();
           setIsDeleteDialogOpen(false);
         }}
-        title="Remove Board?"
-        description="This action cannot be undone. All tasks associated with this board will be deleted."
-        confirmText="Remove"
-        cancelText="Cancel"
+        title="¿Eliminar tablero?"
+        description="Esta acción no se puede deshacer. Se eliminarán todas las tareas asociadas a este tablero."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
       />
     </>
   );

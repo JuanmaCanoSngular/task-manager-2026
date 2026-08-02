@@ -190,8 +190,8 @@ describe('TaskForm', () => {
     expect(screen.getByText('Background Image')).toBeInTheDocument();
     expect(screen.getByText('Status')).toBeInTheDocument();
     expect(screen.getByLabelText('Available tags for the task')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add Task' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Añadir tarea' })).toBeInTheDocument();
   });
 
   test('should handle title input changes', () => {
@@ -262,7 +262,7 @@ describe('TaskForm', () => {
     render(<TaskForm {...defaultProps} />);
 
     const titleInput = screen.getByLabelText('Task Title');
-    const submitButton = screen.getByRole('button', { name: 'Add Task' });
+    const submitButton = screen.getByRole('button', { name: 'Añadir tarea' });
 
     fireEvent.change(titleInput, { target: { value: 'Test Task' } });
     fireEvent.click(submitButton);
@@ -278,7 +278,7 @@ describe('TaskForm', () => {
   test('should not submit form with empty title', () => {
     render(<TaskForm {...defaultProps} />);
 
-    const submitButton = screen.getByRole('button', { name: 'Add Task' });
+    const submitButton = screen.getByRole('button', { name: 'Añadir tarea' });
     fireEvent.click(submitButton);
 
     expect(defaultProps.onSubmit).not.toHaveBeenCalled();
@@ -287,7 +287,7 @@ describe('TaskForm', () => {
   test('should handle cancel button click', () => {
     render(<TaskForm {...defaultProps} />);
 
-    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
     fireEvent.click(cancelButton);
 
     expect(defaultProps.onCancel).toHaveBeenCalled();
@@ -313,7 +313,7 @@ describe('TaskForm', () => {
   test('should show correct button text for edit mode', () => {
     render(<TaskForm {...defaultProps} mode="edit" />);
 
-    expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeInTheDocument();
   });
 
   test('should have correct form structure', () => {

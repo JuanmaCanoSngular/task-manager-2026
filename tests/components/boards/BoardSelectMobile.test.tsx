@@ -73,9 +73,9 @@ describe('BoardSelectMobile', () => {
     const select = screen.getByRole('combobox');
     expect(select).toHaveValue('-1');
     // Should show the placeholder (there are multiple elements with this text)
-    expect(screen.getAllByText('Select board').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Seleccionar tablero').length).toBeGreaterThan(0);
     // Should show the 'Select board' text
-    expect(screen.getByText('Seleccionar tablero')).toBeInTheDocument();
+    expect(screen.getAllByText('Seleccionar tablero').length).toBeGreaterThan(0);
   });
 
   test('renders correctly with no board selected', async () => {
@@ -104,7 +104,7 @@ describe('BoardSelectMobile', () => {
     const select = screen.getByRole('combobox');
     expect(select).toHaveValue('-1');
     // Should show the 'Select board' text
-    expect(screen.getByText('Seleccionar tablero')).toBeInTheDocument();
+    expect(screen.getAllByText('Seleccionar tablero').length).toBeGreaterThan(0);
   });
 
   test('calls fetchBoardDetails when a board is selected', async () => {

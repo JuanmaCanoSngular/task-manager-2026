@@ -17,17 +17,18 @@ export const BoardLogo = ({
   selectedIndex,
   onSelect,
   onGenerateNew,
-}: BoardLogoProps) => (
+}: BoardLogoProps) => {
+  return (
   <div>
     <div className="flex items-center justify-between mb-4">
       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-        Board logo
+        Logo del tablero
       </label>
       <button
         type="button"
         onClick={onGenerateNew}
         className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200 hover:scale-105"
-        aria-label="Generate new logos for the board"
+        aria-label="Generar nuevos logos para el tablero"
       >
         <ArrowPathIcon className="w-4 h-4" />
       </button>
@@ -37,7 +38,7 @@ export const BoardLogo = ({
       <div
         className="grid grid-cols-5 gap-3 w-full"
         role="radiogroup"
-        aria-label="Logo options for the board"
+        aria-label="Opciones de logo para el tablero"
       >
         {logoOptions.map((logo, index) => (
           <button
@@ -50,7 +51,7 @@ export const BoardLogo = ({
                 : 'hover:scale-105'
             }`}
             style={{ backgroundColor: logo.color }}
-            aria-label={`Select logo ${index + 1}: ${logo.emoji}`}
+            aria-label={`Seleccionar logo ${index + 1}: ${logo.emoji}`}
             aria-pressed={selectedIndex === index}
             role="radio"
           >
@@ -60,4 +61,5 @@ export const BoardLogo = ({
       </div>
     </div>
   </div>
-);
+  );
+};

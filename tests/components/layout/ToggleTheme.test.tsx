@@ -34,8 +34,8 @@ describe('ToggleTheme', () => {
     }));
     const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
     render(<ToggleTheme />);
-    expect(screen.getByRole('radio', { name: /dark/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /light/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /oscuro/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /claro/i })).toBeInTheDocument();
   });
 
   test('should have correct aria attributes and roles', async () => {
@@ -47,8 +47,8 @@ describe('ToggleTheme', () => {
     const group = screen.getByRole('radiogroup');
     expect(group).toBeInTheDocument();
     expect(group).toHaveAttribute('aria-label', expect.stringMatching(/theme|color/i));
-    const darkBtn = screen.getByRole('radio', { name: /dark/i });
-    const lightBtn = screen.getByRole('radio', { name: /light/i });
+    const darkBtn = screen.getByRole('radio', { name: /oscuro/i });
+    const lightBtn = screen.getByRole('radio', { name: /claro/i });
     expect(darkBtn).toHaveAttribute('aria-pressed', 'false');
     expect(lightBtn).toHaveAttribute('aria-pressed', 'true');
   });
@@ -60,7 +60,7 @@ describe('ToggleTheme', () => {
     }));
     const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
     render(<ToggleTheme />);
-    const darkBtn = screen.getByRole('radio', { name: /dark/i });
+    const darkBtn = screen.getByRole('radio', { name: /oscuro/i });
     fireEvent.click(darkBtn);
     expect(setTheme).toHaveBeenCalledWith(true);
   });
@@ -72,7 +72,7 @@ describe('ToggleTheme', () => {
     }));
     const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
     render(<ToggleTheme />);
-    const lightBtn = screen.getByRole('radio', { name: /light/i });
+    const lightBtn = screen.getByRole('radio', { name: /claro/i });
     fireEvent.click(lightBtn);
     expect(setTheme).toHaveBeenCalledWith(false);
   });

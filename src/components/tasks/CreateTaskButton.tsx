@@ -27,9 +27,9 @@ export const CreateTaskButton = () => {
         onKeyDown={handleKeyDown}
         tabIndex={0}
         className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-        aria-label="Add new task"
+        aria-label="Añadir nueva tarea"
       >
-        <span>Add new task</span>
+        <span>Añadir nueva tarea</span>
         <PlusIcon className="w-4 h-4" />
       </button>
 

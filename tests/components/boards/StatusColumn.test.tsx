@@ -129,13 +129,13 @@ describe('StatusColumn', () => {
     );
 
     // Should render CreateTaskButton for backlog
-    expect(screen.getByRole('button', { name: /add new task/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /añadir nueva tarea/i })).toBeInTheDocument();
 
     // Render with in-progress status (should not show CreateTaskButton)
     rerender(<StatusColumn status="in-progress" label="In Progress" color="bg-yellow-300" />);
 
     // Should not render CreateTaskButton for non-backlog status
-    expect(screen.queryByRole('button', { name: /add new task/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /añadir nueva tarea/i })).not.toBeInTheDocument();
   });
 
   test('renders with different status types', async () => {

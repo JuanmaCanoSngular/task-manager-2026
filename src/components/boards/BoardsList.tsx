@@ -17,7 +17,7 @@ export const BoardsList = () => {
 
       {/* List of boards for desktop */}
       <div className="hidden md:flex flex-col h-full justify-between">
-        <nav aria-label="Boards navigation">
+        <nav aria-label="Navegación de tableros">
           <div className="flex flex-col gap-4" role="list">
             {boards.map((board) => (
               <BoardCard key={board.id} board={board} />

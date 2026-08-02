@@ -13,21 +13,21 @@ describe('TaskBackground', () => {
   test('should render correctly without background image', () => {
     render(<TaskBackground {...defaultProps} />);
 
-    expect(screen.getByText('Background Image')).toBeInTheDocument();
-    expect(screen.getByLabelText('Generate new background image')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Remove background image')).not.toBeInTheDocument();
-    expect(screen.queryByAltText('Task background')).not.toBeInTheDocument();
+    expect(screen.getByText('Imagen de fondo')).toBeInTheDocument();
+    expect(screen.getByLabelText('Generar nueva imagen de fondo')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Eliminar imagen de fondo')).not.toBeInTheDocument();
+    expect(screen.queryByAltText('Fondo de la tarea')).not.toBeInTheDocument();
   });
 
   test('should render with background image', () => {
     const backgroundImage = 'https://example.com/image.jpg';
     render(<TaskBackground {...defaultProps} backgroundImage={backgroundImage} />);
 
-    expect(screen.getByAltText('Task background')).toBeInTheDocument();
-    expect(screen.getByLabelText('Remove background image')).toBeInTheDocument();
-    expect(screen.getByLabelText('Generate new background image')).toBeInTheDocument();
+    expect(screen.getByAltText('Fondo de la tarea')).toBeInTheDocument();
+    expect(screen.getByLabelText('Eliminar imagen de fondo')).toBeInTheDocument();
+    expect(screen.getByLabelText('Generar nueva imagen de fondo')).toBeInTheDocument();
 
-    const img = screen.getByAltText('Task background') as HTMLImageElement;
+    const img = screen.getByAltText('Fondo de la tarea') as HTMLImageElement;
     expect(img.src).toBe(backgroundImage);
   });
 
@@ -35,7 +35,7 @@ describe('TaskBackground', () => {
     const onGenerate = vi.fn();
     render(<TaskBackground {...defaultProps} onGenerate={onGenerate} />);
 
-    const generateButton = screen.getByLabelText('Generate new background image');
+    const generateButton = screen.getByLabelText('Generar nueva imagen de fondo');
     fireEvent.click(generateButton);
 
     expect(onGenerate).toHaveBeenCalled();
@@ -48,7 +48,7 @@ describe('TaskBackground', () => {
       <TaskBackground {...defaultProps} backgroundImage={backgroundImage} onRemove={onRemove} />
     );
 
-    const removeButton = screen.getByLabelText('Remove background image');
+    const removeButton = screen.getByLabelText('Eliminar imagen de fondo');
     fireEvent.click(removeButton);
 
     expect(onRemove).toHaveBeenCalled();
@@ -57,21 +57,21 @@ describe('TaskBackground', () => {
   test('should show loading state when isLoading is true', () => {
     render(<TaskBackground {...defaultProps} isLoading={true} />);
 
-    expect(screen.getByLabelText('Generating background image...')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Generate new background image')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Generando imagen de fondo…')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Generar nueva imagen de fondo')).not.toBeInTheDocument();
   });
 
   test('should disable generate button when loading', () => {
     render(<TaskBackground {...defaultProps} isLoading={true} />);
 
-    const generateButton = screen.getByLabelText('Generating background image...');
+    const generateButton = screen.getByLabelText('Generando imagen de fondo…');
     expect(generateButton).toBeDisabled();
   });
 
   test('should show spinner icon when loading', () => {
     render(<TaskBackground {...defaultProps} isLoading={true} />);
 
-    const generateButton = screen.getByLabelText('Generating background image...');
+    const generateButton = screen.getByLabelText('Generando imagen de fondo…');
     const spinnerIcon = generateButton.querySelector('.animate-spin');
     expect(spinnerIcon).toBeInTheDocument();
   });
@@ -79,7 +79,7 @@ describe('TaskBackground', () => {
   test('should show photo icon when not loading', () => {
     render(<TaskBackground {...defaultProps} isLoading={false} />);
 
-    const generateButton = screen.getByLabelText('Generate new background image');
+    const generateButton = screen.getByLabelText('Generar nueva imagen de fondo');
     const photoIcon = generateButton.querySelector('svg');
     expect(photoIcon).toBeInTheDocument();
   });
@@ -88,7 +88,7 @@ describe('TaskBackground', () => {
     const backgroundImage = 'https://example.com/image.jpg';
     render(<TaskBackground {...defaultProps} backgroundImage={backgroundImage} />);
 
-    const container = screen.getByAltText('Task background').parentElement;
+    const container = screen.getByAltText('Fondo de la tarea').parentElement;
     expect(container).toHaveClass('relative', 'h-24', 'w-full', 'overflow-hidden', 'rounded-lg');
   });
 
@@ -96,7 +96,7 @@ describe('TaskBackground', () => {
     const backgroundImage = 'https://example.com/image.jpg';
     render(<TaskBackground {...defaultProps} backgroundImage={backgroundImage} />);
 
-    const img = screen.getByAltText('Task background');
+    const img = screen.getByAltText('Fondo de la tarea');
     expect(img).toHaveClass('w-full', 'h-full', 'object-cover');
   });
 
@@ -104,7 +104,7 @@ describe('TaskBackground', () => {
     const backgroundImage = 'https://example.com/image.jpg';
     render(<TaskBackground {...defaultProps} backgroundImage={backgroundImage} />);
 
-    const overlay = screen.getByAltText('Task background').nextElementSibling;
+    const overlay = screen.getByAltText('Fondo de la tarea').nextElementSibling;
     expect(overlay).toHaveClass(
       'absolute',
       'inset-0',
@@ -117,14 +117,14 @@ describe('TaskBackground', () => {
   test('should not show remove button when no background image', () => {
     render(<TaskBackground {...defaultProps} backgroundImage="" />);
 
-    expect(screen.queryByLabelText('Remove background image')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Eliminar imagen de fondo')).not.toBeInTheDocument();
   });
 
   test('should handle generate button click when not loading', () => {
     const onGenerate = vi.fn();
     render(<TaskBackground {...defaultProps} onGenerate={onGenerate} isLoading={false} />);
 
-    const generateButton = screen.getByLabelText('Generate new background image');
+    const generateButton = screen.getByLabelText('Generar nueva imagen de fondo');
     fireEvent.click(generateButton);
 
     expect(onGenerate).toHaveBeenCalledTimes(1);
@@ -134,7 +134,7 @@ describe('TaskBackground', () => {
     const onGenerate = vi.fn();
     render(<TaskBackground {...defaultProps} onGenerate={onGenerate} isLoading={true} />);
 
-    const generateButton = screen.getByLabelText('Generating background image...');
+    const generateButton = screen.getByLabelText('Generando imagen de fondo…');
     fireEvent.click(generateButton);
 
     expect(onGenerate).not.toHaveBeenCalled();
@@ -144,8 +144,8 @@ describe('TaskBackground', () => {
     const backgroundImage = 'https://example.com/image.jpg';
     render(<TaskBackground {...defaultProps} backgroundImage={backgroundImage} />);
 
-    const generateButton = screen.getByLabelText('Generate new background image');
-    const removeButton = screen.getByLabelText('Remove background image');
+    const generateButton = screen.getByLabelText('Generar nueva imagen de fondo');
+    const removeButton = screen.getByLabelText('Eliminar imagen de fondo');
 
     expect(generateButton).toHaveAttribute('type', 'button');
     expect(removeButton).toHaveAttribute('type', 'button');
@@ -154,14 +154,14 @@ describe('TaskBackground', () => {
   test('should have correct label text', () => {
     render(<TaskBackground {...defaultProps} />);
 
-    expect(screen.getByText('Background Image')).toBeInTheDocument();
+    expect(screen.getByText('Imagen de fondo')).toBeInTheDocument();
   });
 
   test('should handle multiple generate clicks', () => {
     const onGenerate = vi.fn();
     render(<TaskBackground {...defaultProps} onGenerate={onGenerate} />);
 
-    const generateButton = screen.getByLabelText('Generate new background image');
+    const generateButton = screen.getByLabelText('Generar nueva imagen de fondo');
     fireEvent.click(generateButton);
     fireEvent.click(generateButton);
 
@@ -175,7 +175,7 @@ describe('TaskBackground', () => {
       <TaskBackground {...defaultProps} backgroundImage={backgroundImage} onRemove={onRemove} />
     );
 
-    const removeButton = screen.getByLabelText('Remove background image');
+    const removeButton = screen.getByLabelText('Eliminar imagen de fondo');
     fireEvent.click(removeButton);
     fireEvent.click(removeButton);
 

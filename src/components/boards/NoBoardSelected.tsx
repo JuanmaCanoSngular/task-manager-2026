@@ -16,28 +16,28 @@ export const NoBoardSelected = () => {
           {hasBoards ? (
             <>
               <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">
-                Please, select a board
+                Por favor, selecciona un tablero
               </h3>
               <p className="text-sm text-gray-400 dark:text-gray-500">
                 <span className="hidden md:inline">
-                  Choose a board from the sidebar to view its tasks
+                  Elige un tablero en la barra lateral para ver sus tareas
                 </span>
                 <span className="md:hidden">
-                  Choose a board from the select menu to view its tasks
+                  Elige un tablero en el menú desplegable para ver sus tareas
                 </span>
               </p>
             </>
           ) : (
             <>
               <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">
-                No boards available
+                No hay tableros disponibles
               </h3>
               <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
-                There are no boards to display. Add a new board or restore the initial boards.
+                No hay tableros que mostrar. Añade uno nuevo o restaura los tableros iniciales.
               </p>
               <div className="flex justify-center">
                 <button onClick={handleReset} className="btn-add">
-                  Restore initial boards
+                  Restaurar tableros iniciales
                 </button>
               </div>
             </>

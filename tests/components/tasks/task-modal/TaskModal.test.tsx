@@ -45,20 +45,20 @@ describe('TaskModal', () => {
 
   test('should render correctly when open in create mode', () => {
     render(<TaskModal {...defaultProps} />);
-    expect(screen.getByText('Add New Task')).toBeInTheDocument();
+    expect(screen.getByText('Añadir nueva tarea')).toBeInTheDocument();
     expect(screen.getByText('create')).toBeInTheDocument();
   });
 
   test('should render correctly when open in edit mode', () => {
     render(<TaskModal {...defaultProps} mode="edit" task={mockTask} />);
-    expect(screen.getByText('Edit Task')).toBeInTheDocument();
+    expect(screen.getByText('Editar tarea')).toBeInTheDocument();
     expect(screen.getByText('edit')).toBeInTheDocument();
     expect(screen.getByText(JSON.stringify(mockTask))).toBeInTheDocument();
   });
 
   test('should not render when closed', () => {
     render(<TaskModal {...defaultProps} isOpen={false} />);
-    expect(screen.queryByText('Add New Task')).not.toBeInTheDocument();
+    expect(screen.queryByText('Añadir nueva tarea')).not.toBeInTheDocument();
     expect(screen.queryByText('create')).not.toBeInTheDocument();
   });
 
@@ -98,7 +98,7 @@ describe('TaskModal', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
     const title = screen.getByRole('heading', { level: 3 });
-    expect(title).toHaveTextContent('Add New Task');
+    expect(title).toHaveTextContent('Añadir nueva tarea');
   });
 
   test('should have correct CSS classes', () => {
@@ -201,7 +201,7 @@ describe('TaskModal', () => {
     const { rerender } = render(<TaskModal {...defaultProps} onClose={onClose} />);
     rerender(<TaskModal {...defaultProps} onClose={onClose} isOpen={false} />);
     rerender(<TaskModal {...defaultProps} onClose={onClose} isOpen={true} />);
-    expect(screen.getByText('Add New Task')).toBeInTheDocument();
+    expect(screen.getByText('Añadir nueva tarea')).toBeInTheDocument();
   });
 
   test('should call onClose when backdrop is clicked', () => {

@@ -38,11 +38,11 @@ export const ToggleTheme = () => {
         }`}
         onClick={() => setTheme(true)}
         aria-pressed={isDark}
-        aria-label="Switch to dark mode"
+        aria-label="Cambiar a modo oscuro"
         role="radio"
       >
         <MoonIcon className="w-4 h-4 mr-2" />
-        <span className="font-medium">Dark</span>
+        <span className="font-medium">Oscuro</span>
       </button>
       <button
         className={`flex items-center justify-center w-1/2 px-3 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
@@ -52,11 +52,11 @@ export const ToggleTheme = () => {
         }`}
         onClick={() => setTheme(false)}
         aria-pressed={!isDark}
-        aria-label="Switch to light mode"
+        aria-label="Cambiar a modo claro"
         role="radio"
       >
         <SunIcon className="w-4 h-4 mr-2" />
-        <span className="font-medium">Light</span>
+        <span className="font-medium">Claro</span>
       </button>
     </div>
   );

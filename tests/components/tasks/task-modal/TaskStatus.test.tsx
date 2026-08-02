@@ -15,7 +15,7 @@ describe('TaskStatus', () => {
 
   test('should render correctly with default status', () => {
     render(<TaskStatus {...defaultProps} />);
-    expect(screen.getByText('Status')).toBeInTheDocument();
+    expect(screen.getByText('Estado')).toBeInTheDocument();
     expect(screen.getByText(TASK_STATUS[0].label)).toBeInTheDocument();
   });
 
@@ -43,7 +43,7 @@ describe('TaskStatus', () => {
         value={'invalid-status' as (typeof TASK_STATUS)[number]['status']}
       />
     );
-    expect(screen.getByText('Status')).toBeInTheDocument();
+    expect(screen.getByText('Estado')).toBeInTheDocument();
   });
 
   test('should have correct accessibility attributes', () => {

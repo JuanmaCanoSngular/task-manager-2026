@@ -26,18 +26,18 @@ export const BoardSelectMobile = () => {
   return (
     <div className="relative board-select">
       <label htmlFor="board-select" className="sr-only">
-        Select board
+        Seleccionar tablero
       </label>
       <select
         id="board-select"
         value={currentBoardId ?? -1}
         onChange={handleChange}
-        aria-label="Select board"
+        aria-label="Seleccionar tablero"
         className={`w-full h-16 pl-4 pr-10 rounded-xl bg-card dark:bg-card-dark border-2 appearance-none cursor-pointer [color:transparent] [text-shadow:0_0_0_transparent] transition-all duration-300
           ${currentBoardId !== null ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-400'}`}
       >
         <option value={-1} className="text-light dark:text-dark">
-          Select board
+          Seleccionar tablero
         </option>
         {boards.map((board) => (
           <option key={board.id} value={board.id} className="text-light dark:text-dark">

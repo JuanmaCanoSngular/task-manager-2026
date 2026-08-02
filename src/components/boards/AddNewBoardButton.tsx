@@ -34,9 +34,9 @@ export const AddNewBoardButton = () => {
         onKeyDown={handleKeyDown}
         tabIndex={0}
         className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-        aria-label="Add new board"
+        aria-label="Añadir nuevo tablero"
       >
-        <h2 className="text-xl">Add new board</h2>
+        <h2 className="text-xl">Añadir nuevo tablero</h2>
         <span className="flex items-center justify-center w-6 h-6">
           <PlusCircleIcon className="w-6 h-6 text-current" />
         </span>

@@ -51,9 +51,9 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const cardItem = screen.getByRole('listitem', { name: 'Select board Test Board' });
+    const cardItem = screen.getByRole('listitem', { name: 'Seleccionar tablero Test Board' });
     expect(cardItem).toBeInTheDocument();
-    expect(cardItem).toHaveAttribute('aria-label', 'Select board Test Board');
+    expect(cardItem).toHaveAttribute('aria-label', 'Seleccionar tablero Test Board');
     expect(cardItem).toHaveAttribute('aria-pressed', 'false');
     expect(cardItem).toHaveAttribute('tabindex', '0');
   });
@@ -68,7 +68,7 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const cardItem = screen.getByRole('listitem', { name: 'Select board Test Board' });
+    const cardItem = screen.getByRole('listitem', { name: 'Seleccionar tablero Test Board' });
     expect(cardItem).toHaveClass('card-base');
     expect(cardItem).toHaveClass('relative', 'group', 'cursor-pointer');
     expect(getByRole.heading(2)).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const cardItem = screen.getByRole('listitem', { name: 'Select board Test Board' });
+    const cardItem = screen.getByRole('listitem', { name: 'Seleccionar tablero Test Board' });
     cardItem.focus();
     expect(cardItem).toHaveFocus();
   });

@@ -45,8 +45,8 @@ export const ConfirmDialog = ({
   onConfirm,
   title,
   description,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = 'Confirmar',
+  cancelText = 'Cancelar',
 }: ConfirmDialogProps) => {
   return (
     <Transition appear show={isOpen}>

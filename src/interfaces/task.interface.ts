@@ -1,8 +1,8 @@
 export const TASK_STATUS = [
-  { status: 'backlog', label: 'Backlog', color: 'bg-gray-500' },
-  { status: 'in-progress', label: 'In Progress', color: 'bg-yellow-300' },
-  { status: 'in-review', label: 'In Review', color: 'bg-purple-500' },
-  { status: 'completed', label: 'Completed', color: 'bg-green-400' },
+  { status: 'backlog', label: 'Pendiente', color: 'bg-gray-500' },
+  { status: 'in-progress', label: 'En progreso', color: 'bg-yellow-300' },
+  { status: 'in-review', label: 'En revisión', color: 'bg-purple-500' },
+  { status: 'completed', label: 'Completada', color: 'bg-green-400' },
 ] as const;
 
 export type TaskStatus = (typeof TASK_STATUS)[number]['status'];

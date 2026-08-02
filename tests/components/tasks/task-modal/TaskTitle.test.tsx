@@ -11,10 +11,10 @@ describe('TaskTitle', () => {
   test('should render correctly with empty value', () => {
     render(<TaskTitle {...defaultProps} />);
 
-    expect(screen.getByLabelText('Task Title')).toBeInTheDocument();
+    expect(screen.getByLabelText('Título de la tarea')).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText('Enter a descriptive title for your task')
+      screen.getByPlaceholderText('Escribe un título descriptivo para tu tarea')
     ).toBeInTheDocument();
   });
 
@@ -40,7 +40,7 @@ describe('TaskTitle', () => {
     render(<TaskTitle {...defaultProps} />);
 
     const input = screen.getByRole('textbox');
-    const label = screen.getByText('Task Title');
+    const label = screen.getByText('Título de la tarea');
 
     expect(input).toHaveAttribute('id', 'title');
     expect(input).toHaveAttribute('type', 'text');
@@ -80,14 +80,14 @@ describe('TaskTitle', () => {
   test('should have correct label text', () => {
     render(<TaskTitle {...defaultProps} />);
 
-    expect(screen.getByText('Task Title')).toBeInTheDocument();
+    expect(screen.getByText('Título de la tarea')).toBeInTheDocument();
   });
 
   test('should have correct placeholder text', () => {
     render(<TaskTitle {...defaultProps} />);
 
     expect(
-      screen.getByPlaceholderText('Enter a descriptive title for your task')
+      screen.getByPlaceholderText('Escribe un título descriptivo para tu tarea')
     ).toBeInTheDocument();
   });
 

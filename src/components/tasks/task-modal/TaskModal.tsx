@@ -12,7 +12,8 @@ interface TaskModalProps {
   onSubmit: (data: Omit<Task, 'id'>) => void;
 }
 
-export const TaskModal = ({ isOpen, onClose, mode, task, onSubmit }: TaskModalProps) => (
+export const TaskModal = ({ isOpen, onClose, mode, task, onSubmit }: TaskModalProps) => {
+  return (
   <Transition appear show={isOpen} as={Fragment}>
     <Dialog as="div" className="relative z-50" onClose={onClose}>
       <Transition.Child
@@ -41,7 +42,7 @@ export const TaskModal = ({ isOpen, onClose, mode, task, onSubmit }: TaskModalPr
             <Dialog.Panel className="modal-panel">
               <div className="flex items-center justify-between mb-6">
                 <Dialog.Title as="h3" className="modal-title">
-                  {mode === 'create' ? 'Add New Task' : 'Edit Task'}
+                  {mode === 'create' ? 'Añadir nueva tarea' : 'Editar tarea'}
                 </Dialog.Title>
                 <button onClick={onClose} className="modal-close-button">
                   <XMarkIcon className="w-5 h-5" />
@@ -55,4 +56,5 @@ export const TaskModal = ({ isOpen, onClose, mode, task, onSubmit }: TaskModalPr
       </div>
     </Dialog>
   </Transition>
-);
+  );
+};

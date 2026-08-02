@@ -28,9 +28,9 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    const button = getByRole.button(/add new board/i);
+    const button = getByRole.button(/añadir nuevo tablero/i);
     expect(button).toBeInTheDocument();
-    expect(button).toHaveAttribute('aria-label', 'Add new board');
+    expect(button).toHaveAttribute('aria-label', 'Añadir nuevo tablero');
   });
 
   test('should display correct text content', async () => {
@@ -42,8 +42,8 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    expect(screen.getByText('Add new board')).toBeInTheDocument();
-    expect(getByRole.heading(2)).toHaveTextContent('Add new board');
+    expect(screen.getByText('Añadir nuevo tablero')).toBeInTheDocument();
+    expect(getByRole.heading(2)).toHaveTextContent('Añadir nuevo tablero');
   });
 
   test('should have proper CSS classes', async () => {
@@ -55,7 +55,7 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    const button = getByRole.button(/add new board/i);
+    const button = getByRole.button(/añadir nuevo tablero/i);
     expect(button).toHaveClass('btn-add', 'w-full');
   });
 
@@ -68,7 +68,7 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    const button = getByRole.button(/add new board/i);
+    const button = getByRole.button(/añadir nuevo tablero/i);
     fireEvent.click(button);
 
     // The modal should be rendered (we'll test the modal component separately)
@@ -86,7 +86,7 @@ describe('AddNewBoardButton', () => {
     render(<AddNewBoardButton />);
 
     // The icon should be present in the DOM
-    const iconContainer = screen.getByText('Add new board').nextElementSibling;
+    const iconContainer = screen.getByText('Añadir nuevo tablero').nextElementSibling;
     expect(iconContainer).toBeInTheDocument();
     expect(iconContainer).toHaveClass('flex', 'items-center', 'justify-center', 'w-6', 'h-6');
   });
@@ -100,7 +100,7 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    const button = getByRole.button(/add new board/i);
+    const button = getByRole.button(/añadir nuevo tablero/i);
     expect(button).toBeInTheDocument();
 
     // Check that the button contains the heading
@@ -117,7 +117,7 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    const button = getByRole.button(/add new board/i);
+    const button = getByRole.button(/añadir nuevo tablero/i);
 
     // Test keyboard interaction
     button.focus();
@@ -141,7 +141,7 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    const button = getByRole.button(/add new board/i);
+    const button = getByRole.button(/añadir nuevo tablero/i);
 
     fireEvent.click(button);
     fireEvent.click(button);
@@ -160,7 +160,7 @@ describe('AddNewBoardButton', () => {
     render(<AddNewBoardButton />);
 
     // Check for proper semantic elements
-    expect(getByRole.button(/add new board/i)).toBeInTheDocument();
+    expect(getByRole.button(/añadir nuevo tablero/i)).toBeInTheDocument();
     expect(getByRole.heading(2)).toBeInTheDocument();
   });
 
@@ -175,6 +175,6 @@ describe('AddNewBoardButton', () => {
 
     // The BoardModal should be rendered (even if not visible)
     // We can verify this by checking that the component renders without errors
-    expect(getByRole.button(/add new board/i)).toBeInTheDocument();
+    expect(getByRole.button(/añadir nuevo tablero/i)).toBeInTheDocument();
   });
 });

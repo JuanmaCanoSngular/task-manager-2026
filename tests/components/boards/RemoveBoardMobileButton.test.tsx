@@ -66,7 +66,7 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Should render the button
-    const button = screen.getByRole('button', { name: /remove current board/i });
+    const button = screen.getByRole('button', { name: /eliminar el tablero actual/i });
     expect(button).toBeInTheDocument();
 
     // Should have correct classes
@@ -130,21 +130,21 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Click the button
-    const button = screen.getByRole('button', { name: /remove current board/i });
+    const button = screen.getByRole('button', { name: /eliminar el tablero actual/i });
     await act(async () => {
       fireEvent.click(button);
     });
 
     // Should show the confirm dialog
-    expect(screen.getByText('Remove Board?')).toBeInTheDocument();
+    expect(screen.getByText('¿Eliminar tablero?')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'This action cannot be undone. All tasks associated with this board will be deleted.'
+        'Esta acción no se puede deshacer. Se eliminarán todas las tareas asociadas a este tablero.'
       )
     ).toBeInTheDocument();
 
     // Should show confirm and cancel buttons - use more specific selectors
-    const confirmButtons = screen.getAllByRole('button', { name: /remove/i });
+    const confirmButtons = screen.getAllByRole('button', { name: /eliminar/i });
     expect(confirmButtons).toHaveLength(2); // Main button + dialog button
 
     const cancelButton = screen.getByRole('button', { name: /cancel/i });
@@ -179,13 +179,13 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Open the dialog
-    const button = screen.getByRole('button', { name: /remove current board/i });
+    const button = screen.getByRole('button', { name: /eliminar el tablero actual/i });
     await act(async () => {
       fireEvent.click(button);
     });
 
     // Get the dialog confirm button (the second one)
-    const confirmButtons = screen.getAllByRole('button', { name: /remove/i });
+    const confirmButtons = screen.getAllByRole('button', { name: /eliminar/i });
     const dialogConfirmButton = confirmButtons[1]; // Second button is the dialog one
 
     // Confirm the action
@@ -225,7 +225,7 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Open the dialog
-    const button = screen.getByRole('button', { name: /remove current board/i });
+    const button = screen.getByRole('button', { name: /eliminar el tablero actual/i });
     await act(async () => {
       fireEvent.click(button);
     });
@@ -268,16 +268,16 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Should have proper button structure
-    const button = screen.getByRole('button', { name: /remove current board/i });
+    const button = screen.getByRole('button', { name: /eliminar el tablero actual/i });
     expect(button).toBeInTheDocument();
 
     // Should have proper accessibility attributes
-    expect(button).toHaveAttribute('aria-label', 'Remove current board');
+    expect(button).toHaveAttribute('aria-label', 'Eliminar el tablero actual');
     expect(button).toHaveAttribute('tabindex', '0');
 
     // Should have proper heading structure
     const heading = screen.getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Remove board');
+    expect(heading).toHaveTextContent('Eliminar tablero');
 
     // Should have proper icon structure
     const icon = button.querySelector('svg');
@@ -313,7 +313,7 @@ describe('RemoveBoardMobileButton', () => {
     render(<RemoveBoardMobileButton />);
 
     // Should render regardless of board ID
-    const button = screen.getByRole('button', { name: /remove current board/i });
+    const button = screen.getByRole('button', { name: /eliminar el tablero actual/i });
     expect(button).toBeInTheDocument();
   });
 });

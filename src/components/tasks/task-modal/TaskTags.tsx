@@ -12,20 +12,20 @@ interface TaskTagsProps {
 export const TaskTags = ({ selectedTags, maxTags, showWarning, onToggleTag }: TaskTagsProps) => (
   <div className="space-y-2">
     <div className="flex items-center justify-between">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Etiquetas</label>
       <span className="text-sm text-gray-500 dark:text-gray-400">
-        {selectedTags.length}/{maxTags} selected
+        {`${selectedTags.length}/${maxTags} seleccionadas`}
       </span>
     </div>
     {showWarning && (
       <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-        You can select a maximum of {maxTags} tags per task
+        {`Puedes seleccionar un máximo de ${maxTags} etiquetas por tarea`}
       </p>
     )}
     <div
       className="flex flex-wrap gap-2 pt-1"
       role="group"
-      aria-label="Available tags for the task"
+      aria-label="Etiquetas disponibles para la tarea"
     >
       {TASK_TAGS.map((tag) => (
         <button
@@ -37,7 +37,7 @@ export const TaskTags = ({ selectedTags, maxTags, showWarning, onToggleTag }: Ta
               ? `${tag.bgColor} ${tag.textColor}`
               : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
-          aria-label={`${selectedTags.includes(tag.tag) ? 'Deselect' : 'Select'} tag ${tag.label}`}
+          aria-label={`${selectedTags.includes(tag.tag) ? 'Deseleccionar' : 'Seleccionar'} etiqueta ${tag.label}`}
           aria-pressed={selectedTags.includes(tag.tag)}
         >
           {tag.label}
