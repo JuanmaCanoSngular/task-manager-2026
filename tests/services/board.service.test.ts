@@ -1,114 +1,164 @@
-import { describe, test, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { setupAxiosMock, setupMatchMediaMock, exampleResponses } from '../utils/test-utils';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 
-// Setup global mocks before importing the service
-const { mockedGet } = setupAxiosMock();
-
-let boardService: typeof import('../../src/services/board.service').boardService;
-
-beforeAll(async () => {
-  // Import the service after mocks are set up
-  const serviceModule = await import('../../src/services/board.service');
-  boardService = serviceModule.boardService;
+// Mock encadenable del cliente Supabase. Definido con vi.hoisted porque la
+// factory de vi.mock se eleva por encima de las declaraciones del módulo.
+const mocks = vi.hoisted(() => {
+  const orderMock = vi.fn();
+  const eqMock = vi.fn(() => Promise.resolve({ error: null as Error | null }));
+  const insertMock = vi.fn(() => Promise.resolve({ error: null as Error | null }));
+  const selectMock = vi.fn(() => ({ order: orderMock }));
+  const updateMock = vi.fn(() => ({ eq: eqMock }));
+  const deleteMock = vi.fn(() => ({ eq: eqMock }));
+  const fromMock = vi.fn(() => ({
+    select: selectMock,
+    insert: insertMock,
+    update: updateMock,
+    delete: deleteMock,
+  }));
+  return { orderMock, eqMock, insertMock, selectMock, updateMock, deleteMock, fromMock };
 });
 
+const { orderMock, eqMock, insertMock, updateMock, deleteMock, fromMock } = mocks;
+
+vi.mock('../../src/services/supabase', () => ({
+  supabase: { from: mocks.fromMock },
+}));
+
+import { boardService } from '../../src/services/board.service';
+
 beforeEach(() => {
-  setupMatchMediaMock();
   vi.clearAllMocks();
 });
 
-describe('Board Service', () => {
-  describe('getBoardList', () => {
-    test('should fetch board list successfully', async () => {
-      mockedGet.mockResolvedValueOnce(exampleResponses.boardList);
-      const result = await boardService.getBoardList();
-      expect(mockedGet).toHaveBeenCalledWith(
-        'https://raw.githubusercontent.com/devchallenges-io/curriculum/refs/heads/main/4-frontend-libaries/challenges/group_1/data/task-manager/list.json'
-      );
-      expect(result).toEqual(exampleResponses.boardList.data);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('id', 1);
-      expect(result[0]).toHaveProperty('name', 'Productivity Board');
-      expect(result[0]).toHaveProperty('emoji', '🚀');
+describe('Board Service (Supabase)', () => {
+  describe('getBoards', () => {
+    test('mapea filas de boards y tasks en tableros con tareas anidadas', async () => {
+      orderMock
+        .mockResolvedValueOnce({
+          data: [{ id: 1, name: 'Productividad', emoji: '🚀', color: '#fff' }],
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: [
+            {
+              id: 101,
+              board_id: 1,
+              title: 'Tarea 1',
+              status: 'backlog',
+              background: null,
+              tags: ['technical'],
+              position: 0,
+            },
+          ],
+          error: null,
+        });
+
+      const result = await boardService.getBoards();
+
+      expect(fromMock).toHaveBeenCalledWith('boards');
+      expect(fromMock).toHaveBeenCalledWith('tasks');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({ id: 1, name: 'Productividad' });
+      expect(result[0].tasks).toHaveLength(1);
+      expect(result[0].tasks[0]).toMatchObject({
+        id: 101,
+        title: 'Tarea 1',
+        status: 'backlog',
+        tags: ['technical'],
+      });
+      expect(result[0].tasks[0].background).toBeUndefined();
     });
 
-    test('should handle API errors when fetching board list', async () => {
-      const error = new Error('Network Error');
-      mockedGet.mockRejectedValueOnce(error);
-      await expect(boardService.getBoardList()).rejects.toThrow('Network Error');
-      expect(mockedGet).toHaveBeenCalledWith(
-        'https://raw.githubusercontent.com/devchallenges-io/curriculum/refs/heads/main/4-frontend-libaries/challenges/group_1/data/task-manager/list.json'
-      );
+    test('tablero sin tareas devuelve lista vacía', async () => {
+      orderMock
+        .mockResolvedValueOnce({
+          data: [{ id: 2, name: 'Vacío', emoji: '', color: '' }],
+          error: null,
+        })
+        .mockResolvedValueOnce({ data: [], error: null });
+
+      const result = await boardService.getBoards();
+      expect(result[0].tasks).toEqual([]);
     });
 
-    test('should return empty array when API returns no boards', async () => {
-      mockedGet.mockResolvedValueOnce({ data: [] });
-      const result = await boardService.getBoardList();
-      expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
-    });
-  });
+    test('propaga el error si falla la consulta de boards', async () => {
+      orderMock
+        .mockResolvedValueOnce({ data: null, error: new Error('boom') })
+        .mockResolvedValueOnce({ data: [], error: null });
 
-  describe('getBoardDetails', () => {
-    test('should fetch board details successfully', async () => {
-      const boardUrl = 'https://example.com/board1.json';
-      mockedGet.mockResolvedValueOnce(exampleResponses.boardDetails);
-      const result = await boardService.getBoardDetails(boardUrl);
-      expect(mockedGet).toHaveBeenCalledWith(boardUrl);
-      expect(result).toEqual(exampleResponses.boardDetails.data);
-      expect(result).toHaveProperty('id', 1);
-      expect(result).toHaveProperty('name', 'Productivity Board');
-      expect(result).toHaveProperty('tasks');
-      expect(result.tasks).toHaveLength(1);
-      expect(result.tasks[0]).toHaveProperty('title', 'Sample Task');
-    });
-
-    test('should handle API errors when fetching board details', async () => {
-      const boardUrl = 'https://example.com/invalid-board.json';
-      const error = new Error('404 Not Found');
-      mockedGet.mockRejectedValueOnce(error);
-      await expect(boardService.getBoardDetails(boardUrl)).rejects.toThrow('404 Not Found');
-      expect(mockedGet).toHaveBeenCalledWith(boardUrl);
-    });
-
-    test('should handle board with no tasks', async () => {
-      const boardUrl = 'https://example.com/empty-board.json';
-      const emptyBoardResponse = {
-        data: {
-          ...exampleResponses.boardDetails.data,
-          tasks: [],
-        },
-      };
-      mockedGet.mockResolvedValueOnce(emptyBoardResponse);
-      const result = await boardService.getBoardDetails(boardUrl);
-      expect(result.tasks).toEqual([]);
-      expect(result.tasks).toHaveLength(0);
-    });
-
-    test('should handle different board URLs', async () => {
-      const customUrl = 'https://custom-api.com/boards/123.json';
-      mockedGet.mockResolvedValueOnce(exampleResponses.boardDetails);
-      await boardService.getBoardDetails(customUrl);
-      expect(mockedGet).toHaveBeenCalledWith(customUrl);
+      await expect(boardService.getBoards()).rejects.toThrow('boom');
     });
   });
 
-  describe('service configuration', () => {
-    test('should use correct base URL for board list', async () => {
-      mockedGet.mockResolvedValueOnce(exampleResponses.boardList);
-      await boardService.getBoardList();
-      expect(mockedGet).toHaveBeenCalledWith(
-        expect.stringContaining('devchallenges-io/curriculum')
-      );
-      expect(mockedGet).toHaveBeenCalledWith(expect.stringContaining('task-manager/list.json'));
+  describe('mutaciones', () => {
+    test('insertBoard inserta en la tabla boards', async () => {
+      await boardService.insertBoard({ id: 5, name: 'Nuevo', emoji: '🎯', color: '#000' });
+      expect(fromMock).toHaveBeenCalledWith('boards');
+      expect(insertMock).toHaveBeenCalledWith({
+        id: 5,
+        name: 'Nuevo',
+        emoji: '🎯',
+        color: '#000',
+      });
     });
 
-    test('should handle axios response structure correctly', async () => {
-      mockedGet.mockResolvedValueOnce(exampleResponses.boardList);
-      const result = await boardService.getBoardList();
-      // Ensure the service extracts response.data correctly
-      expect(result).toBe(exampleResponses.boardList.data);
-      expect(result).not.toBe(exampleResponses.boardList);
+    test('insertTask inserta la tarea con board_id y posición', async () => {
+      await boardService.insertTask(
+        1,
+        { id: 10, title: 'T', status: 'backlog', tags: ['design'], background: undefined },
+        3
+      );
+      expect(fromMock).toHaveBeenCalledWith('tasks');
+      expect(insertMock).toHaveBeenCalledWith({
+        id: 10,
+        board_id: 1,
+        title: 'T',
+        status: 'backlog',
+        background: null,
+        tags: ['design'],
+        position: 3,
+      });
+    });
+
+    test('deleteTask borra por id', async () => {
+      await boardService.deleteTask(10);
+      expect(fromMock).toHaveBeenCalledWith('tasks');
+      expect(deleteMock).toHaveBeenCalled();
+      expect(eqMock).toHaveBeenCalledWith('id', 10);
+    });
+
+    test('updateTask actualiza los campos de la tarea', async () => {
+      await boardService.updateTask(10, {
+        title: 'Editada',
+        status: 'completed',
+        tags: [],
+        background: undefined,
+      });
+      expect(updateMock).toHaveBeenCalledWith({
+        title: 'Editada',
+        status: 'completed',
+        background: null,
+        tags: [],
+      });
+      expect(eqMock).toHaveBeenCalledWith('id', 10);
+    });
+
+    test('saveTaskOrder actualiza estado y posición de cada fila', async () => {
+      await boardService.saveTaskOrder([
+        { id: 1, status: 'backlog', position: 0 },
+        { id: 2, status: 'in-progress', position: 1 },
+      ]);
+      expect(updateMock).toHaveBeenCalledWith({ status: 'backlog', position: 0 });
+      expect(updateMock).toHaveBeenCalledWith({ status: 'in-progress', position: 1 });
+      expect(eqMock).toHaveBeenCalledWith('id', 1);
+      expect(eqMock).toHaveBeenCalledWith('id', 2);
+    });
+
+    test('propaga el error si una escritura falla', async () => {
+      insertMock.mockResolvedValueOnce({ error: new Error('insert fail') });
+      await expect(
+        boardService.insertBoard({ id: 9, name: 'x', emoji: '', color: '' })
+      ).rejects.toThrow('insert fail');
     });
   });
 });

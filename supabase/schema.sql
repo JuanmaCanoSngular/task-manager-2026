@@ -1,0 +1,61 @@
+-- Esquema de la base de datos del gestor de tareas (Supabase / Postgres)
+-- Fase 2 del roadmap: persistencia SIN autenticación.
+-- Ejecuta este script en el SQL Editor de tu proyecto Supabase.
+--
+-- NOTA DE SEGURIDAD: sin auth, las políticas permiten lectura y escritura
+-- a cualquiera que tenga la anon key (que va en el cliente). Es aceptable
+-- para una demo/portfolio. En la Fase 3 (auth) se restringe por usuario.
+
+-- Limpieza para poder reejecutar el script sin errores
+drop table if exists tasks cascade;
+drop table if exists boards cascade;
+
+-- Tableros
+create table boards (
+  id          bigint primary key,
+  name        text not null default 'Nuevo tablero',
+  emoji       text not null default '',
+  color       text not null default '',
+  created_at  timestamptz not null default now()
+);
+
+-- Tareas
+create table tasks (
+  id          bigint primary key,
+  board_id    bigint not null references boards(id) on delete cascade,
+  title       text not null,
+  status      text not null default 'backlog',
+  background  text,
+  tags        text[] not null default '{}',
+  position    integer not null default 0,
+  created_at  timestamptz not null default now()
+);
+
+create index tasks_board_id_idx on tasks (board_id);
+create index tasks_status_idx on tasks (board_id, status);
+
+-- Row Level Security: activada, con políticas permisivas para el rol anónimo.
+-- (Mejor que desactivar RLS; deja el punto de restricción listo para la Fase 3.)
+alter table boards enable row level security;
+alter table tasks enable row level security;
+
+create policy "boards abiertos" on boards
+  for all to anon, authenticated using (true) with check (true);
+
+create policy "tasks abiertas" on tasks
+  for all to anon, authenticated using (true) with check (true);
+
+-- ─────────────────────────────────────────────────────────────
+-- Datos iniciales (seed) en español
+-- ─────────────────────────────────────────────────────────────
+insert into boards (id, name, emoji, color) values
+  (1, 'Productividad', '🚀', '#6366f1'),
+  (2, 'Proyecto personal', '🎯', '#22c55e');
+
+insert into tasks (id, board_id, title, status, tags, position) values
+  (101, 1, 'Preparar la reunión semanal', 'backlog',     '{technical}',            0),
+  (102, 1, 'Revisar el correo pendiente',  'in-progress', '{}',                     0),
+  (103, 1, 'Cerrar la documentación',      'in-review',   '{design}',               0),
+  (104, 1, 'Publicar la nota de la versión','completed',  '{front-end}',            0),
+  (201, 2, 'Definir el alcance del MVP',   'backlog',     '{new-concept}',          0),
+  (202, 2, 'Diseñar la pantalla principal','in-progress', '{styling,design}',       0);

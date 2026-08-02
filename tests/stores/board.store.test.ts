@@ -6,8 +6,13 @@ import { Task, TaskStatus } from '../../src/interfaces/task.interface';
 // Mock the board service
 vi.mock('../../src/services/board.service', () => ({
   boardService: {
-    getBoardList: vi.fn(),
-    getBoardDetails: vi.fn(),
+    getBoards: vi.fn(),
+    insertBoard: vi.fn(() => Promise.resolve()),
+    deleteBoard: vi.fn(() => Promise.resolve()),
+    insertTask: vi.fn(() => Promise.resolve()),
+    updateTask: vi.fn(() => Promise.resolve()),
+    deleteTask: vi.fn(() => Promise.resolve()),
+    saveTaskOrder: vi.fn(() => Promise.resolve()),
   },
 }));
 
@@ -90,14 +95,15 @@ describe('BoardStore', () => {
   });
 
   describe('Board Service', () => {
-    test('should have getBoardList available', () => {
-      expect(boardService.getBoardList).toBeDefined();
-      expect(typeof boardService.getBoardList).toBe('function');
+    test('should have getBoards available', () => {
+      expect(boardService.getBoards).toBeDefined();
+      expect(typeof boardService.getBoards).toBe('function');
     });
 
-    test('should have getBoardDetails available', () => {
-      expect(boardService.getBoardDetails).toBeDefined();
-      expect(typeof boardService.getBoardDetails).toBe('function');
+    test('should have write methods available', () => {
+      expect(typeof boardService.insertBoard).toBe('function');
+      expect(typeof boardService.insertTask).toBe('function');
+      expect(typeof boardService.saveTaskOrder).toBe('function');
     });
   });
 

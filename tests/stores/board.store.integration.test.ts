@@ -7,11 +7,17 @@ import { Task, TaskStatus } from '../../src/interfaces/task.interface';
 import * as boardStoreModule from '../../src/stores/board.store';
 import { boardService } from '../../src/services/board.service';
 
-// Mock only the board service
+// Mock only the board service. Las escrituras (write-through) devuelven promesas
+// resueltas para que el `.catch` del store no falle.
 vi.mock('../../src/services/board.service', () => ({
   boardService: {
-    getBoardList: vi.fn(),
-    getBoardDetails: vi.fn(),
+    getBoards: vi.fn(),
+    insertBoard: vi.fn(() => Promise.resolve()),
+    deleteBoard: vi.fn(() => Promise.resolve()),
+    insertTask: vi.fn(() => Promise.resolve()),
+    updateTask: vi.fn(() => Promise.resolve()),
+    deleteTask: vi.fn(() => Promise.resolve()),
+    saveTaskOrder: vi.fn(() => Promise.resolve()),
   },
 }));
 
@@ -392,7 +398,7 @@ describe('BoardStore API Integration Tests', () => {
     });
 
     // Should not call the API
-    expect(boardService.getBoardList).not.toHaveBeenCalled();
+    expect(boardService.getBoards).not.toHaveBeenCalled();
   });
 
   test('fetchBoards should call API and update state when no boards exist', async () => {
@@ -417,20 +423,20 @@ describe('BoardStore API Integration Tests', () => {
       },
     ];
 
-    (boardService.getBoardList as ReturnType<typeof vi.fn>).mockResolvedValue(mockBoards);
+    (boardService.getBoards as ReturnType<typeof vi.fn>).mockResolvedValue(mockBoards);
 
     await act(async () => {
       await useBoardStore.getState().fetchBoards();
     });
 
-    expect(boardService.getBoardList).toHaveBeenCalled();
+    expect(boardService.getBoards).toHaveBeenCalled();
     expect(useBoardStore.getState().boards).toEqual(mockBoards);
     expect(useBoardStore.getState().error).toBeNull();
   });
 
   test('fetchBoards should handle API errors', async () => {
     const errorMessage = 'Network error';
-    (boardService.getBoardList as ReturnType<typeof vi.fn>).mockRejectedValue(
+    (boardService.getBoards as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error(errorMessage)
     );
 
@@ -438,13 +444,14 @@ describe('BoardStore API Integration Tests', () => {
       await useBoardStore.getState().fetchBoards();
     });
 
-    expect(boardService.getBoardList).toHaveBeenCalled();
+    expect(boardService.getBoards).toHaveBeenCalled();
     expect(useBoardStore.getState().error).toBe(errorMessage);
     expect(useBoardStore.getState().boards).toEqual([]);
   });
 
-  test('fetchBoardDetails should not call API if board already has tasks', async () => {
-    // Add a board with tasks
+  // Con Supabase los datos se cargan completos en fetchBoards; fetchBoardDetails
+  // ya no llama al servicio, solo selecciona el tablero activo.
+  test('fetchBoardDetails should set currentBoardId without calling the service', async () => {
     act(() => {
       useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
       useBoardStore
@@ -454,150 +461,47 @@ describe('BoardStore API Integration Tests', () => {
 
     const boardId = useBoardStore.getState().currentBoardId!;
 
-    await act(async () => {
-      await useBoardStore.getState().fetchBoardDetails('https://example.com/board', boardId);
-    });
-
-    // Should not call the API, just set currentBoardId
-    expect(boardService.getBoardDetails).not.toHaveBeenCalled();
-    expect(useBoardStore.getState().currentBoardId).toBe(boardId);
-  });
-
-  test('fetchBoardDetails should not call API if board is local', async () => {
-    // Add a local board
+    // Cambiar la selección a null y volver a seleccionar mediante fetchBoardDetails
     act(() => {
-      useBoardStore.getState().addNewBoard('Local Board', '📋', 'bg-blue-500');
+      useBoardStore.setState({ currentBoardId: null });
     });
-
-    const boardId = useBoardStore.getState().currentBoardId!;
 
     await act(async () => {
       await useBoardStore.getState().fetchBoardDetails('https://example.com/board', boardId);
     });
 
-    // Should not call the API, just set currentBoardId
-    expect(boardService.getBoardDetails).not.toHaveBeenCalled();
+    expect(boardService.getBoards).not.toHaveBeenCalled();
     expect(useBoardStore.getState().currentBoardId).toBe(boardId);
   });
 
-  test('fetchBoardDetails should call API and update board with tasks', async () => {
-    // Create a non-local board without tasks by directly setting state
+  test('fetchBoardDetails should keep the board tasks intact', async () => {
     act(() => {
       useBoardStore.setState({
-        currentBoardId: 1,
+        currentBoardId: null,
         boards: [
           {
             id: 1,
             name: 'Board 1',
             emoji: '📋',
             color: 'bg-blue-500',
-            link: 'https://example.com/board',
-            tasks: [],
-            isLocal: false,
+            link: '',
+            tasks: [
+              { id: 1, title: 'Task 1', status: 'backlog', tags: ['technical'] },
+              { id: 2, title: 'Task 2', status: 'completed', tags: ['design'] },
+            ],
           },
         ],
         error: null,
       });
     });
 
-    const boardId = useBoardStore.getState().currentBoardId!;
-    const mockBoardWithTasks = {
-      id: boardId,
-      name: 'Board 1',
-      emoji: '📋',
-      color: 'bg-blue-500',
-      link: 'https://example.com/board',
-      tasks: [
-        { id: 1, title: 'API Task 1', status: 'backlog', tags: ['technical'] },
-        { id: 2, title: 'API Task 2', status: 'completed', tags: ['design'] },
-      ],
-      isLocal: false,
-    };
-
-    (boardService.getBoardDetails as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockBoardWithTasks
-    );
-
     await act(async () => {
-      await useBoardStore.getState().fetchBoardDetails('https://example.com/board', boardId);
+      await useBoardStore.getState().fetchBoardDetails('https://example.com/board', 1);
     });
 
-    expect(boardService.getBoardDetails).toHaveBeenCalledWith('https://example.com/board');
-    expect(useBoardStore.getState().currentBoardId).toBe(boardId);
-
-    const updatedBoard = useBoardStore.getState().boards.find((b) => b.id === boardId);
-    expect(updatedBoard?.tasks).toHaveLength(2);
-    expect(updatedBoard?.tasks[0].title).toBe('API Task 1');
-    expect(updatedBoard?.tasks[1].title).toBe('API Task 2');
-  });
-
-  test('fetchBoardDetails should handle API errors', async () => {
-    // Create a non-local board without tasks by directly setting state
-    act(() => {
-      useBoardStore.setState({
-        currentBoardId: 1,
-        boards: [
-          {
-            id: 1,
-            name: 'Board 1',
-            emoji: '📋',
-            color: 'bg-blue-500',
-            link: 'https://example.com/board',
-            tasks: [],
-            isLocal: false,
-          },
-        ],
-        error: null,
-      });
-    });
-
-    const boardId = useBoardStore.getState().currentBoardId!;
-    const errorMessage = 'Board not found';
-    (boardService.getBoardDetails as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error(errorMessage)
-    );
-
-    await act(async () => {
-      await useBoardStore.getState().fetchBoardDetails('https://example.com/board', boardId);
-    });
-
-    expect(boardService.getBoardDetails).toHaveBeenCalled();
-    expect(useBoardStore.getState().error).toBe(errorMessage);
-
-    // Should clear tasks for the current board
-    const updatedBoard = useBoardStore.getState().boards.find((b) => b.id === boardId);
-    expect(updatedBoard?.tasks).toEqual([]);
-  });
-
-  test('fetchBoardDetails should handle non-Error exceptions', async () => {
-    // Create a non-local board without tasks by directly setting state
-    act(() => {
-      useBoardStore.setState({
-        currentBoardId: 1,
-        boards: [
-          {
-            id: 1,
-            name: 'Board 1',
-            emoji: '📋',
-            color: 'bg-blue-500',
-            link: 'https://example.com/board',
-            tasks: [],
-            isLocal: false,
-          },
-        ],
-        error: null,
-      });
-    });
-
-    const boardId = useBoardStore.getState().currentBoardId!;
-    (boardService.getBoardDetails as ReturnType<typeof vi.fn>).mockRejectedValue('String error');
-
-    await act(async () => {
-      await useBoardStore.getState().fetchBoardDetails('https://example.com/board', boardId);
-    });
-
-    expect(boardService.getBoardDetails).toHaveBeenCalled();
-    expect(useBoardStore.getState().error).toBe('Error desconocido');
+    expect(useBoardStore.getState().currentBoardId).toBe(1);
+    const board = useBoardStore.getState().boards.find((b) => b.id === 1);
+    expect(board?.tasks).toHaveLength(2);
   });
 });
 
@@ -670,10 +574,9 @@ describe('BoardStore Edge Cases', () => {
 
     const boards = useBoardStore.getState().boards;
     expect(boards).toHaveLength(1);
-    expect(boards[0].name).toBe('Default Board');
+    expect(boards[0].name).toBe('Nuevo tablero');
     expect(boards[0].emoji).toBe('');
     expect(boards[0].color).toBe('');
-    expect(boards[0].isLocal).toBe(true);
   });
 
   test('addNewBoard with partial values', () => {
