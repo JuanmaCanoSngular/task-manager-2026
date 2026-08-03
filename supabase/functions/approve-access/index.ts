@@ -44,9 +44,44 @@ Deno.serve(async (req) => {
   }
 
   await provisionExampleBoard(supabase, profile.id);
+  await notifyUserApproved(profile.email);
 
   return redirect('ok', profile.email);
 });
+
+// Avisa al usuario de que su acceso ha sido aprobado.
+// NOTA: con el remitente de pruebas de Resend (onboarding@resend.dev) solo se
+// entrega al email de la cuenta de Resend. Para enviar a terceros hay que
+// verificar un dominio propio en Resend y usarlo como FROM_EMAIL.
+async function notifyUserApproved(email: string) {
+  const apiKey = Deno.env.get('RESEND_API_KEY');
+  if (!apiKey) return;
+
+  const appUrl = Deno.env.get('APP_URL') ?? '';
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: Deno.env.get('FROM_EMAIL') ?? 'onboarding@resend.dev',
+        to: email,
+        subject: 'Tu acceso ha sido aprobado',
+        html:
+          `<p>¡Tu acceso a la app de tareas ha sido aprobado!</p>` +
+          (appUrl ? `<p><a href="${appUrl}">Entrar en la app</a></p>` : ''),
+      }),
+    });
+    if (!res.ok) {
+      console.error('Email de aprobación al usuario falló:', await res.text());
+    }
+  } catch (error) {
+    console.error('Email de aprobación al usuario falló:', error);
+  }
+}
 
 // Crea un tablero de ejemplo con tareas para el usuario recién aprobado.
 async function provisionExampleBoard(
