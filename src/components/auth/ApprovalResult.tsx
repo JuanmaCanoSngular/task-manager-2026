@@ -13,11 +13,19 @@ export const ApprovalResult = ({ result, email }: ApprovalResultProps) => {
       ? `Acceso aprobado${who}. Ya puede entrar en la app.`
       : result === 'already'
         ? `El acceso${who} ya estaba aprobado.`
-        : result === 'error'
-          ? 'No se pudo completar la aprobación. Inténtalo de nuevo.'
-          : 'Enlace inválido o ya utilizado.';
+        : result === 'denied'
+          ? `Has denegado la solicitud${who}.`
+          : result === 'error'
+            ? 'No se pudo completar la operación. Inténtalo de nuevo.'
+            : 'Enlace inválido o ya utilizado.';
 
   const ok = result === 'ok' || result === 'already';
+  const title =
+    result === 'denied'
+      ? 'Solicitud denegada'
+      : ok
+        ? 'Aprobación completada'
+        : 'Operación no válida';
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background text-light dark:bg-background-dark dark:text-dark px-4">
@@ -30,7 +38,7 @@ export const ApprovalResult = ({ result, email }: ApprovalResultProps) => {
         >
           {ok ? '✓' : '!'}
         </div>
-        <h1 className="text-2xl font-bold">{ok ? 'Aprobación completada' : 'Aprobación no válida'}</h1>
+        <h1 className="text-2xl font-bold">{title}</h1>
         <p className="text-gray-500 dark:text-gray-400">{message}</p>
       </div>
     </div>

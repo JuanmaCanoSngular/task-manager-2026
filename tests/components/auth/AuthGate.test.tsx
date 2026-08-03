@@ -59,6 +59,17 @@ describe('AuthGate', () => {
     expect(screen.queryByTestId('app')).not.toBeInTheDocument();
   });
 
+  test('denied: muestra la pantalla de acceso denegado', () => {
+    useAuthMock.mockReturnValue({ ...base, state: 'denied' });
+    render(
+      <AuthGate>
+        <div data-testid="app">app</div>
+      </AuthGate>
+    );
+    expect(screen.getByText(/acceso denegado/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('app')).not.toBeInTheDocument();
+  });
+
   test('approved: renderiza la app', () => {
     useAuthMock.mockReturnValue({ ...base, state: 'approved' });
     render(

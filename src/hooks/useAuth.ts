@@ -7,7 +7,7 @@ import { authService } from '../services/auth.service';
 //  - signed-out: sin sesión (mostrar landing)
 //  - pending:    logueado pero acceso no aprobado (mostrar pantalla de espera)
 //  - approved:   acceso concedido (mostrar la app)
-export type AuthState = 'loading' | 'signed-out' | 'pending' | 'approved';
+export type AuthState = 'loading' | 'signed-out' | 'pending' | 'approved' | 'denied';
 
 interface UseAuth {
   state: AuthState;
@@ -59,7 +59,7 @@ export const useAuth = (): UseAuth => {
       }
 
       if (!active) return;
-      setState(status === 'approved' ? 'approved' : 'pending');
+      setState(status === 'approved' ? 'approved' : status === 'denied' ? 'denied' : 'pending');
     };
 
     authService.getSession().then((session) => resolveAccess(session?.user ?? null));
@@ -80,6 +80,7 @@ export const useAuth = (): UseAuth => {
     const interval = setInterval(async () => {
       const status = await authService.getAccessStatus(user.id);
       if (status === 'approved') setState('approved');
+      else if (status === 'denied') setState('denied');
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);

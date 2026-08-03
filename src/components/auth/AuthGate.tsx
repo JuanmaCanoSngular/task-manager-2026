@@ -1,6 +1,7 @@
 import { useAuth } from '../../hooks/useAuth';
 import { Landing } from './Landing';
 import { PendingAccess } from './PendingAccess';
+import { DeniedAccess } from './DeniedAccess';
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -29,6 +30,10 @@ export const AuthGate = ({ children }: AuthGateProps) => {
 
   if (state === 'pending') {
     return <PendingAccess email={user?.email} onSignOut={signOut} />;
+  }
+
+  if (state === 'denied') {
+    return <DeniedAccess onSignOut={signOut} />;
   }
 
   return <>{children}</>;

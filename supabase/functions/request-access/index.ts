@@ -63,9 +63,9 @@ Deno.serve(async (req) => {
       return json({ error: upsertError.message }, 500);
     }
 
-    // Enviar email al owner con el enlace de aprobación.
-    const approveUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/approve-access?token=${token}`;
-    await sendOwnerEmail(email, approveUrl);
+    // Enviar email al owner con los enlaces de aprobar / denegar.
+    const base = `${Deno.env.get('SUPABASE_URL')}/functions/v1/approve-access?token=${token}`;
+    await sendOwnerEmail(email, `${base}&action=approve`, `${base}&action=deny`);
 
     return json({ status: 'pending' });
   } catch (error) {
@@ -80,12 +80,15 @@ function json(body: unknown, status = 200) {
   });
 }
 
-async function sendOwnerEmail(requesterEmail: string, approveUrl: string) {
+async function sendOwnerEmail(requesterEmail: string, approveUrl: string, denyUrl: string) {
   const apiKey = Deno.env.get('RESEND_API_KEY');
   if (!apiKey) {
     console.warn('RESEND_API_KEY sin configurar; se omite el envío de email');
     return;
   }
+
+  const btn = (href: string, bg: string, label: string) =>
+    `<a href="${href}" style="display:inline-block;padding:10px 18px;margin:4px;border-radius:8px;background:${bg};color:#fff;text-decoration:none">${label}</a>`;
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -97,12 +100,11 @@ async function sendOwnerEmail(requesterEmail: string, approveUrl: string) {
       from: Deno.env.get('FROM_EMAIL') ?? 'onboarding@resend.dev',
       to: Deno.env.get('OWNER_EMAIL'),
       subject: `Solicitud de acceso: ${requesterEmail}`,
-      html: `
-        <p>Nueva solicitud de acceso a la app de tareas.</p>
-        <p>Usuario: <strong>${requesterEmail}</strong></p>
-        <p><a href="${approveUrl}">Aprobar acceso</a></p>
-        <p style="color:#888">Si no reconoces esta solicitud, ignora este correo.</p>
-      `,
+      html:
+        `<p>Nueva solicitud de acceso a la app de tareas.</p>` +
+        `<p>Usuario: <strong>${requesterEmail}</strong></p>` +
+        `<p>${btn(approveUrl, '#16a34a', 'Aprobar acceso')}${btn(denyUrl, '#dc2626', 'Denegar')}</p>` +
+        `<p style="color:#888">Si no reconoces esta solicitud, ignora este correo.</p>`,
     }),
   });
 

@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type { Session } from '@supabase/supabase-js';
 
-export type AccessStatus = 'pending' | 'approved';
+export type AccessStatus = 'pending' | 'approved' | 'denied';
 
 export const authService = {
   // Inicia el login federado con Google. Al volver, Supabase deja la sesión

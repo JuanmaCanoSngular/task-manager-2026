@@ -8,7 +8,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
-  const token = new URL(req.url).searchParams.get('token');
+  const url = new URL(req.url);
+  const token = url.searchParams.get('token');
+  const action = url.searchParams.get('action') === 'deny' ? 'deny' : 'approve';
   if (!token) {
     return redirect('invalid');
   }
@@ -18,7 +20,8 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
-  // Buscar el perfil con ese token (aún pendiente).
+  // Buscar el perfil con ese token (aún pendiente). El token se invalida al
+  // resolver, así que un enlace ya usado no encuentra perfil.
   const { data: profile } = await supabase
     .from('profiles')
     .select('id, email, status')
@@ -29,8 +32,17 @@ Deno.serve(async (req) => {
     return redirect('invalid');
   }
 
-  if (profile.status === 'approved') {
-    return redirect('already', profile.email);
+  // Denegar: marcar denied e invalidar el token.
+  if (action === 'deny') {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ status: 'denied', approval_token: null })
+      .eq('id', profile.id);
+    if (error) {
+      return redirect('error');
+    }
+    await notifyUser(profile.email, 'denied');
+    return redirect('denied', profile.email);
   }
 
   // Aprobar: marcar approved e invalidar el token (un solo uso).
@@ -44,20 +56,28 @@ Deno.serve(async (req) => {
   }
 
   await provisionExampleBoard(supabase, profile.id);
-  await notifyUserApproved(profile.email);
+  await notifyUser(profile.email, 'approved');
 
   return redirect('ok', profile.email);
 });
 
-// Avisa al usuario de que su acceso ha sido aprobado.
+// Avisa al usuario del resultado de su solicitud (aprobada o denegada).
 // NOTA: con el remitente de pruebas de Resend (onboarding@resend.dev) solo se
 // entrega al email de la cuenta de Resend. Para enviar a terceros hay que
 // verificar un dominio propio en Resend y usarlo como FROM_EMAIL.
-async function notifyUserApproved(email: string) {
+async function notifyUser(email: string, result: 'approved' | 'denied') {
   const apiKey = Deno.env.get('RESEND_API_KEY');
   if (!apiKey) return;
 
   const appUrl = Deno.env.get('APP_URL') ?? '';
+
+  const subject =
+    result === 'approved' ? 'Tu acceso ha sido aprobado' : 'Tu solicitud de acceso';
+  const html =
+    result === 'approved'
+      ? `<p>¡Tu acceso a la app de tareas ha sido aprobado!</p>` +
+        (appUrl ? `<p><a href="${appUrl}">Entrar en la app</a></p>` : '')
+      : `<p>Tu solicitud de acceso a la app de tareas no ha sido aprobada.</p>`;
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -69,17 +89,15 @@ async function notifyUserApproved(email: string) {
       body: JSON.stringify({
         from: Deno.env.get('FROM_EMAIL') ?? 'onboarding@resend.dev',
         to: email,
-        subject: 'Tu acceso ha sido aprobado',
-        html:
-          `<p>¡Tu acceso a la app de tareas ha sido aprobado!</p>` +
-          (appUrl ? `<p><a href="${appUrl}">Entrar en la app</a></p>` : ''),
+        subject,
+        html,
       }),
     });
     if (!res.ok) {
-      console.error('Email de aprobación al usuario falló:', await res.text());
+      console.error('Email al usuario falló:', await res.text());
     }
   } catch (error) {
-    console.error('Email de aprobación al usuario falló:', error);
+    console.error('Email al usuario falló:', error);
   }
 }
 
