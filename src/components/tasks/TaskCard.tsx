@@ -57,12 +57,13 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             onKeyDown={handleKeyDown}
             tabIndex={0}
             role="listitem"
-            aria-label={`Edit task: ${task.title}`}
-            className={`card-base bg-card dark:bg-black flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:bg-slate-100/80 dark:hover:bg-white/5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset card-move-transition drag-handle ${
+            aria-label={`Editar tarea: ${task.title}`}
+            className={`card-base flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:-translate-y-0.5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset card-move-transition drag-handle ${
               snapshot.isDragging ? 'card-dragging' : ''
             }`}
             style={{
               ...provided.draggableProps.style,
+              backgroundColor: 'var(--surface)',
             }}
           >
             <button
@@ -70,7 +71,7 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
               onKeyDown={handleDeleteKeyDown}
               tabIndex={0}
               className="absolute top-2 right-2 z-20 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:opacity-100"
-              aria-label={`Delete task: ${task.title}`}
+              aria-label={`Eliminar tarea: ${task.title}`}
             >
               <TrashIcon className="w-4 h-4 text-white" />
             </button>
@@ -78,7 +79,7 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             {task.background && (
               <img
                 src={task.background}
-                alt="Task background"
+                alt="Fondo de la tarea"
                 className="absolute top-0 left-0 w-full h-28 object-cover rounded-t-xl"
                 style={{ zIndex: 0 }}
               />
@@ -120,10 +121,10 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
           removeTask(task.id);
           setIsDeleteDialogOpen(false);
         }}
-        title="Remove Task?"
-        description="Are you sure you want to remove this task? This action cannot be undone."
-        confirmText="Remove"
-        cancelText="Cancel"
+        title="¿Eliminar tarea?"
+        description="¿Seguro que quieres eliminar esta tarea? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
       />
     </>
   );

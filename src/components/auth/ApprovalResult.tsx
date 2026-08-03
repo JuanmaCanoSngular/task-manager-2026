@@ -21,25 +21,29 @@ export const ApprovalResult = ({ result, email }: ApprovalResultProps) => {
 
   const ok = result === 'ok' || result === 'already';
   const title =
-    result === 'denied'
-      ? 'Solicitud denegada'
-      : ok
-        ? 'Aprobación completada'
-        : 'Operación no válida';
+    result === 'denied' ? 'Solicitud denegada' : ok ? 'Aprobación completada' : 'Operación no válida';
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background text-light dark:bg-background-dark dark:text-dark px-4">
-      <div className="max-w-md w-full text-center space-y-4">
+    <div className="auth-shell">
+      <div className="auth-card space-y-5">
         <div
-          className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full text-2xl ${
-            ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-2xl ${
+            ok
+              ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
+              : 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
           }`}
           aria-hidden="true"
         >
-          {ok ? '✓' : '!'}
+          {ok ? '✓' : '✕'}
         </div>
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-gray-500 dark:text-gray-400">{message}</p>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
+            {title}
+          </h1>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            {message}
+          </p>
+        </div>
       </div>
     </div>
   );

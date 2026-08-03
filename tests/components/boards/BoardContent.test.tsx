@@ -73,15 +73,8 @@ describe('BoardContent', () => {
     }));
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
-    const container = screen.getByText(/pendiente/i).closest('div[class*="shadow-xl"]');
-    expect(container).toHaveClass(
-      'w-full',
-      'h-full',
-      'shadow-xl',
-      'dark:bg-card-dark',
-      'rounded-lg',
-      'p-4'
-    );
+    const container = screen.getByText(/pendiente/i).closest('div[class*="rounded-2xl"]');
+    expect(container).toHaveClass('w-full', 'h-full', 'rounded-2xl', 'p-4');
   });
 
   test('should render exactly 4 status columns', async () => {

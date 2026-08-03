@@ -15,9 +15,12 @@ export const StatusColumn = ({ status, label, color }: StatusColumnProps) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="font-bold text-lg mb-2 flex items-center flex-shrink-0">
+      <h2
+        className="font-semibold text-sm mb-3 flex items-center flex-shrink-0 tracking-wide"
+        style={{ color: 'var(--text-muted)' }}
+      >
         <span
-          className={`${color} rounded-full w-2 h-2 mr-2 inline-block`}
+          className={`${color} rounded-full w-2.5 h-2.5 mr-2 inline-block`}
           aria-hidden="true"
         ></span>
         {label} ({tasks.length})
@@ -29,10 +32,10 @@ export const StatusColumn = ({ status, label, color }: StatusColumnProps) => {
             {...provided.droppableProps}
             role="list"
             aria-label={`${label} tasks`}
-            className={`flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto overflow-x-hidden transition-all duration-200 rounded-lg p-2 ${
+            className={`flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden transition-all duration-200 rounded-xl p-2 ${
               snapshot.isDraggingOver
-                ? 'drop-zone-active bg-blue-50/50 dark:bg-blue-900/20'
-                : 'hover:bg-gray-50/30 dark:hover:bg-white/5'
+                ? 'drop-zone-active'
+                : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.03]'
             }`}
           >
             {tasks.map((task, index) => (

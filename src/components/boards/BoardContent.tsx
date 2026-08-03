@@ -37,8 +37,11 @@ export const BoardContent = () => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="w-full h-full shadow-xl dark:bg-card-dark rounded-lg p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
+      <div
+        className="w-full h-full rounded-2xl p-4 md:p-5"
+        style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 h-full">
           {TASK_STATUS.map((status) => (
             <StatusColumn
               key={status.status}
