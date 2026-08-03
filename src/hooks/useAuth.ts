@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { authService } from '../services/auth.service';
 
@@ -16,9 +16,15 @@ interface UseAuth {
   signOut: () => void;
 }
 
+// Cada cuánto se comprueba si un usuario pendiente ya ha sido aprobado.
+const POLL_INTERVAL_MS = 8000;
+
 export const useAuth = (): UseAuth => {
   const [state, setState] = useState<AuthState>('loading');
   const [user, setUser] = useState<User | null>(null);
+  // Usuario ya procesado, para no lanzar requestAccess más de una vez
+  // (getSession + onAuthChange pueden resolver casi a la vez).
+  const handledUserId = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -27,22 +33,27 @@ export const useAuth = (): UseAuth => {
       if (!active) return;
 
       if (!sessionUser) {
+        handledUserId.current = null;
         setUser(null);
         setState('signed-out');
         return;
       }
 
       setUser(sessionUser);
+
+      // Dedupe síncrono: si este usuario ya se está procesando, no repetir.
+      if (handledUserId.current === sessionUser.id) return;
+      handledUserId.current = sessionUser.id;
+
       let status = await authService.getAccessStatus(sessionUser.id);
 
-      // Primer acceso de este usuario: aún no tiene perfil. Se crea la
-      // solicitud (perfil pending + email al owner) y queda en espera.
+      // Primer acceso: aún no tiene perfil. Se crea la solicitud (perfil
+      // pending + email al owner) una sola vez y queda en espera.
       if (status === null) {
         try {
           await authService.requestAccess();
         } catch {
-          // Si la Edge Function no está disponible todavía, se muestra
-          // igualmente la pantalla de pendiente.
+          // Si la Edge Function no está disponible, se muestra pending igual.
         }
         status = 'pending';
       }
@@ -61,6 +72,18 @@ export const useAuth = (): UseAuth => {
       unsubscribe();
     };
   }, []);
+
+  // Mientras el acceso está pendiente, sondear si el owner ya ha aprobado.
+  useEffect(() => {
+    if (state !== 'pending' || !user) return;
+
+    const interval = setInterval(async () => {
+      const status = await authService.getAccessStatus(user.id);
+      if (status === 'approved') setState('approved');
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [state, user]);
 
   return {
     state,

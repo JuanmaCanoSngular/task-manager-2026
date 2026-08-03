@@ -10,7 +10,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 Deno.serve(async (req) => {
   const token = new URL(req.url).searchParams.get('token');
   if (!token) {
-    return html('Enlace inválido: falta el token.', 400);
+    return redirect('invalid');
   }
 
   const supabase = createClient(
@@ -26,11 +26,11 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (!profile) {
-    return html('Enlace inválido o ya utilizado.', 404);
+    return redirect('invalid');
   }
 
   if (profile.status === 'approved') {
-    return html(`El acceso de ${profile.email} ya estaba aprobado.`);
+    return redirect('already', profile.email);
   }
 
   // Aprobar: marcar approved e invalidar el token (un solo uso).
@@ -40,12 +40,12 @@ Deno.serve(async (req) => {
     .eq('id', profile.id);
 
   if (updateError) {
-    return html(`Error al aprobar: ${updateError.message}`, 500);
+    return redirect('error');
   }
 
   await provisionExampleBoard(supabase, profile.id);
 
-  return html(`Acceso aprobado para ${profile.email}. Ya puede entrar en la app.`);
+  return redirect('ok', profile.email);
 });
 
 // Crea un tablero de ejemplo con tareas para el usuario recién aprobado.
@@ -103,16 +103,12 @@ async function nextId(
   return data ? (data.id as number) + 1 : null;
 }
 
-function html(message: string, status = 200) {
-  return new Response(
-    `<!doctype html><html lang="es"><head><meta charset="utf-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1">
-     <title>Aprobación de acceso</title></head>
-     <body style="font-family:system-ui;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;background:#f8fafc">
-       <div style="max-width:28rem;padding:2rem;text-align:center;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1)">
-         <p style="font-size:1.1rem;color:#0f172a">${message}</p>
-       </div>
-     </body></html>`,
-    { status, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-  );
+// Redirige a la app con el resultado en query params; la confirmación se
+// renderiza en React (evita el problema de content-type del runtime).
+function redirect(result: 'ok' | 'already' | 'invalid' | 'error', email?: string) {
+  const appUrl = Deno.env.get('APP_URL') ?? '';
+  const url = new URL(appUrl || 'https://example.com');
+  url.searchParams.set('approved', result);
+  if (email) url.searchParams.set('email', email);
+  return new Response(null, { status: 303, headers: { Location: url.toString() } });
 }

@@ -10,8 +10,8 @@ export const PendingAccess = ({ email, onSignOut }: PendingAccessProps) => (
     <div className="max-w-md w-full text-center space-y-6">
       <h1 className="text-2xl font-bold">Solicitud enviada</h1>
       <p className="text-gray-500 dark:text-gray-400">
-        Tu solicitud de acceso {email ? `para ${email} ` : ''}está pendiente de aprobación. Te
-        avisaremos cuando se autorice; vuelve a entrar más tarde.
+        Tu solicitud de acceso {email ? `para ${email} ` : ''}está pendiente de aprobación. Esta
+        pantalla se actualizará automáticamente en cuanto se autorice.
       </p>
       <button
         type="button"

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { describe, test, expect, vi, beforeAll, afterEach } from 'vitest';
+import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { setupWindowMocks, cleanupTest } from './utils/component-test-utils';
 
@@ -7,9 +7,15 @@ beforeAll(() => {
   setupWindowMocks();
 });
 
+beforeEach(() => {
+  // Estos tests cubren la app sin el gate de auth, con independencia del .env local.
+  vi.stubEnv('VITE_AUTH_ENABLED', 'false');
+});
+
 afterEach(() => {
   cleanup();
   cleanupTest();
+  vi.unstubAllEnvs();
 });
 
 describe('App', () => {
