@@ -31,3 +31,6 @@ dist-types/
 .env
 .env.local
 .env.*.local
+
+# Preview de emails generado
+scripts/email-preview/
