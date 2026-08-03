@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 describe('BoardCard', () => {
-  test('debe renderizar el nombre y emoji del board', async () => {
+  test('debe renderizar el nombre del board', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
       useBoardStore: () => ({
         currentBoardId: null,
@@ -38,7 +38,6 @@ describe('BoardCard', () => {
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
     expect(getByRole.heading(2)).toHaveTextContent('Test Board');
-    expect(screen.getByText('📝')).toBeInTheDocument();
   });
 
   test('debe tener role listitem y atributos aria correctos', async () => {
@@ -74,7 +73,7 @@ describe('BoardCard', () => {
     expect(getByRole.heading(2)).toBeInTheDocument();
   });
 
-  test('debe renderizar el emoji con las clases correctas', async () => {
+  test('debe renderizar el punto con el color del board', async () => {
     vi.doMock('../../../src/stores/board.store', () => ({
       useBoardStore: () => ({
         currentBoardId: null,
@@ -84,19 +83,10 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const emoji = screen.getByText('📝');
-    // El span que contiene el emoji debe tener las clases correctas
-    const emojiSpan = emoji.closest('span');
-    expect(emojiSpan).toHaveClass(
-      'flex',
-      'items-center',
-      'justify-center',
-      'w-10',
-      'h-10',
-      'rounded-full',
-      'text-xl'
-    );
-    expect(emojiSpan).toHaveAttribute('aria-hidden', 'true');
+    const cardItem = screen.getByRole('listitem');
+    const dot = cardItem.querySelector('span[aria-hidden="true"]');
+    expect(dot).toHaveClass('rounded-full');
+    expect(dot).toHaveStyle({ backgroundColor: '#ffcc00' });
   });
 
   test('debe ser focusable', async () => {

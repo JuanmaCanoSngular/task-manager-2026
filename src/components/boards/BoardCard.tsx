@@ -52,28 +52,26 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         role="listitem"
         aria-label={`${isActive ? 'Deseleccionar' : 'Seleccionar'} tablero ${board.name}`}
         aria-pressed={isActive}
-        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset`}
+        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer py-2.5 px-3 gap-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset`}
       >
         {isActive && (
           <button
             onClick={handleDelete}
             onKeyDown={handleDeleteKeyDown}
             tabIndex={0}
-            className="absolute top-2 right-2 z-20 btn-remove bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="absolute top-1.5 right-1.5 z-20 btn-icon-remove p-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
             aria-label={`Eliminar tablero ${board.name}`}
           >
-            <TrashIcon className="w-4 h-4 text-white" />
+            <TrashIcon className="w-3.5 h-3.5" />
           </button>
         )}
 
         <span
-          className="flex items-center justify-center w-10 h-10 rounded-full text-xl"
+          className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
           style={{ backgroundColor: board.color }}
           aria-hidden="true"
-        >
-          {board.emoji}
-        </span>
-        <h2 className="text-lg">{board.name}</h2>
+        />
+        <h2 className="text-sm font-medium truncate">{board.name}</h2>
       </div>
 
       <ConfirmDialog
