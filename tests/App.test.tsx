@@ -50,13 +50,13 @@ describe('App', () => {
 
     // Should have proper styling classes
     expect(skipToMainContent).toHaveClass(
-      'bg-blue-600',
+      'bg-indigo-600',
       'text-white',
       'px-4',
       'py-2',
       'rounded-lg'
     );
-    expect(skipToBoardsList).toHaveClass('bg-blue-600', 'text-white', 'px-4', 'py-2', 'rounded-lg');
+    expect(skipToBoardsList).toHaveClass('bg-indigo-600', 'text-white', 'px-4', 'py-2', 'rounded-lg');
   });
 
   test('should have proper target elements with correct IDs', async () => {

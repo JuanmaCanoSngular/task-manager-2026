@@ -55,7 +55,7 @@ describe('TaskStatus', () => {
   test('should handle button structure correctly', () => {
     render(<TaskStatus {...defaultProps} />);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('relative', 'w-full', 'cursor-default', 'rounded-lg');
+    expect(button).toHaveClass('input-base', 'relative', 'cursor-default');
     expect(button.querySelector('.flex.items-center.gap-2')).toBeInTheDocument();
     expect(
       button.querySelector('.pointer-events-none.absolute.inset-y-0.right-0')

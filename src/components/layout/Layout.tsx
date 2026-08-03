@@ -20,15 +20,25 @@ export const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="h-screen flex flex-col text-light dark:text-dark transition-colors duration-300">
       <header className="flex-shrink-0 p-4">
-        <h1 className="text-3xl font-bold text-center">
+        <h1 className="text-2xl font-bold text-center">
           <button
             onClick={handleLogoClick}
             onKeyDown={handleKeyDown}
             tabIndex={0}
-            className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+            className="inline-flex items-center gap-2 rounded-xl px-2 py-1 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             aria-label="Ir al inicio"
           >
-            <span className="text-light dark:text-dark">Gestión de tareas</span>
+            <span
+              aria-hidden="true"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-base text-white"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, var(--brand), var(--brand-2))',
+                boxShadow: 'var(--shadow-brand)',
+              }}
+            >
+              ✓
+            </span>
+            <span style={{ color: 'var(--text)' }}>Gestión de tareas</span>
           </button>
         </h1>
       </header>

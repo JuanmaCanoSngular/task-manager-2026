@@ -29,13 +29,13 @@ const AppContent = () => {
       <div className="absolute -top-40 left-4 z-50 focus-within:top-4">
         <a
           href="#main-content"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           Skip to main content
         </a>
         <a
           href="#boards-list"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg ml-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           Skip to boards list
         </a>

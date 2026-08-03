@@ -26,7 +26,7 @@ export const CreateTaskButton = () => {
         onClick={() => setIsOpen(true)}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+        className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
         aria-label="Añadir nueva tarea"
       >
         <span>Añadir nueva tarea</span>

@@ -52,7 +52,7 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         role="listitem"
         aria-label={`${isActive ? 'Deseleccionar' : 'Seleccionar'} tablero ${board.name}`}
         aria-pressed={isActive}
-        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
+        className={`card-base ${isActive ? 'card-active' : 'card-hover'} relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset`}
       >
         {isActive && (
           <button

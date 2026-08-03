@@ -19,7 +19,7 @@ export const AuthGate = ({ children }: AuthGateProps) => {
         aria-label="Cargando"
         className="min-h-screen w-full flex items-center justify-center bg-background text-light dark:bg-background-dark dark:text-dark"
       >
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-indigo-500" />
       </div>
     );
   }

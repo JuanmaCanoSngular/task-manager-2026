@@ -33,7 +33,7 @@ export const AddNewBoardButton = () => {
         onClick={handleOpenModal}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+        className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
         aria-label="Añadir nuevo tablero"
       >
         <h2 className="text-xl">Añadir nuevo tablero</h2>

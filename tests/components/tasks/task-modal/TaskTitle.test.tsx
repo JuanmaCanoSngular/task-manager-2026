@@ -52,7 +52,7 @@ describe('TaskTitle', () => {
     render(<TaskTitle {...defaultProps} />);
 
     const input = screen.getByRole('textbox');
-    expect(input).toHaveClass('block', 'w-full', 'rounded-lg', 'border-0');
+    expect(input).toHaveClass('input-base');
   });
 
   test('should handle special characters in input', () => {

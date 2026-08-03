@@ -27,7 +27,7 @@ export const BoardLogo = ({
       <button
         type="button"
         onClick={onGenerateNew}
-        className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200 hover:scale-105"
+        className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 hover:scale-105"
         aria-label="Generar nuevos logos para el tablero"
       >
         <ArrowPathIcon className="w-4 h-4" />
@@ -47,7 +47,7 @@ export const BoardLogo = ({
             onClick={() => onSelect(index)}
             className={`relative w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all duration-200 shadow-sm hover:shadow-md ${
               selectedIndex === index
-                ? 'ring-4 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800 scale-110 shadow-lg'
+                ? 'ring-4 ring-indigo-500 ring-offset-2 dark:ring-offset-gray-800 scale-110 shadow-lg'
                 : 'hover:scale-105'
             }`}
             style={{ backgroundColor: logo.color }}
