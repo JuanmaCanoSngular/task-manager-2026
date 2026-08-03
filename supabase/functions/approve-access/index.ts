@@ -71,26 +71,31 @@ async function notifyUser(email: string, result: 'approved' | 'denied') {
 
   const appUrl = Deno.env.get('APP_URL') ?? '';
 
-  const subject =
-    result === 'approved' ? 'Tu acceso ha sido aprobado' : 'Tu solicitud de acceso';
-  const html =
+  const subject = result === 'approved' ? 'Tu acceso ha sido aprobado' : 'Sobre tu solicitud de acceso';
+  const heading = result === 'approved' ? '¡Acceso aprobado!' : 'Solicitud no aprobada';
+  const body =
     result === 'approved'
-      ? `<p>¡Tu acceso a la app de tareas ha sido aprobado!</p>` +
-        (appUrl ? `<p><a href="${appUrl}">Entrar en la app</a></p>` : '')
-      : `<p>Tu solicitud de acceso a la app de tareas no ha sido aprobada.</p>`;
+      ? `<p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#475569">
+           Tu acceso a <strong>Gestión de tareas</strong> ha sido aprobado. Ya puedes entrar y
+           empezar a organizar tus tableros.
+         </p>` +
+        (appUrl
+          ? `<a href="${appUrl}" style="display:inline-block;padding:12px 24px;border-radius:10px;background:#6366f1;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">Entrar en la app</a>`
+          : '')
+      : `<p style="margin:0;font-size:15px;line-height:1.6;color:#475569">
+           Tu solicitud de acceso a <strong>Gestión de tareas</strong> no ha sido aprobada. Si crees
+           que se trata de un error, contacta con el administrador.
+         </p>`;
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: Deno.env.get('FROM_EMAIL') ?? 'onboarding@resend.dev',
         to: email,
         subject,
-        html,
+        html: layout(heading, body),
       }),
     });
     if (!res.ok) {
@@ -99,6 +104,25 @@ async function notifyUser(email: string, result: 'approved' | 'denied') {
   } catch (error) {
     console.error('Email al usuario falló:', error);
   }
+}
+
+function layout(heading: string, bodyHtml: string) {
+  return `<!doctype html><html lang="es"><body style="margin:0;padding:24px;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(15,23,42,.10)">
+        <tr><td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:26px 32px">
+          <div style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:.3px">Gestión de tareas</div>
+        </td></tr>
+        <tr><td style="padding:32px">
+          <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:#0f172a">${heading}</h1>
+          ${bodyHtml}
+        </td></tr>
+        <tr><td style="padding:18px 32px;border-top:1px solid #e2e8f0">
+          <p style="margin:0;font-size:12px;color:#94a3b8">Mensaje automático de Gestión de tareas. Si no reconoces esta actividad, ignóralo.</p>
+        </td></tr>
+      </table>
+    </td></tr></table>
+  </body></html>`;
 }
 
 // Crea un tablero de ejemplo con tareas para el usuario recién aprobado.
