@@ -1,0 +1,10 @@
+project_id = "etbxynbhqzbhzogxytnn"
+
+# request-access la invoca el cliente con su JWT -> verificación activada.
+[functions.request-access]
+verify_jwt = true
+
+# approve-access la abre el owner desde el email sin sesión -> sin JWT.
+# La seguridad la da el token de un solo uso.
+[functions.approve-access]
+verify_jwt = false
