@@ -1,108 +1,263 @@
 # Roadmap del proyecto
 
-Este documento recoge la propuesta de evolución del proyecto para convertir la app en una herramienta más completa, personalizable y preparada para uso real.
+Documento vivo de evolución del gestor de tareas. Prioriza valor de uso real
+sin sobrecargar el mantenimiento.
 
-## Visión general
+La app se mantiene únicamente en español (la internacionalización se descartó).
 
-La idea es avanzar por fases, priorizando mejoras que aporten valor de negocio y experiencia de usuario sin hacer el proyecto demasiado complejo de mantener.
+---
 
-La app se mantiene únicamente en español (la internacionalización se descartó de forma explícita).
+## Visión
 
-## Fase 1 — Personalización
+Pasar de una demo Kanban a una herramienta personalizable, usable fuera del
+escritorio (voz / mensajería) y con identidad de producto clara.
 
-### 1. Etiquetas personalizadas
-- Permitir crear nuevas etiquetas desde la interfaz.
-- Cada etiqueta podrá tener nombre y color.
-- Eliminar la idea de depender de etiquetas predefinidas.
-- Guardar estas etiquetas junto con el contenido del board.
+---
 
-## Fase 2 — Persistencia real y colaboración
+## Estado actual (agosto 2026)
 
-### 2. Persistir datos en Supabase
-- Mover la persistencia de datos del navegador a una base de datos remota.
-- Permitir que boards, tareas y etiquetas se guarden de forma persistente.
-- Evitar depender únicamente de `localStorage`.
+### Completado
 
-### 3. Soporte para múltiples usuarios
-- Cada usuario verá únicamente sus propios boards y tareas.
-- Esto permitirá una experiencia más realista y escalable.
+| Área | Detalle |
+|------|---------|
+| Persistencia | Boards y tasks en Supabase (Postgres), write-through desde Zustand |
+| Auth (código) | Login Google + solicitud de acceso + aprobación/denegación + emails (Resend) + Edge Functions + CI de deploy |
+| UI | Sistema de diseño minimalista indigo; color de tablero con paleta curada |
+| Idioma | Solo español (i18n eliminado) |
+| Calidad | 266 tests, deploy en Vercel |
 
-## Fase 3 — Autenticación
+### En pausa / pendiente de activar
 
-Enfoque elegido: acceso por invitación con login de Google (Supabase Auth) y
-aprobación manual del owner. Se descartó el login por email + código.
+- **Auth en producción**: el código existe, pero `VITE_AUTH_ENABLED="false"` y
+  `auth-schema.sql` aún no está aplicado. Activarlo implica migrar IDs
+  (hoy `max+1` en cliente → riesgo de colisión) y cerrar RLS abierta.
+- **Etiquetas personalizadas**: siguen siendo 9 tags fijas en inglés
+  (`TASK_TAGS`). Sin CRUD ni tabla `tags`.
 
-### 4. Login federado con Google
-- Login con Google vía Supabase Auth.
-- El email verificado por Google identifica al usuario.
+### Limitaciones actuales relevantes
 
-### 5. Acceso restringido con aprobación manual
-- Al entrar por primera vez se crea una solicitud (perfil `pending`).
-- El owner recibe un email (Resend) con un enlace de aprobación de un solo uso.
-- Al aprobar, se marca `approved` y se provisiona un tablero de ejemplo.
+- Columnas de estado **fijas** a nivel global (`backlog`, `in-progress`,
+  `in-review`, `completed`) — no por tablero.
+- Fondos de tarjeta vía Unsplash / aleatorios; no hay elección explícita de URL.
+- Nombre de producto genérico: «Gestión de tareas».
+- Preferencia de tema ya persistida en `localStorage` (Zustand `persist`);
+  no en Supabase.
 
-### 6. Multiusuario con RLS
-- `user_id` en boards/tasks y políticas RLS `auth.uid() = user_id`.
-- Cada usuario solo ve y edita sus propios datos.
+---
 
-## Fase 4 — Agente IA (Gemini)
+## Fase A — Producto e identidad (prioridad alta)
 
-### 7. Añadir tareas por lenguaje natural desde el móvil
-- Integrar un agente basado en Google Gemini que interprete instrucciones en lenguaje natural (ej.: "añade una tarea para llamar al cliente mañana").
-- El agente traduce la instrucción a una llamada estructurada (function calling) que crea la tarea en el gestor.
-- Acceso desde el móvil (PWA o endpoint ligero) para capturar tareas sobre la marcha.
-- Requiere que la persistencia (Fase 2) y la autenticación (Fase 3) estén resueltas: el agente necesita saber en qué cuenta/board escribir.
+### A1. Nombre y header
 
-## Propuesta de prioridad
+- Sustituir «Gestión de tareas» por un **nombre propio** identificable
+  (marca corta, memorable, usable en dominio y emails).
+- Aplicar el nombre en header, landing de auth, títulos de email y README.
+- Criterio: si quitas la nav, el primer viewport sigue siendo reconocible.
 
-### Prioridad alta
-1. Etiquetas personalizadas
-2. Persistencia en Supabase
+> Candidatos a valorar (borrador): *Kanban OS*, *Tablero*, *Flowboard*,
+> *Lista Viva*, *Pizarra*. Decidir en esta fase; no bloquear el resto.
 
-### Prioridad media
-3. Autenticación por email + código de verificación
-4. Soporte multiusuario
+### A2. Columna «Bloqueos» por defecto
 
-### Prioridad baja
-5. OAuth con proveedor externo
-6. Agente IA con Gemini
+- Todo tablero nuevo (y seed / provisión de ejemplo) incluye una columna
+  **Bloqueos** con indicador visual rojo (icono o punto).
+- Encaja con el modelo de columnas personalizables (A3): Bloqueos será una
+  columna por defecto del tablero, no un status hardcodeado eterno.
 
-## Diseño recomendado para la implementación
+### A3. Columnas personalizables por tablero
 
-### Arquitectura propuesta
-- React + TypeScript seguirá siendo la base.
-- Zustand se mantendrá para estado local y UI.
-- Supabase se añadirá como capa de persistencia y autenticación.
-- Los servicios de acceso a datos se encapsularán en `src/services` para mantener el código limpio.
-- El agente IA se expondrá mediante una función de servidor (Edge Function de Supabase o similar) que valide el usuario y llame a Gemini; nunca desde el cliente con la clave expuesta.
+Por cada tablero el usuario podrá:
 
-### Modelo de datos sugerido
-- `users` o `profiles`
-- `boards`
-- `tasks`
-- `tags`
+- **Crear** columnas nuevas (nombre + color).
+- **Renombrar** columnas existentes.
+- **Cambiar el color** asociado a la columna.
+- **Eliminar** una columna completa **incluyendo sus tareas**, con
+  **confirmación explícita** (modal: nombre de la columna + nº de tareas
+  afectadas).
 
-### Recomendación de enfoque
-- Empezar por el MVP más útil: etiquetas personalizadas.
-- Después pasar a persistencia en Supabase y autenticación.
-- Dejar el agente IA para el final, cuando exista cuenta de usuario y datos persistentes donde escribir.
-- No intentar implementar todo a la vez, porque aumentaría mucho el riesgo de errores.
+Implicaciones técnicas:
+
+- Dejar de usar `TASK_STATUS` global fijo.
+- Nuevo modelo: tabla `columns` (o JSON en `boards`) con
+  `board_id`, `name`, `color`, `position`, `is_default` / slug opcional.
+- `tasks.status` pasa a referenciar `column_id` (o slug estable por tablero).
+- Migración de los 4 estados actuales → columnas por board + Bloqueos.
+- Drag & drop entre columnas dinámicas; orden de columnas persistido.
+
+### A4. Imagen de fondo de tarjeta (URL remota)
+
+- Eliminar (o degradar) el flujo de fondos aleatorios / Unsplash automático.
+- El usuario elige una imagen **remota**:
+  - Pegar URL, y/o
+  - Buscar vía API (Unsplash u otra) y guardar solo la URL resultante.
+- **No almacenamos binarios** de imagen; solo la URL en la tarea.
+- Validación básica de URL + preview; fallback si la imagen falla al cargar.
+
+---
+
+## Fase B — Preferencias y operación (prioridad media)
+
+### B1. Tema claro / oscuro — animación y persistencia
+
+Estado hoy:
+
+- Toggle con `transition-colors duration-300` en layout.
+- Persistencia en **`localStorage`** vía Zustand (`theme-storage`).
+- Default actual: oscuro (`isDark: true`).
+
+Decisiones propuestas:
+
+| Pregunta | Respuesta recomendada |
+|----------|------------------------|
+| ¿Persistir en Supabase? | **No**, salvo sync multi-dispositivo. El tema es preferencia de dispositivo/UI; `localStorage` es suficiente y más rápido (sin flash de login). |
+| ¿Cuándo sí en Supabase? | Si tras activar auth queremos la misma preferencia en móvil y desktop; entonces `profiles.theme` + hidratar tras sesión. |
+| Animación | Revisar FOUC al cargar (aplicar tema antes del paint / script en `index.html`); suavizar transición de fondos y bordes, no solo `color`. |
+
+Tareas:
+
+- Auditar animación light ↔ dark (saltos, contraste intermedio).
+- Evitar flash al recargar (script temprano que lea `theme-storage`).
+- Documentar la decisión en DEVELOPERS.MD.
+
+### B2. Keep-alive de Supabase (plan free)
+
+- El plan free pausa proyectos inactivos.
+- Crear un **cron** (GitHub Actions `schedule` o similar) que haga un ping
+  ligero a Supabase cada X días (p. ej. 3–5): health check / `select 1` /
+  edge function mínima.
+- Secrets en el repo; fallos visibles en Actions.
+- Documentar intervalo y qué endpoint se usa.
+
+---
+
+## Fase C — Auth en producción (prioridad media, bloqueante para agente)
+
+### C1. Activar acceso restringido
+
+1. Migrar IDs de boards/tasks a identity o UUID (evitar colisiones).
+2. Ejecutar `auth-schema.sql` por secciones (profiles → asignar `user_id` → cerrar RLS).
+3. Poner `VITE_AUTH_ENABLED=true` en Vercel.
+4. Actualizar README / DEVELOPERS (hoy dicen “sin auth”).
+
+### C2. Etiquetas personalizadas (Fase 1 original, aún pendiente)
+
+- CRUD de etiquetas (nombre + color) por usuario o por tablero.
+- Sustituir `TASK_TAGS` hardcodeadas; labels en español.
+- Tabla `tags` + relación con tasks.
+
+---
+
+## Fase D — Agente por voz / mensajería (estudio + MVP)
+
+### D0. Estudio de viabilidad (primero)
+
+Objetivo: desde fuera (móvil / casa), enviar **audio o texto** y que se cree
+o consulte una tarea en el tablero del usuario.
+
+| Canal | Viabilidad | Infra mínima | Notas |
+|-------|------------|--------------|-------|
+| **Telegram** | Alta | Bot + webhook (Edge Function o worker) + auth link usuario↔chat_id | API simple, gratis, buena para MVP |
+| **WhatsApp** | Media–alta | Meta Cloud API (Business) o Twilio; verificación de negocio | Más fricción legal/setup; coste |
+| **Alexa** | Media | Skill Alexa + account linking OAuth con nuestra auth | Más infra y certificación; útil en casa |
+| **Gemini / LLM** | Necesario en todos | Edge Function con function calling → crear/listar tasks | Clave solo en servidor |
+
+Conclusión preliminar: **Telegram + LLM es el MVP más realista**. WhatsApp y
+Alexa como iteraciones posteriores si el flujo Telegram funciona.
+
+Requisitos previos (bloqueantes):
+
+- Auth activa y usuario identificado (Fase C).
+- Persistencia estable y columnas modeladas (idealmente tras A3).
+- Vinculación cuenta app ↔ identidad del canal (deep link / código de emparejamiento).
+
+### D1. MVP propuesto (Telegram)
+
+1. Bot de Telegram; comando `/start` + código de enlace a la app.
+2. Mensaje de texto → interpretar con Gemini → `create_task` / `list_pending`.
+3. Mensaje de **voz** → transcripción (Whisper API u otra) → mismo pipeline.
+4. Respuesta de confirmación en el chat (“Creada en *Productividad* → Pendiente”).
+
+### D2. Extensiones (posterior)
+
+- WhatsApp Business / Twilio.
+- Skill Alexa con account linking.
+- Consultas: “¿qué tengo bloqueado?”, “muestra pendientes de hoy”.
+
+---
+
+## Fuera de alcance (por ahora)
+
+- Internacionalización.
+- Login por email + código (descartado; se eligió Google).
+- Almacenamiento de ficheros de imagen en nuestro storage.
+- Colaboración en el mismo tablero entre varios usuarios (solo aislamiento por `user_id`).
+
+---
+
+## Prioridad recomendada
+
+### Alta
+1. **A1** Nombre / marca del producto
+2. **A3 + A2** Columnas personalizables (con Bloqueos por defecto)
+3. **A4** Imagen de tarjeta por URL
+
+### Media
+4. **B1** Revisar animación y política de tema
+5. **B2** Cron keep-alive Supabase
+6. **C1** Activar auth en producción (+ migración de IDs)
+7. **C2** Etiquetas personalizadas
+
+### Baja / estudio
+8. **D0 → D1** Viabilidad y MVP Telegram + voz
+9. WhatsApp / Alexa
+
+---
+
+## Arquitectura (sin cambios de fondo)
+
+- React + TypeScript + Vite + Tailwind + Zustand.
+- Supabase: Postgres, Auth, Edge Functions.
+- Servicios en `src/services`; mutaciones write-through desde el store.
+- Agentes / webhooks **solo en servidor** (nunca API keys de LLM o Meta en el cliente).
+
+### Modelo de datos orientativo (evolución)
+
+```
+profiles          — auth + status de acceso (+ theme opcional)
+boards            — user_id, name, color, …
+columns           — board_id, name, color, position  ← nuevo
+tasks             — board_id, column_id, title, tags, background_url, …
+tags              — user_id o board_id, name, color   ← pendiente C2
+channel_links     — user_id, provider (telegram|…), external_id  ← Fase D
+```
+
+---
 
 ## Entregables por iteración
 
-### Iteración 1
-- Crear y editar etiquetas personalizadas
-- Persistencia de boards, tareas y etiquetas en Supabase
+### Iteración 1 — Identidad y tablero flexible
+- Nombre propio en header / landing / emails
+- Columnas CRUD por tablero + Bloqueos por defecto
+- Eliminar columna con confirmación (cascade de tasks)
+- Fondo de card por URL (sin storage propio)
 
-### Iteración 2
-- Autenticación por email y código de verificación
-- Soporte multiusuario (aislamiento de datos por usuario)
+### Iteración 2 — Operación y auth real
+- Keep-alive cron Supabase
+- Pulido tema (anti-FOUC + animación)
+- Activar auth + RLS + migración de IDs
+- Etiquetas personalizadas
 
-### Iteración 3
-- OAuth opcional
-- Agente IA con Gemini para crear tareas por lenguaje natural
-- Refinamiento de UX y mejoras de rendimiento
+### Iteración 3 — Agente
+- Estudio formal Telegram vs WhatsApp vs Alexa
+- MVP Telegram (texto → tarea)
+- Voz (transcripción → misma pipeline)
+- Documentar límites y costes
 
-## Notas finales
+---
 
-Este roadmap busca que el proyecto evolucione de una demo técnica a una app más seria, usable y preparada para crecer. La prioridad está en mejorar la experiencia del usuario y la estabilidad de la arquitectura antes de añadir funcionalidad compleja.
+## Notas
+
+Este roadmap sustituye la versión anterior (Fases 1–4 con prioridades
+desactualizadas: email+código, OAuth “futuro”, etc.). Lo ya construido
+(persistencia, auth en código, UI) queda marcado como completado; lo nuevo
+(columnas, marca, imagen URL, keep-alive, agente por canal) marca el foco.
