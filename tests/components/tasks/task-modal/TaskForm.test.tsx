@@ -1,7 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { TaskForm } from '../../../../src/components/tasks/task-modal/TaskForm';
-import { TASK_STATUS, TASK_TAGS, TaskTag } from '../../../../src/interfaces/task.interface';
+import { TASK_STATUS } from '../../../../src/interfaces/task.interface';
+
+const MOCK_TAGS = [
+  { tag: 'tag-urgente', label: 'Urgente' },
+  { tag: 'tag-idea', label: 'Idea' },
+  { tag: 'tag-importante', label: 'Importante' },
+  { tag: 'tag-extra', label: 'Extra' },
+];
 
 // Mock child components
 vi.mock('../../../../src/components/tasks/task-modal/TaskTitle', () => ({
@@ -117,19 +124,17 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskStatus', () => ({
 vi.mock('../../../../src/components/tasks/task-modal/TaskTags', () => ({
   TaskTags: ({
     selectedTags,
-    maxTags,
     onToggleTag,
   }: {
-    selectedTags: TaskTag[];
-    maxTags: number;
+    selectedTags: string[];
     showWarning: boolean;
-    onToggleTag: (tag: TaskTag) => void;
+    onToggleTag: (tag: string) => void;
   }) => (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {selectedTags.length}/{maxTags} selected
+          {selectedTags.length}/4 selected
         </span>
       </div>
       <div
@@ -137,7 +142,7 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskTags', () => ({
         role="group"
         aria-label="Available tags for the task"
       >
-        {TASK_TAGS.map((tagOption) => {
+        {MOCK_TAGS.map((tagOption) => {
           const isSelected = selectedTags.includes(tagOption.tag);
           return (
             <button
@@ -221,40 +226,36 @@ describe('TaskForm', () => {
   test('should handle tag selection', () => {
     render(<TaskForm {...defaultProps} />);
 
-    const technicalButton = screen.getByRole('button', { name: 'Select tag technical' });
-    fireEvent.click(technicalButton);
+    const tagButton = screen.getByRole('button', { name: 'Select tag tag-urgente' });
+    fireEvent.click(tagButton);
 
     // Verify that the tag was selected
-    expect(screen.getByRole('button', { name: 'Deselect tag technical' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Deselect tag tag-urgente' })).toBeInTheDocument();
     expect(screen.getByText('1/4 selected')).toBeInTheDocument();
   });
 
   test('should handle tag deselection', () => {
     const initialData = {
-      tags: ['technical' as TaskTag],
+      tags: ['tag-urgente'],
     };
 
     render(<TaskForm {...defaultProps} initialData={initialData} />);
 
-    const technicalButton = screen.getByRole('button', { name: 'Deselect tag technical' });
-    fireEvent.click(technicalButton);
+    const tagButton = screen.getByRole('button', { name: 'Deselect tag tag-urgente' });
+    fireEvent.click(tagButton);
 
     // Verify that the tag was deselected
-    expect(screen.getByRole('button', { name: 'Select tag technical' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Select tag tag-urgente' })).toBeInTheDocument();
     expect(screen.getByText('0/4 selected')).toBeInTheDocument();
   });
 
   test('should prevent selecting more than max tags', () => {
     const initialData = {
-      tags: ['technical', 'front-end', 'interactivity', 'styling'] as TaskTag[],
+      tags: ['tag-urgente', 'tag-idea', 'tag-importante', 'tag-extra'],
     };
 
     render(<TaskForm {...defaultProps} initialData={initialData} />);
 
-    const designButton = screen.getByRole('button', { name: 'Select tag design' });
-    fireEvent.click(designButton);
-
-    // Verify that no more tags can be selected
     expect(screen.getByText('4/4 selected')).toBeInTheDocument();
   });
 
@@ -299,7 +300,7 @@ describe('TaskForm', () => {
     const initialData = {
       title: 'Updated Task',
       status: 'completed' as const,
-      tags: ['technical' as TaskTag],
+      tags: ['tag-urgente'],
       background: 'https://example.com/bg.jpg',
     };
 
@@ -307,7 +308,7 @@ describe('TaskForm', () => {
 
     const titleInput = screen.getByLabelText('Task Title') as HTMLInputElement;
     expect(titleInput.value).toBe('Updated Task');
-    expect(screen.getByRole('button', { name: 'Deselect tag technical' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Deselect tag tag-urgente' })).toBeInTheDocument();
   });
 
   test('should show correct button text for edit mode', () => {

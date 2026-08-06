@@ -75,13 +75,13 @@ describe('BoardStore', () => {
         id: 1,
         title: 'Test Task 1',
         status: 'backlog' as TaskStatus,
-        tags: ['technical'],
+        tags: ['id-1'],
       },
       {
         id: 2,
         title: 'Test Task 2',
         status: 'in-progress' as TaskStatus,
-        tags: ['front-end'],
+        tags: ['id-2'],
       },
     ],
     isDefault: false,
@@ -91,7 +91,7 @@ describe('BoardStore', () => {
   const mockTask: Omit<Task, 'id'> = {
     title: 'New Test Task',
     status: 'backlog' as TaskStatus,
-    tags: ['design'],
+    tags: ['id-6'],
   };
 
   beforeEach(() => {
@@ -139,14 +139,14 @@ describe('BoardStore', () => {
         id: 1,
         title: 'Test Task',
         status: 'backlog',
-        tags: ['technical'],
+        tags: ['id-1'],
         background: 'https://example.com/bg.jpg',
       };
 
       expect(task.id).toBe(1);
       expect(task.title).toBe('Test Task');
       expect(task.status).toBe('backlog');
-      expect(task.tags).toEqual(['technical']);
+      expect(task.tags).toEqual(['id-1']);
       expect(task.background).toBe('https://example.com/bg.jpg');
     });
   });
@@ -170,7 +170,7 @@ describe('BoardStore', () => {
     test('should have valid mockTask', () => {
       expect(mockTask.title).toBe('New Test Task');
       expect(mockTask.status).toBe('backlog');
-      expect(mockTask.tags).toEqual(['design']);
+      expect(mockTask.tags).toEqual(['id-6']);
     });
   });
 
@@ -211,16 +211,16 @@ describe('BoardStore', () => {
       });
     });
 
-    test('should validate TaskTag', () => {
+    test('should validate tag ids as strings', () => {
       const validTags = [
-        'technical',
-        'front-end',
-        'interactivity',
-        'styling',
-        'filtering',
-        'design',
-        'responsive',
-        'new-concept',
+        'id-1',
+        'id-2',
+        'id-3',
+        'id-4',
+        'id-5',
+        'id-6',
+        'id-7',
+        'id-8',
       ];
 
       validTags.forEach((tag) => {

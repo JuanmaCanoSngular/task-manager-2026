@@ -162,7 +162,8 @@ Frontend (Telegram):
 
 Datos: `supabase/auth-schema.sql` (tabla `profiles`, `user_id` en boards/tasks,
 RLS por usuario); `supabase/telegram-schema.sql` (vínculos Telegram);
-`supabase/realtime-tasks.sql` (Realtime en `tasks` para refresco en vivo).
+`supabase/realtime-tasks.sql` (Realtime en `tasks` para refresco en vivo);
+`supabase/tags-schema.sql` (etiquetas por usuario: Urgente / Importante / Idea).
 
 Despliegue
 ----------

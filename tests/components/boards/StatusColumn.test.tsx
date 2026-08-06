@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { describe, test, expect, vi, beforeAll, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { setupWindowMocks, cleanupTest } from '../../utils/component-test-utils';
-import type { TaskTag } from '../../../src/interfaces/task.interface';
+import type { Task } from '../../../src/interfaces/task.interface';
 
 beforeAll(() => {
   setupWindowMocks();
@@ -66,11 +66,15 @@ vi.mock('../../../src/stores/board.store', () => ({
   }),
 }));
 
+vi.mock('../../../src/stores/tag.store', () => ({
+  useTagStore: (selector: (s: { tags: unknown[] }) => unknown) => selector({ tags: [] }),
+}));
+
 describe('StatusColumn', () => {
   test('renders correctly with tasks', async () => {
     const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'backlog' as const, tags: ['technical' as TaskTag] },
-      { id: 2, title: 'Task 2', status: 'backlog' as const, tags: ['front-end' as TaskTag] },
+      { id: 1, title: 'Task 1', status: 'backlog' as const, tags: ['tag-1'] as Task['tags'] },
+      { id: 2, title: 'Task 2', status: 'backlog' as const, tags: ['tag-fe'] as Task['tags'] },
     ];
 
     const { useTasksByStatus } = await import('../../../src/stores/board.store');
@@ -115,7 +119,7 @@ describe('StatusColumn', () => {
 
   test('renders CreateTaskButton only for backlog status', async () => {
     const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'backlog' as const, tags: ['technical' as TaskTag] },
+      { id: 1, title: 'Task 1', status: 'backlog' as const, tags: ['tag-1'] as Task['tags'] },
     ];
 
     const { useTasksByStatus } = await import('../../../src/stores/board.store');
@@ -140,7 +144,7 @@ describe('StatusColumn', () => {
 
   test('renders with different status types', async () => {
     const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'in-review' as const, tags: ['design' as TaskTag] },
+      { id: 1, title: 'Task 1', status: 'in-review' as const, tags: ['tag-design'] as Task['tags'] },
     ];
 
     const { useTasksByStatus } = await import('../../../src/stores/board.store');
@@ -164,7 +168,7 @@ describe('StatusColumn', () => {
 
   test('has correct accessibility structure', async () => {
     const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'completed' as const, tags: ['technical' as TaskTag] },
+      { id: 1, title: 'Task 1', status: 'completed' as const, tags: ['tag-1'] as Task['tags'] },
     ];
 
     const { useTasksByStatus } = await import('../../../src/stores/board.store');

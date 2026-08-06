@@ -1,28 +1,32 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Task, TaskDraft } from '../../../interfaces/task.interface';
-import { TASK_STATUS, TASK_TAGS } from '../../../interfaces/task.interface';
+import { Task, TaskDraft, TASK_STATUS } from '../../../interfaces/task.interface';
+import { MAX_TAGS_PER_TASK } from '../../../interfaces/tag.interface';
 import { imageService } from '../../../services/image.service';
 import { TaskTitle } from './TaskTitle';
 import { TaskBackground } from './TaskBackground';
 import { TaskStatus } from './TaskStatus';
 import { TaskTags } from './TaskTags';
 
-type TaskStatus = (typeof TASK_STATUS)[number]['status'];
-type TaskTag = (typeof TASK_TAGS)[number]['tag'];
-
-const MAX_TAGS = 4;
+type Status = (typeof TASK_STATUS)[number]['status'];
 
 interface TaskFormProps {
   mode: 'create' | 'edit';
   initialData?: Partial<Task>;
   onSubmit: (data: TaskDraft) => void;
   onCancel: () => void;
+  onManageTags?: () => void;
 }
 
-export const TaskForm = ({ mode, initialData, onSubmit, onCancel }: TaskFormProps) => {
+export const TaskForm = ({
+  mode,
+  initialData,
+  onSubmit,
+  onCancel,
+  onManageTags,
+}: TaskFormProps) => {
   const [title, setTitle] = useState(initialData?.title || '');
-  const [status, setStatus] = useState<TaskStatus>(initialData?.status || TASK_STATUS[0].status);
-  const [selectedTags, setSelectedTags] = useState<TaskTag[]>(initialData?.tags || []);
+  const [status, setStatus] = useState<Status>(initialData?.status || TASK_STATUS[0].status);
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
   const [showTagWarning, setShowTagWarning] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string>(initialData?.background || '');
   const [isLoadingImage, setIsLoadingImage] = useState(false);
@@ -60,16 +64,16 @@ export const TaskForm = ({ mode, initialData, onSubmit, onCancel }: TaskFormProp
     });
   };
 
-  const toggleTag = (tag: TaskTag) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  const toggleTag = (tagId: string) => {
+    if (selectedTags.includes(tagId)) {
+      setSelectedTags((prev) => prev.filter((t) => t !== tagId));
       setShowTagWarning(false);
     } else {
-      if (selectedTags.length >= MAX_TAGS) {
+      if (selectedTags.length >= MAX_TAGS_PER_TASK) {
         setShowTagWarning(true);
         return;
       }
-      setSelectedTags((prev) => [...prev, tag]);
+      setSelectedTags((prev) => [...prev, tagId]);
     }
   };
 
@@ -88,9 +92,9 @@ export const TaskForm = ({ mode, initialData, onSubmit, onCancel }: TaskFormProp
 
       <TaskTags
         selectedTags={selectedTags}
-        maxTags={MAX_TAGS}
         showWarning={showTagWarning}
         onToggleTag={toggleTag}
+        onManage={onManageTags}
       />
 
       <div className="pt-4 flex justify-end gap-3">

@@ -36,7 +36,6 @@ tablero por defecto del usuario.
 
 - Columnas 100 % personalizables por tablero (CRUD + borrar con confirmación).
 - Fondo de tarjeta por URL (sin storage).
-- Etiquetas personalizadas (hoy tags fijas en inglés).
 - Dominio corto `juanmacano.eu/tablero` → URL de producción (al final).
 
 ---
@@ -91,9 +90,12 @@ tablero por defecto del usuario.
 - Google + perfiles + RLS + `user_id` + secuencias de ID.
 - Pendiente menor: alinear README / DEVELOPERS con el estado real.
 
-### C2. Etiquetas personalizadas
+### C2. Etiquetas personalizadas — ✅
 
-- CRUD nombre + color; sustituir `TASK_TAGS` en inglés.
+- Tabla `tags` por usuario (`supabase/tags-schema.sql`).
+- Estándar al aprobar: **Urgente**, **Importante**, **Idea**.
+- CRUD en UI («Etiquetas» en header + Gestionar en el modal de tarea).
+- `tasks.tags` guarda UUIDs de etiquetas.
 
 ---
 
@@ -177,11 +179,10 @@ Comandos:
 ### Media
 2. **A4** Imagen de tarjeta por URL
 3. **B1** Tema (animación / FOUC)
-4. **C2** Etiquetas personalizadas
-5. **D** Voz en Telegram / WhatsApp / Alexa
+4. **D** Voz en Telegram / WhatsApp / Alexa
 
 ### Al final
-6. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 

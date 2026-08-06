@@ -7,39 +7,12 @@ export const TASK_STATUS = [
 
 export type TaskStatus = (typeof TASK_STATUS)[number]['status'];
 
-export const TASK_TAGS = [
-  { tag: 'technical', label: 'Technical', bgColor: 'bg-red-100', textColor: 'text-red-800' },
-  { tag: 'front-end', label: 'Front End', bgColor: 'bg-blue-100', textColor: 'text-blue-800' },
-  {
-    tag: 'interactivity',
-    label: 'Interactivity',
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-800',
-  },
-  {
-    tag: 'styling',
-    label: 'Styling',
-    bgColor: 'bg-purple-100',
-    textColor: 'text-purple-800',
-  },
-  { tag: 'filtering', label: 'Filtering', bgColor: 'bg-pink-100', textColor: 'text-pink-800' },
-  { tag: 'design', label: 'Design', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' },
-  {
-    tag: 'responsive',
-    label: 'Responsive',
-    bgColor: 'bg-indigo-100',
-    textColor: 'text-indigo-800',
-  },
-  { tag: 'new-concept', label: 'New Concept', bgColor: 'bg-cyan-100', textColor: 'text-cyan-800' },
-] as const;
-
-export type TaskTag = (typeof TASK_TAGS)[number]['tag'];
-
 export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
-  tags: TaskTag[];
+  /** IDs de filas en `tags` (UUID como string). */
+  tags: string[];
   background?: string;
   /** ISO timestamptz de creación (Supabase `created_at`). */
   createdAt?: string;
@@ -47,4 +20,3 @@ export interface Task {
 
 /** Campos editables al crear/actualizar (sin id ni timestamps). */
 export type TaskDraft = Omit<Task, 'id' | 'createdAt'>;
-

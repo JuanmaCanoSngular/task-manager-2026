@@ -115,11 +115,34 @@ async function provisionExampleBoard(
     return;
   }
 
+  const { data: seededTags, error: tagsError } = await supabase
+    .from('tags')
+    .insert([
+      { user_id: userId, name: 'Urgente', color: '#ef4444' },
+      { user_id: userId, name: 'Importante', color: '#f59e0b' },
+      { user_id: userId, name: 'Idea', color: '#06b6d4' },
+    ])
+    .select('id, name');
+
+  if (tagsError) {
+    console.error('Error creando etiquetas por defecto:', tagsError.message);
+  }
+
+  const ideaId = seededTags?.find((t) => t.name === 'Idea')?.id;
+
   const tasks = [
-    { title: 'Explora tu primer tablero', status: 'backlog', tags: ['new-concept'] },
-    { title: 'Crea una tarea nueva', status: 'in-progress', tags: [] },
-    { title: 'Ejemplo de bloqueo: falta acceso a un recurso', status: 'in-review', tags: [] },
-    { title: '¡Listo para empezar!', status: 'completed', tags: [] },
+    {
+      title: 'Explora tu primer tablero',
+      status: 'backlog',
+      tags: ideaId ? [ideaId] : [],
+    },
+    { title: 'Crea una tarea nueva', status: 'in-progress', tags: [] as string[] },
+    {
+      title: 'Ejemplo de bloqueo: falta acceso a un recurso',
+      status: 'in-review',
+      tags: [] as string[],
+    },
+    { title: '¡Listo para empezar!', status: 'completed', tags: [] as string[] },
   ].map((task, index) => ({
     board_id: board.id,
     user_id: userId,

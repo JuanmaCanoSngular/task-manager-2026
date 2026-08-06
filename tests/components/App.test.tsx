@@ -6,6 +6,11 @@ vi.mock('../../src/hooks/useTasksRealtime', () => ({
   useTasksRealtime: () => undefined,
 }));
 
+vi.mock('../../src/stores/tag.store', () => ({
+  useTagStore: (selector: (s: { fetchTags: () => void; tags: unknown[] }) => unknown) =>
+    selector({ fetchTags: vi.fn(), tags: [] }),
+}));
+
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,

@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { Task, TaskDraft, TASK_TAGS } from '../../interfaces/task.interface';
+import { Task, TaskDraft } from '../../interfaces/task.interface';
+import { tagChipStyle } from '../../interfaces/tag.interface';
 import { TaskModal } from './task-modal/TaskModal';
 import { useBoardStore } from '../../stores/board.store';
+import { useTagStore } from '../../stores/tag.store';
 import { TrashIcon } from '@heroicons/react/20/solid';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { formatRelativeCreatedAt, isRecentlyCreated } from '../../utils/relativeTime';
+import { TagsManagerDialog } from '../tags/TagsManagerDialog';
 
 interface TaskCardProps {
   task: Task;
@@ -17,8 +20,10 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const updateTask = useBoardStore((state) => state.updateTask);
   const removeTask = useBoardStore((state) => state.removeTask);
+  const allTags = useTagStore((state) => state.tags);
   const recent = isRecentlyCreated(task.createdAt);
   const relativeLabel = task.createdAt ? formatRelativeCreatedAt(task.createdAt) : null;
+  const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
   const handleSubmit = (data: TaskDraft) => {
     updateTask(task.id, data);
@@ -90,16 +95,17 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             <div className={`relative z-10 w-full ${task.background ? 'mt-28' : ''}`}>
               <p className="text-sm mb-2 text-left">{task.title}</p>
               <div className="mt-2 flex flex-wrap gap-2 justify-start">
-                {task.tags.map((tag, tagIndex) => {
-                  const tagInfo = TASK_TAGS.find((t) => t.tag === tag);
+                {task.tags.map((tagId) => {
+                  const tagInfo = allTags.find((t) => t.id === tagId);
                   if (!tagInfo) return null;
 
                   return (
                     <span
-                      key={tagIndex}
-                      className={`tag-base ${tagInfo.bgColor} ${tagInfo.textColor}`}
+                      key={tagId}
+                      className="tag-base"
+                      style={tagChipStyle(tagInfo.color, true)}
                     >
-                      {tagInfo.label}
+                      {tagInfo.name}
                     </span>
                   );
                 })}
@@ -125,7 +131,10 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
         mode="edit"
         task={task}
         onSubmit={handleSubmit}
+        onManageTags={() => setManageTagsOpen(true)}
       />
+
+      <TagsManagerDialog open={manageTagsOpen} onClose={() => setManageTagsOpen(false)} />
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}

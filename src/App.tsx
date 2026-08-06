@@ -7,15 +7,18 @@ import { ToggleTheme } from './components/layout/ToggleTheme';
 import { AuthGate } from './components/auth/AuthGate';
 import { ApprovalResult } from './components/auth/ApprovalResult';
 import { useTasksRealtime } from './hooks/useTasksRealtime';
+import { useTagStore } from './stores/tag.store';
 
 const AppContent = () => {
   const error = useBoardStore((state) => state.error);
   const boards = useBoardStore((state) => state.boards);
   const fetchBoards = useBoardStore((state) => state.fetchBoards);
+  const fetchTags = useTagStore((state) => state.fetchTags);
 
   useEffect(() => {
     fetchBoards();
-  }, [fetchBoards]);
+    fetchTags();
+  }, [fetchBoards, fetchTags]);
 
   useTasksRealtime();
   // Solo pantalla completa si falló la carga inicial (sin tableros).

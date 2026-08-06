@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { Board } from '../interfaces/board.interface';
-import { Task, TaskStatus, TaskTag } from '../interfaces/task.interface';
+import { Task, TaskStatus } from '../interfaces/task.interface';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // Fila tal cual vive en la tabla `tasks` de Supabase.
@@ -27,7 +27,7 @@ export const rowToTask = (row: TaskRow): Task => ({
   id: row.id,
   title: row.title,
   status: row.status as TaskStatus,
-  tags: (row.tags ?? []) as TaskTag[],
+  tags: row.tags ?? [],
   background: row.background ?? undefined,
   createdAt: row.created_at ?? undefined,
 });

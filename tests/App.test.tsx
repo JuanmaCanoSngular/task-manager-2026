@@ -11,6 +11,11 @@ vi.mock('../src/hooks/useTasksRealtime', () => ({
   useTasksRealtime: () => undefined,
 }));
 
+vi.mock('../src/stores/tag.store', () => ({
+  useTagStore: (selector: (s: { fetchTags: () => void }) => unknown) =>
+    selector({ fetchTags: vi.fn() }),
+}));
+
 beforeEach(() => {
   // Estos tests cubren la app sin el gate de auth, con independencia del .env local.
   vi.stubEnv('VITE_AUTH_ENABLED', 'false');

@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { TaskModal } from './task-modal/TaskModal';
 import { useBoardStore } from '../../stores/board.store';
-import { Task } from '../../interfaces/task.interface';
+import { TaskDraft } from '../../interfaces/task.interface';
 import { PlusIcon } from '@heroicons/react/20/solid';
+import { TagsManagerDialog } from '../tags/TagsManagerDialog';
 
 export const CreateTaskButton = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const addNewTask = useBoardStore((state) => state.addNewTask);
 
-  const handleSubmit = (taskData: Omit<Task, 'id'>) => {
-    addNewTask(taskData);
+  const handleSubmit = (taskData: TaskDraft) => {
+    void addNewTask(taskData);
     setIsOpen(false);
   };
 
@@ -38,7 +40,9 @@ export const CreateTaskButton = () => {
         onClose={() => setIsOpen(false)}
         mode="create"
         onSubmit={handleSubmit}
+        onManageTags={() => setManageTagsOpen(true)}
       />
+      <TagsManagerDialog open={manageTagsOpen} onClose={() => setManageTagsOpen(false)} />
     </>
   );
 };

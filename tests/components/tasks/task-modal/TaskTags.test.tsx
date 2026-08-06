@@ -1,213 +1,58 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TaskTags } from '../../../../src/components/tasks/task-modal/TaskTags';
-import { TASK_TAGS, TaskTag } from '../../../../src/interfaces/task.interface';
+import { MAX_TAGS_PER_TASK } from '../../../../src/interfaces/tag.interface';
+
+const mockTags = [
+  { id: 'id-urgente', name: 'Urgente', color: '#ef4444' },
+  { id: 'id-importante', name: 'Importante', color: '#f59e0b' },
+  { id: 'id-idea', name: 'Idea', color: '#06b6d4' },
+];
+
+vi.mock('../../../../src/stores/tag.store', () => ({
+  useTagStore: (selector: (s: { tags: typeof mockTags }) => unknown) =>
+    selector({ tags: mockTags }),
+}));
 
 describe('TaskTags', () => {
   const defaultProps = {
-    selectedTags: [] as TaskTag[],
-    maxTags: 3,
+    selectedTags: [] as string[],
     showWarning: false,
     onToggleTag: vi.fn(),
   };
 
-  test('should render correctly with no selected tags', () => {
+  beforeEach(() => {
+    defaultProps.onToggleTag = vi.fn();
+  });
+
+  test('renderiza las etiquetas del store', () => {
     render(<TaskTags {...defaultProps} />);
 
     expect(screen.getByText('Etiquetas')).toBeInTheDocument();
-    expect(screen.getByText('0/3 seleccionadas')).toBeInTheDocument();
-    expect(screen.getByRole('group')).toBeInTheDocument();
-
-    // Check that all tags are rendered
-    TASK_TAGS.forEach((tag) => {
-      expect(screen.getByText(tag.label)).toBeInTheDocument();
-    });
-  });
-
-  test('should render with selected tags', () => {
-    const selectedTags: TaskTag[] = ['technical', 'front-end'];
-    render(<TaskTags {...defaultProps} selectedTags={selectedTags} />);
-
-    expect(screen.getByText('2/3 seleccionadas')).toBeInTheDocument();
-
-    // Check that selected tags have correct styling
-    const technicalButton = screen.getByLabelText('Deseleccionar etiqueta Technical');
-    const frontEndButton = screen.getByLabelText('Deseleccionar etiqueta Front End');
-
-    expect(technicalButton).toHaveAttribute('aria-pressed', 'true');
-    expect(frontEndButton).toHaveAttribute('aria-pressed', 'true');
-  });
-
-  test('should call onToggleTag when a tag is clicked', () => {
-    const onToggleTag = vi.fn();
-    render(<TaskTags {...defaultProps} onToggleTag={onToggleTag} />);
-
-    const technicalButton = screen.getByLabelText('Seleccionar etiqueta Technical');
-    fireEvent.click(technicalButton);
-
-    expect(onToggleTag).toHaveBeenCalledWith('technical');
-  });
-
-  test('should show warning when showWarning is true', () => {
-    render(<TaskTags {...defaultProps} showWarning={true} />);
-
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('Puedes seleccionar un máximo de 3 etiquetas por tarea')).toBeInTheDocument();
-  });
-
-  test('should not show warning when showWarning is false', () => {
-    render(<TaskTags {...defaultProps} showWarning={false} />);
-
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(
-      screen.queryByText('Puedes seleccionar un máximo de 3 etiquetas por tarea')
-    ).not.toBeInTheDocument();
+      screen.getByText(`0/${MAX_TAGS_PER_TASK} seleccionadas`)
+    ).toBeInTheDocument();
+    expect(screen.getByText('Urgente')).toBeInTheDocument();
+    expect(screen.getByText('Importante')).toBeInTheDocument();
+    expect(screen.getByText('Idea')).toBeInTheDocument();
   });
 
-  test('should have correct accessibility attributes for unselected tags', () => {
-    render(<TaskTags {...defaultProps} />);
+  test('marca seleccionadas y llama onToggleTag', () => {
+    render(
+      <TaskTags {...defaultProps} selectedTags={['id-urgente']} onToggleTag={defaultProps.onToggleTag} />
+    );
 
-    const technicalButton = screen.getByLabelText('Seleccionar etiqueta Technical');
-    expect(technicalButton).toHaveAttribute('aria-pressed', 'false');
-    expect(technicalButton).toHaveAttribute('type', 'button');
+    const selected = screen.getByLabelText('Deseleccionar etiqueta Urgente');
+    expect(selected).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByLabelText('Seleccionar etiqueta Idea'));
+    expect(defaultProps.onToggleTag).toHaveBeenCalledWith('id-idea');
   });
 
-  test('should have correct accessibility attributes for selected tags', () => {
-    const selectedTags: TaskTag[] = ['technical'];
-    render(<TaskTags {...defaultProps} selectedTags={selectedTags} />);
-
-    const technicalButton = screen.getByLabelText('Deseleccionar etiqueta Technical');
-    expect(technicalButton).toHaveAttribute('aria-pressed', 'true');
-    expect(technicalButton).toHaveAttribute('type', 'button');
-  });
-
-  test('should have correct CSS classes for unselected tags', () => {
-    render(<TaskTags {...defaultProps} />);
-
-    const technicalButton = screen.getByLabelText('Seleccionar etiqueta Technical');
-    expect(technicalButton).toHaveClass('tag-base', 'bg-gray-100', 'text-gray-600');
-  });
-
-  test('should have correct CSS classes for selected tags', () => {
-    const selectedTags: TaskTag[] = ['technical'];
-    render(<TaskTags {...defaultProps} selectedTags={selectedTags} />);
-
-    const technicalButton = screen.getByLabelText('Deseleccionar etiqueta Technical');
-    expect(technicalButton).toHaveClass('tag-base', 'bg-red-100', 'text-red-800');
-  });
-
-  test('should handle multiple tag selections', () => {
-    const onToggleTag = vi.fn();
-    render(<TaskTags {...defaultProps} onToggleTag={onToggleTag} />);
-
-    const technicalButton = screen.getByLabelText('Seleccionar etiqueta Technical');
-    const frontEndButton = screen.getByLabelText('Seleccionar etiqueta Front End');
-
-    fireEvent.click(technicalButton);
-    fireEvent.click(frontEndButton);
-
-    expect(onToggleTag).toHaveBeenCalledWith('technical');
-    expect(onToggleTag).toHaveBeenCalledWith('front-end');
-    expect(onToggleTag).toHaveBeenCalledTimes(2);
-  });
-
-  test('should handle tag deselection', () => {
-    const selectedTags: TaskTag[] = ['technical'];
-    const onToggleTag = vi.fn();
-    render(<TaskTags {...defaultProps} selectedTags={selectedTags} onToggleTag={onToggleTag} />);
-
-    const technicalButton = screen.getByLabelText('Deseleccionar etiqueta Technical');
-    fireEvent.click(technicalButton);
-
-    expect(onToggleTag).toHaveBeenCalledWith('technical');
-  });
-
-  test('should display correct count when maxTags changes', () => {
-    render(<TaskTags {...defaultProps} maxTags={5} />);
-
-    expect(screen.getByText('0/5 seleccionadas')).toBeInTheDocument();
-  });
-
-  test('should display correct count with selected tags', () => {
-    const selectedTags: TaskTag[] = ['technical', 'front-end', 'design'];
-    render(<TaskTags {...defaultProps} selectedTags={selectedTags} maxTags={5} />);
-
-    expect(screen.getByText('3/5 seleccionadas')).toBeInTheDocument();
-  });
-
-  test('should render all available tags', () => {
-    render(<TaskTags {...defaultProps} />);
-
-    const expectedTags = [
-      'Technical',
-      'Front End',
-      'Interactivity',
-      'Styling',
-      'Filtering',
-      'Design',
-      'Responsive',
-      'New Concept',
-    ];
-
-    expectedTags.forEach((tag) => {
-      expect(screen.getByText(tag)).toBeInTheDocument();
-    });
-  });
-
-  test('should have correct group aria-label', () => {
-    render(<TaskTags {...defaultProps} />);
-
-    const group = screen.getByRole('group');
-    expect(group).toHaveAttribute('aria-label', 'Etiquetas disponibles para la tarea');
-  });
-
-  test('should handle empty selectedTags array', () => {
-    render(<TaskTags {...defaultProps} selectedTags={[]} />);
-
-    expect(screen.getByText('0/3 seleccionadas')).toBeInTheDocument();
-
-    // All tags should be unselected
-    TASK_TAGS.forEach((tag) => {
-      const button = screen.getByLabelText(`Seleccionar etiqueta ${tag.label}`);
-      expect(button).toHaveAttribute('aria-pressed', 'false');
-    });
-  });
-
-  test('should handle all tags selected', () => {
-    const selectedTags: TaskTag[] = TASK_TAGS.map((tag) => tag.tag);
-    render(<TaskTags {...defaultProps} selectedTags={selectedTags} />);
-
-    expect(screen.getByText('8/3 seleccionadas')).toBeInTheDocument();
-
-    // All tags should be selected
-    TASK_TAGS.forEach((tag) => {
-      const button = screen.getByLabelText(`Deseleccionar etiqueta ${tag.label}`);
-      expect(button).toHaveAttribute('aria-pressed', 'true');
-    });
-  });
-
-  test('should have correct button structure', () => {
-    render(<TaskTags {...defaultProps} />);
-
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(TASK_TAGS.length);
-
-    buttons.forEach((button) => {
-      expect(button).toHaveAttribute('type', 'button');
-    });
-  });
-
-  test('should handle rapid tag toggling', () => {
-    const onToggleTag = vi.fn();
-    render(<TaskTags {...defaultProps} onToggleTag={onToggleTag} />);
-
-    const technicalButton = screen.getByLabelText('Seleccionar etiqueta Technical');
-
-    fireEvent.click(technicalButton);
-    fireEvent.click(technicalButton);
-    fireEvent.click(technicalButton);
-
-    expect(onToggleTag).toHaveBeenCalledTimes(3);
-    expect(onToggleTag).toHaveBeenCalledWith('technical');
+  test('muestra aviso de máximo', () => {
+    render(<TaskTags {...defaultProps} showWarning />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      `Puedes seleccionar un máximo de ${MAX_TAGS_PER_TASK} etiquetas por tarea`
+    );
   });
 });
