@@ -1,27 +1,72 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { telegramService, type TelegramLinkStatus } from '../../services/telegram.service';
 
 const authEnabled = () => import.meta.env.VITE_AUTH_ENABLED === 'true';
 
+/** Azul oficial de Telegram */
+const TG_BLUE = '#229ED9';
+
+const TelegramLogo = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    aria-hidden="true"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+  </svg>
+);
+
 /** Vincular Telegram con la cuenta. Solo con auth activa. */
 export const TelegramLinkButton = () => {
   const [open, setOpen] = useState(false);
+  const [linked, setLinked] = useState<boolean | null>(null);
+
+  const refreshLinked = useCallback(async () => {
+    try {
+      const s = await telegramService.getStatus();
+      setLinked(s.linked);
+    } catch {
+      setLinked(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!authEnabled()) return;
+    void refreshLinked();
+  }, [refreshLinked]);
 
   if (!authEnabled()) return null;
+
+  const isLinked = linked === true;
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="btn-secondary text-sm px-3 py-1.5"
-        aria-label="Vincular Telegram"
+        className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+          isLinked
+            ? 'text-white focus:ring-[#229ED9]/50 hover:brightness-110'
+            : 'btn-secondary'
+        }`}
+        style={isLinked ? { backgroundColor: TG_BLUE } : undefined}
+        aria-label={isLinked ? 'Telegram vinculado' : 'Vincular Telegram'}
       >
-        Telegram
+        <TelegramLogo className={`w-4 h-4 ${isLinked ? 'text-white' : 'text-[#229ED9]'}`} />
+        <span>{isLinked ? 'Vinculado' : 'Telegram'}</span>
       </button>
-      <TelegramLinkDialog open={open} onClose={() => setOpen(false)} />
+      <TelegramLinkDialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          void refreshLinked();
+        }}
+        onStatusChange={(s) => setLinked(s.linked)}
+      />
     </>
   );
 };
@@ -29,12 +74,18 @@ export const TelegramLinkButton = () => {
 type DialogProps = {
   open: boolean;
   onClose: () => void;
+  onStatusChange?: (status: TelegramLinkStatus) => void;
 };
 
-function TelegramLinkDialog({ open, onClose }: DialogProps) {
+function TelegramLinkDialog({ open, onClose, onStatusChange }: DialogProps) {
   const [status, setStatus] = useState<TelegramLinkStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const setAndNotify = (s: TelegramLinkStatus) => {
+    setStatus(s);
+    onStatusChange?.(s);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -44,7 +95,7 @@ function TelegramLinkDialog({ open, onClose }: DialogProps) {
     telegramService
       .getStatus()
       .then((s) => {
-        if (!cancelled) setStatus(s);
+        if (!cancelled) setAndNotify(s);
       })
       .catch((e: unknown) => {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Error');
@@ -55,13 +106,14 @@ function TelegramLinkDialog({ open, onClose }: DialogProps) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al abrir
   }, [open]);
 
   const generate = async () => {
     setLoading(true);
     setError(null);
     try {
-      setStatus(await telegramService.generateCode());
+      setAndNotify(await telegramService.generateCode());
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error');
     } finally {
@@ -73,7 +125,7 @@ function TelegramLinkDialog({ open, onClose }: DialogProps) {
     setLoading(true);
     setError(null);
     try {
-      setStatus(await telegramService.unlink());
+      setAndNotify(await telegramService.unlink());
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error');
     } finally {
@@ -109,10 +161,16 @@ function TelegramLinkDialog({ open, onClose }: DialogProps) {
             >
               <Dialog.Panel className="modal-panel max-w-md w-full">
                 <div className="flex items-center justify-between mb-6">
-                  <Dialog.Title as="h3" className="modal-title">
-                    Vincular Telegram
+                  <Dialog.Title as="h3" className="modal-title flex items-center gap-2">
+                    <TelegramLogo className="w-6 h-6 text-[#229ED9]" />
+                    {status?.linked ? 'Telegram vinculado' : 'Vincular Telegram'}
                   </Dialog.Title>
-                  <button type="button" onClick={onClose} className="modal-close-button" aria-label="Cerrar">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="modal-close-button"
+                    aria-label="Cerrar"
+                  >
                     <XMarkIcon className="w-5 h-5" />
                   </button>
                 </div>
@@ -142,8 +200,10 @@ function TelegramLinkDialog({ open, onClose }: DialogProps) {
                         href={status.botUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-teal-700 dark:text-teal-400 underline"
+                        className="inline-flex items-center gap-1.5 font-medium"
+                        style={{ color: TG_BLUE }}
                       >
+                        <TelegramLogo className="w-4 h-4" />
                         Abrir bot
                         {status.botUsername ? ` @${status.botUsername}` : ''}
                       </a>
@@ -175,8 +235,10 @@ function TelegramLinkDialog({ open, onClose }: DialogProps) {
                             href={status.deepLink}
                             target="_blank"
                             rel="noreferrer"
-                            className="block text-center text-teal-700 dark:text-teal-400 underline"
+                            className="flex items-center justify-center gap-1.5 font-medium"
+                            style={{ color: TG_BLUE }}
                           >
+                            <TelegramLogo className="w-4 h-4" />
                             Abrir en Telegram con el código
                           </a>
                         )}

@@ -49,15 +49,7 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* Tarea creada hace < 30 min: acento teal suave + pulso breve */
-  .card-recent {
-    border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent),
-      var(--shadow-card);
-    animation: card-recent-in 0.6s ease-out;
-  }
-
+  /* Tarea creada hace < 30 min: indicador live rojo (arriba izquierda) */
   .card-recent::after {
     content: '';
     position: absolute;
@@ -66,26 +58,16 @@
     width: 7px;
     height: 7px;
     border-radius: 9999px;
-    background: var(--brand);
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 50%, transparent);
+    background: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
     animation: card-recent-dot 2s ease-out infinite;
     z-index: 15;
-  }
-
-  @keyframes card-recent-in {
-    from {
-      opacity: 0.55;
-      transform: translateY(4px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+    pointer-events: none;
   }
 
   @keyframes card-recent-dot {
     0% {
-      box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 55%, transparent);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
     }
     70% {
       box-shadow: 0 0 0 8px transparent;

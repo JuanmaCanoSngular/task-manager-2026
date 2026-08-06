@@ -36,7 +36,7 @@ describe('TelegramLinkButton', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  test('con auth activa, abre el diálogo y genera código', async () => {
+  test('sin vincular: botón neutro y genera código', async () => {
     vi.stubEnv('VITE_AUTH_ENABLED', 'true');
     vi.resetModules();
     getStatus.mockResolvedValue({
@@ -61,12 +61,15 @@ describe('TelegramLinkButton', () => {
     );
     render(<TelegramLinkButton />);
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /vincular telegram/i })).toBeInTheDocument();
+    });
+
     fireEvent.click(screen.getByRole('button', { name: /vincular telegram/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /vincular telegram/i })).toBeInTheDocument();
     });
-    expect(getStatus).toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: /generar código/i }));
 
@@ -74,5 +77,25 @@ describe('TelegramLinkButton', () => {
       expect(screen.getByText('/start ABC123')).toBeInTheDocument();
     });
     expect(generateCode).toHaveBeenCalled();
+  });
+
+  test('vinculado: botón azul con etiqueta Vinculado', async () => {
+    vi.stubEnv('VITE_AUTH_ENABLED', 'true');
+    vi.resetModules();
+    getStatus.mockResolvedValue({
+      linked: true,
+      linkedAt: '2026-08-06T12:00:00.000Z',
+      botUsername: 'DemoBot',
+      botUrl: 'https://t.me/DemoBot',
+    });
+
+    const { TelegramLinkButton } = await import(
+      '../../../src/components/auth/TelegramLinkButton'
+    );
+    render(<TelegramLinkButton />);
+
+    const btn = await screen.findByRole('button', { name: /telegram vinculado/i });
+    expect(btn).toHaveTextContent('Vinculado');
+    expect(btn).toHaveStyle({ backgroundColor: '#229ED9' });
   });
 });
