@@ -47,11 +47,24 @@ Deno.serve(async (req) => {
     return new Response('Bad Request', { status: 400 });
   }
 
-  // Responder rápido a Telegram; procesar de forma síncrona pero corta.
   try {
     await handleUpdate(update, botToken);
   } catch (err) {
     console.error('telegram-webhook:', err);
+    try {
+      const message = update?.message ?? update?.edited_message;
+      const chatId = message?.chat?.id;
+      if (chatId) {
+        const detail = err instanceof Error ? err.message : 'Error interno';
+        await sendMessage(
+          botToken,
+          String(chatId),
+          `No pude completar la acción: ${detail}`
+        );
+      }
+    } catch (sendErr) {
+      console.error('telegram-webhook notify failed:', sendErr);
+    }
   }
 
   return new Response('OK', { status: 200 });

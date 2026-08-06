@@ -70,7 +70,17 @@ export async function createTaskOnDefault(supabase, userId, text) {
     return { error: 'No tienes un tablero por defecto. Ábrelo en la app y márcalo con la estrella.' };
   }
 
-  const title = await extractTitleWithGemini(text);
+  let title;
+  try {
+    title = await extractTitleWithGemini(text);
+  } catch (err) {
+    console.error('Gemini fallback:', err);
+    title = null;
+  }
+  if (!title) {
+    // Sin Gemini (o error): usa el mensaje tal cual como título.
+    title = text.split('\n')[0].trim().slice(0, 120);
+  }
   if (!title) {
     return { error: 'No pude entender la tarea. Prueba a reformular.' };
   }
