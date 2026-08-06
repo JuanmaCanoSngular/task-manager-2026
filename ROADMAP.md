@@ -40,6 +40,7 @@ tablero por defecto del usuario.
 ### Pendiente relevante
 
 - **A3** Columnas 100 % personalizables por tablero (mayor reto abierto).
+- **A5** Comentarios en tareas (añadir / editar; contexto de bloqueos, etc.).
 - Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
 - Dominio corto `juanmacano.eu/tablero` → producción (**E1**, al final).
 - Alinear README / DEVELOPERS con el estado real (menor).
@@ -73,6 +74,13 @@ tablero por defecto del usuario.
 
 - URL http(s) en `tasks.background`; preview en modal y tarjeta.
 - Sin Unsplash ni hosting. SQL si falta la columna: `supabase/add-task-background.sql`.
+
+### A5. Comentarios en tarea
+
+- Añadir y editar comentarios dentro de una tarea (hilo simple, no colaboración multi-usuario).
+- Caso de uso: al pasar a Bloqueos, dejar contexto — p. ej. *«Pasado a bloqueo: llamar el martes a Julián a ver si me manda el listado»*.
+- Tabla orientativa `task_comments` (`task_id`, `body`, `created_at`, `updated_at`, `user_id`).
+- Tras A3 (no bloquea columnas).
 
 ---
 
@@ -195,11 +203,12 @@ Comandos:
 1. **A3** Columnas personalizables (Pendiente = inbox; Bloqueos editable)
 
 ### Media
-2. **D** Voz en Telegram (luego WhatsApp / Alexa)
-3. Docs: README / DEVELOPERS al día
+2. **A5** Comentarios en tarea
+3. **D** Voz en Telegram (luego WhatsApp / Alexa)
+4. Docs: README / DEVELOPERS al día
 
 ### Al final
-4. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 
@@ -216,6 +225,7 @@ profiles          — auth + status de acceso
 boards            — user_id, name, color, is_default, …
 columns           — board_id, name, color, position   ← A3 (pendiente)
 tasks             — board_id, status|column_id, title, tags, background (URL), …
+task_comments     — task_id, body, timestamps   ← A5 (pendiente)
 tags              — C2 ✅
 channel_links     — user_id, provider, external_id    ← D Telegram ✅
 ```
@@ -235,6 +245,7 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 - Adaptar DnD, formularios, Realtime y bot Telegram
 
 ### Después
+- **A5** Comentarios en tarea (contexto de bloqueos, etc.)
 - Voz / WhatsApp / Alexa
 - **Al final:** redirect `juanmacano.eu/tablero`
 
