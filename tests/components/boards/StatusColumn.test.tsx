@@ -147,19 +147,19 @@ describe('StatusColumn', () => {
     vi.mocked(useTasksByStatus).mockReturnValue(mockTasks);
 
     const { StatusColumn } = await import('../../../src/components/boards/StatusColumn');
-    render(<StatusColumn status="in-review" label="In Review" color="bg-purple-500" />);
+    render(<StatusColumn status="in-review" label="Bloqueos" color="bg-red-500" />);
 
     // Should render the correct label and count
-    expect(screen.getByText('In Review (1)')).toBeInTheDocument();
+    expect(screen.getByText('Bloqueos (1)')).toBeInTheDocument();
 
     // Should render the task
     expect(screen.getByText('Task 1')).toBeInTheDocument();
 
     // Should render the correct color indicator
     const colorIndicator = screen
-      .getByText('In Review (1)')
+      .getByText('Bloqueos (1)')
       .querySelector('span[aria-hidden="true"]');
-    expect(colorIndicator).toHaveClass('bg-purple-500');
+    expect(colorIndicator).toHaveClass('bg-red-500');
   });
 
   test('has correct accessibility structure', async () => {

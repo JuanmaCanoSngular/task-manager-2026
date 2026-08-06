@@ -33,7 +33,7 @@ export const AddNewBoardButton = () => {
         onClick={handleOpenModal}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        className="w-full flex items-center justify-center py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:text-indigo-600 hover:border-indigo-400 dark:hover:text-indigo-300 dark:hover:border-indigo-500 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
+        className="w-full flex items-center justify-center py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:text-teal-600 hover:border-teal-400 dark:hover:text-teal-300 dark:hover:border-teal-500 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset"
         aria-label="Añadir nuevo tablero"
         title="Añadir nuevo tablero"
       >

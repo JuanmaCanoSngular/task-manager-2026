@@ -38,6 +38,7 @@ export const exampleBoards: Board[] = [
     color: '#3B82F6',
     link: 'https://example.com/board1.json',
     tasks: [],
+    isDefault: true,
     isLocal: false,
   },
   {
@@ -47,6 +48,7 @@ export const exampleBoards: Board[] = [
     color: '#10B981',
     link: 'https://example.com/board2.json',
     tasks: [],
+    isDefault: false,
     isLocal: false,
   },
 ];
@@ -67,6 +69,7 @@ export const exampleBoard: Board = {
       background: 'https://example.com/image.jpg',
     },
   ],
+  isDefault: true,
   isLocal: false,
 };
 

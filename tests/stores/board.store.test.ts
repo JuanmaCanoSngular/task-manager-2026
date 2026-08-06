@@ -9,6 +9,8 @@ vi.mock('../../src/services/board.service', () => ({
     getBoards: vi.fn(),
     insertBoard: vi.fn(() => Promise.resolve()),
     deleteBoard: vi.fn(() => Promise.resolve()),
+    updateBoard: vi.fn(() => Promise.resolve()),
+    setDefaultBoard: vi.fn(() => Promise.resolve()),
     insertTask: vi.fn(() => Promise.resolve()),
     updateTask: vi.fn(() => Promise.resolve()),
     deleteTask: vi.fn(() => Promise.resolve()),
@@ -47,7 +49,8 @@ describe('BoardStore', () => {
       color: '#ff0000',
       link: 'https://example.com/board1',
       tasks: [],
-      isLocal: false,
+      isDefault: false,
+    isLocal: false,
     },
     {
       id: 2,
@@ -56,7 +59,8 @@ describe('BoardStore', () => {
       color: '#00ff00',
       link: 'https://example.com/board2',
       tasks: [],
-      isLocal: false,
+      isDefault: false,
+    isLocal: false,
     },
   ];
 
@@ -80,6 +84,7 @@ describe('BoardStore', () => {
         tags: ['front-end'],
       },
     ],
+    isDefault: false,
     isLocal: false,
   };
 
@@ -116,7 +121,8 @@ describe('BoardStore', () => {
         color: '#ff0000',
         link: 'https://example.com',
         tasks: [],
-        isLocal: false,
+        isDefault: false,
+    isLocal: false,
       };
 
       expect(board.id).toBe(1);

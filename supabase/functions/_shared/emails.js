@@ -2,25 +2,25 @@
 // (scripts/preview-emails.mjs). Fuente única del diseño de los correos.
 // JS/ESM plano para poder importarse tanto desde Deno como desde Node.
 
-const BRAND = 'Gestión de tareas';
+const BRAND = 'Task Manager App';
 
-export function button(href, label, color = '#6366f1') {
+export function button(href, label, color = '#0d9488') {
   return `<a href="${href}" style="display:inline-block;padding:12px 22px;border-radius:10px;background:${color};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">${label}</a>`;
 }
 
 export function layout(heading, bodyHtml) {
-  return `<!doctype html><html lang="es"><body style="margin:0;padding:24px;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  return `<!doctype html><html lang="es"><body style="margin:0;padding:24px;background:#f0f4f3;font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
-      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(15,23,42,.10)">
-        <tr><td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:26px 32px">
-          <div style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:.3px">${BRAND}</div>
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(12,18,34,.10)">
+        <tr><td style="background:linear-gradient(135deg,#0d9488,#0f766e);padding:26px 32px">
+          <div style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:.2px;font-family:Georgia,'Times New Roman',serif">${BRAND}</div>
         </td></tr>
         <tr><td style="padding:32px">
-          <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:#0f172a">${heading}</h1>
+          <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:#0c1222">${heading}</h1>
           ${bodyHtml}
         </td></tr>
-        <tr><td style="padding:18px 32px;border-top:1px solid #e2e8f0">
-          <p style="margin:0;font-size:12px;color:#94a3b8">Mensaje automático de ${BRAND}. Si no reconoces esta actividad, ignóralo.</p>
+        <tr><td style="padding:18px 32px;border-top:1px solid #d9e2df">
+          <p style="margin:0;font-size:12px;color:#8fa19b">Mensaje automático de ${BRAND}. Si no reconoces esta actividad, ignóralo.</p>
         </td></tr>
       </table>
     </td></tr></table>

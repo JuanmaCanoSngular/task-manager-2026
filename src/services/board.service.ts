@@ -18,6 +18,7 @@ interface BoardRow {
   name: string;
   emoji: string;
   color: string;
+  is_default?: boolean | null;
 }
 
 const rowToTask = (row: TaskRow): Task => ({
@@ -27,6 +28,12 @@ const rowToTask = (row: TaskRow): Task => ({
   tags: (row.tags ?? []) as TaskTag[],
   background: row.background ?? undefined,
 });
+
+/** UID de la sesión actual (null si auth off / sin login). Necesario para RLS por user_id. */
+const getSessionUserId = async (): Promise<string | null> => {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user.id ?? null;
+};
 
 export const boardService = {
   // Carga todos los tableros con sus tareas ya anidadas y ordenadas.
@@ -53,18 +60,36 @@ export const boardService = {
       emoji: board.emoji,
       color: board.color,
       link: '',
+      isDefault: Boolean(board.is_default),
       tasks: tasksByBoard.get(board.id) ?? [],
     }));
   },
 
-  async insertBoard(board: Pick<Board, 'id' | 'name' | 'emoji' | 'color'>): Promise<void> {
-    const { error } = await supabase.from('boards').insert({
-      id: board.id,
+  async insertBoard(
+    board: Pick<Board, 'name' | 'emoji' | 'color' | 'isDefault'>
+  ): Promise<Board> {
+    const userId = await getSessionUserId();
+    const row: Record<string, unknown> = {
       name: board.name,
       emoji: board.emoji,
       color: board.color,
-    });
+      is_default: board.isDefault,
+    };
+    if (userId) row.user_id = userId;
+
+    // El id lo asigna la secuencia de Postgres (evita colisiones con RLS).
+    const { data, error } = await supabase.from('boards').insert(row).select('*').single();
     if (error) throw error;
+
+    return {
+      id: data.id as number,
+      name: data.name as string,
+      emoji: data.emoji as string,
+      color: data.color as string,
+      link: '',
+      isDefault: Boolean(data.is_default),
+      tasks: [],
+    };
   },
 
   async deleteBoard(id: number): Promise<void> {
@@ -80,17 +105,34 @@ export const boardService = {
     if (error) throw error;
   },
 
-  async insertTask(boardId: number, task: Task, position: number): Promise<void> {
-    const { error } = await supabase.from('tasks').insert({
-      id: task.id,
+  /** Marca un tablero como default y quita el flag al resto (del mismo usuario vía RLS). */
+  async setDefaultBoard(id: number): Promise<void> {
+    const { error: clearError } = await supabase
+      .from('boards')
+      .update({ is_default: false })
+      .neq('id', id);
+    if (clearError) throw clearError;
+
+    const { error } = await supabase.from('boards').update({ is_default: true }).eq('id', id);
+    if (error) throw error;
+  },
+
+  async insertTask(boardId: number, task: Omit<Task, 'id'>, position: number): Promise<Task> {
+    const userId = await getSessionUserId();
+    const row: Record<string, unknown> = {
       board_id: boardId,
       title: task.title,
       status: task.status,
       background: task.background ?? null,
       tags: task.tags,
       position,
-    });
+    };
+    if (userId) row.user_id = userId;
+
+    const { data, error } = await supabase.from('tasks').insert(row).select('*').single();
     if (error) throw error;
+
+    return rowToTask(data as TaskRow);
   },
 
   async updateTask(taskId: number, task: Omit<Task, 'id'>): Promise<void> {

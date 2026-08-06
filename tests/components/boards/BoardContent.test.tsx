@@ -22,6 +22,7 @@ describe('BoardContent', () => {
       useBoardStore: () => ({
         currentBoardId: 1,
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       }),
       useTasksByStatus: () => [],
@@ -41,6 +42,7 @@ describe('BoardContent', () => {
       useBoardStore: () => ({
         currentBoardId: 1,
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       }),
       useTasksByStatus: () => [],
@@ -65,6 +67,7 @@ describe('BoardContent', () => {
       useBoardStore: () => ({
         currentBoardId: 1,
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       }),
       useTasksByStatus: () => [],
@@ -82,6 +85,7 @@ describe('BoardContent', () => {
       useBoardStore: () => ({
         currentBoardId: 1,
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       }),
       useTasksByStatus: () => [],
@@ -104,6 +108,7 @@ describe('BoardContent', () => {
       useBoardStore: () => ({
         currentBoardId: 1,
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       }),
       useTasksByStatus: () => [],
@@ -123,6 +128,7 @@ describe('BoardContent', () => {
       useBoardStore: () => ({
         currentBoardId: 1,
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       }),
       useTasksByStatus: () => [],

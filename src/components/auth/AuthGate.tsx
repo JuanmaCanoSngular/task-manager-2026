@@ -14,12 +14,8 @@ export const AuthGate = ({ children }: AuthGateProps) => {
 
   if (state === 'loading') {
     return (
-      <div
-        role="status"
-        aria-label="Cargando"
-        className="min-h-screen w-full flex items-center justify-center bg-background text-light dark:bg-background-dark dark:text-dark"
-      >
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-indigo-500" />
+      <div role="status" aria-label="Cargando" className="auth-shell">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--brand)]" />
       </div>
     );
   }

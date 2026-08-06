@@ -1,3 +1,5 @@
+import { BrandLockup } from '../brand/BrandLockup';
+
 interface ApprovalResultProps {
   result: string | null;
   email: string | null;
@@ -26,18 +28,9 @@ export const ApprovalResult = ({ result, email }: ApprovalResultProps) => {
   return (
     <div className="auth-shell">
       <div className="auth-card space-y-5">
-        <div
-          className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-2xl ${
-            ok
-              ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
-              : 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
-          }`}
-          aria-hidden="true"
-        >
-          {ok ? '✓' : '✕'}
-        </div>
+        <BrandLockup markSize={40} stacked />
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
+          <h1 className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>
             {title}
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>

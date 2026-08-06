@@ -32,7 +32,8 @@ vi.mock('../../../src/stores/board.store', () => ({
       updateTask: vi.fn(),
       removeTask: vi.fn(),
       moveTask: vi.fn(),
-      updateTaskOrder: vi.fn(),
+      setDefaultBoard: vi.fn(),
+        updateTaskOrder: vi.fn(),
     };
     return selector(state);
   }),
@@ -57,6 +58,7 @@ describe('RemoveBoardMobileButton', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -91,6 +93,7 @@ describe('RemoveBoardMobileButton', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -123,6 +126,7 @@ describe('RemoveBoardMobileButton', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -173,6 +177,7 @@ describe('RemoveBoardMobileButton', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -220,6 +225,7 @@ describe('RemoveBoardMobileButton', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -264,6 +270,7 @@ describe('RemoveBoardMobileButton', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -310,6 +317,7 @@ describe('RemoveBoardMobileButton', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);

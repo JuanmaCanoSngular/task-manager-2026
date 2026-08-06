@@ -58,7 +58,7 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             tabIndex={0}
             role="listitem"
             aria-label={`Editar tarea: ${task.title}`}
-            className={`card-base flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:-translate-y-0.5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset card-move-transition drag-handle ${
+            className={`card-base flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:-translate-y-0.5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition drag-handle ${
               snapshot.isDragging ? 'card-dragging' : ''
             }`}
             style={{

@@ -43,7 +43,7 @@ export const TaskStatus = ({ value, onChange }: TaskStatusProps) => (
                 className={({ active }) =>
                   `relative cursor-default select-none py-3 pl-10 pr-4 ${
                     active
-                      ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100'
+                      ? 'bg-teal-100 dark:bg-teal-900 text-teal-900 dark:text-teal-100'
                       : 'text-gray-900 dark:text-white'
                   }`
                 }
@@ -52,7 +52,7 @@ export const TaskStatus = ({ value, onChange }: TaskStatusProps) => (
                 {({ selected }) => (
                   <div className="flex items-center">
                     {selected && (
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-indigo-600 dark:text-indigo-400">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-teal-600 dark:text-teal-400">
                         <CheckIcon className="h-5 w-5" aria-hidden="true" />
                       </span>
                     )}

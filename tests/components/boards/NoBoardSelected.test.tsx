@@ -32,7 +32,8 @@ vi.mock('../../../src/stores/board.store', () => ({
       updateTask: vi.fn(),
       removeTask: vi.fn(),
       moveTask: vi.fn(),
-      updateTaskOrder: vi.fn(),
+      setDefaultBoard: vi.fn(),
+        updateTaskOrder: vi.fn(),
     };
     return selector(state);
   }),
@@ -48,6 +49,7 @@ describe('NoBoardSelected', () => {
         color: 'bg-blue-500',
         link: '',
         tasks: [],
+        isDefault: true,
         isLocal: false,
       },
       {
@@ -57,6 +59,7 @@ describe('NoBoardSelected', () => {
         color: 'bg-green-500',
         link: '',
         tasks: [],
+        isDefault: true,
         isLocal: false,
       },
     ];
@@ -77,6 +80,7 @@ describe('NoBoardSelected', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -122,6 +126,7 @@ describe('NoBoardSelected', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -163,6 +168,7 @@ describe('NoBoardSelected', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -188,6 +194,7 @@ describe('NoBoardSelected', () => {
         color: 'bg-blue-500',
         link: '',
         tasks: [],
+        isDefault: true,
         isLocal: false,
       },
     ];
@@ -208,6 +215,7 @@ describe('NoBoardSelected', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -238,6 +246,7 @@ describe('NoBoardSelected', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -258,6 +267,7 @@ describe('NoBoardSelected', () => {
         color: 'bg-blue-500',
         link: '',
         tasks: [],
+        isDefault: true,
         isLocal: false,
       },
     ];
@@ -278,6 +288,7 @@ describe('NoBoardSelected', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -312,6 +323,7 @@ describe('NoBoardSelected', () => {
         updateTask: vi.fn(),
         removeTask: vi.fn(),
         moveTask: vi.fn(),
+        setDefaultBoard: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);

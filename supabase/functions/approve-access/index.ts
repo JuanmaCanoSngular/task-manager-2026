@@ -97,30 +97,31 @@ async function provisionExampleBoard(
   supabase: ReturnType<typeof createClient>,
   userId: string
 ) {
-  // IDs únicos a nivel global: partimos del máximo actual de cada tabla.
-  const boardId = (await nextId(supabase, 'boards')) ?? 1;
-  const baseTaskId = (await nextId(supabase, 'tasks')) ?? 1;
+  // Los ids los asigna la secuencia de Postgres (no max+1 del cliente).
+  const { data: board, error: boardError } = await supabase
+    .from('boards')
+    .insert({
+      user_id: userId,
+      name: 'Bienvenida',
+      emoji: '👋',
+      color: '#0d9488',
+      is_default: true,
+    })
+    .select('id')
+    .single();
 
-  const { error: boardError } = await supabase.from('boards').insert({
-    id: boardId,
-    user_id: userId,
-    name: 'Bienvenida',
-    emoji: '👋',
-    color: '#6366f1',
-  });
-  if (boardError) {
-    console.error('Error creando el tablero de ejemplo:', boardError.message);
+  if (boardError || !board) {
+    console.error('Error creando el tablero de ejemplo:', boardError?.message);
     return;
   }
 
   const tasks = [
     { title: 'Explora tu primer tablero', status: 'backlog', tags: ['new-concept'] },
     { title: 'Crea una tarea nueva', status: 'in-progress', tags: [] },
-    { title: 'Arrastra tareas entre columnas', status: 'in-review', tags: ['interactivity'] },
+    { title: 'Ejemplo de bloqueo: falta acceso a un recurso', status: 'in-review', tags: [] },
     { title: '¡Listo para empezar!', status: 'completed', tags: [] },
   ].map((task, index) => ({
-    id: baseTaskId + index,
-    board_id: boardId,
+    board_id: board.id,
     user_id: userId,
     title: task.title,
     status: task.status,
@@ -132,19 +133,6 @@ async function provisionExampleBoard(
   if (tasksError) {
     console.error('Error creando las tareas de ejemplo:', tasksError.message);
   }
-}
-
-async function nextId(
-  supabase: ReturnType<typeof createClient>,
-  table: 'boards' | 'tasks'
-): Promise<number | null> {
-  const { data } = await supabase
-    .from(table)
-    .select('id')
-    .order('id', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data ? (data.id as number) + 1 : null;
 }
 
 // Redirige a la app con el resultado en query params; la confirmación se

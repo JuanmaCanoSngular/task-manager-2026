@@ -39,7 +39,7 @@ escritorio (voz / mensajería) y con identidad de producto clara.
 - Columnas de estado **fijas** a nivel global (`backlog`, `in-progress`,
   `in-review`, `completed`) — no por tablero.
 - Fondos de tarjeta vía Unsplash / aleatorios; no hay elección explícita de URL.
-- Nombre de producto genérico: «Gestión de tareas».
+- Nombre de producto temporal: **Task Manager App** (logo + look tinta/teal; nombre final pendiente).
 - Preferencia de tema ya persistida en `localStorage` (Zustand `persist`);
   no en Supabase.
 
@@ -49,13 +49,11 @@ escritorio (voz / mensajería) y con identidad de producto clara.
 
 ### A1. Nombre y header
 
-- Sustituir «Gestión de tareas» por un **nombre propio** identificable
-  (marca corta, memorable, usable en dominio y emails).
-- Aplicar el nombre en header, landing de auth, títulos de email y README.
-- Criterio: si quitas la nav, el primer viewport sigue siendo reconocible.
-
-> Candidatos a valorar (borrador): *Kanban OS*, *Tablero*, *Flowboard*,
-> *Lista Viva*, *Pizarra*. Decidir en esta fase; no bloquear el resto.
+- Título actual: **Task Manager App** (placeholder mientras se elige nombre propio).
+- Tagline provisional: *Tu tablero, sin ruido.*
+- Logo: tres columnas en una tarjeta + punto rojo (anticipa Bloqueos).
+- Look: tinta + teal; tipografía Fraunces (marca) + Source Sans 3 (UI).
+- Pendiente: sustituir por un nombre tipo “bloc de notas” cool (p. ej. Scratch, Jot, Apunte, Margen).
 
 ### A2. Columna «Bloqueos» por defecto
 
@@ -197,7 +195,7 @@ Requisitos previos (bloqueantes):
 ## Prioridad recomendada
 
 ### Alta
-1. **A1** Nombre / marca del producto
+1. **A1** Nombre propio definitivo (hoy: Task Manager App)
 2. **A3 + A2** Columnas personalizables (con Bloqueos por defecto)
 3. **A4** Imagen de tarjeta por URL
 

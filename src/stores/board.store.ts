@@ -1,5 +1,10 @@
 import { create, StateCreator } from 'zustand';
-import { Board, BOARD_COLORS } from '../interfaces/board.interface';
+import {
+  Board,
+  BOARD_COLORS,
+  ensureSingleDefault,
+  getDefaultBoardId,
+} from '../interfaces/board.interface';
 import { Task, TaskStatus } from '../interfaces/task.interface';
 import { boardService } from '../services/board.service';
 import { devtools } from 'zustand/middleware';
@@ -12,10 +17,11 @@ interface BoardStore {
   error: string | null;
   fetchBoards: () => Promise<void>;
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
-  addNewBoard: (name?: string, color?: string) => void;
+  addNewBoard: (name?: string, color?: string) => Promise<void>;
   updateBoard: (id: number, name: string, color: string) => void;
+  setDefaultBoard: (id: number) => void;
   removeBoard: () => void;
-  addNewTask: (task: Omit<Task, 'id'>) => void;
+  addNewTask: (task: Omit<Task, 'id'>) => Promise<void>;
   updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
   removeTask: (taskId: number) => void;
   moveTask: (taskId: number, newStatus: TaskStatus, destinationIndex?: number) => void;
@@ -26,7 +32,18 @@ interface BoardStore {
 // El estado local ya se actualizó de forma optimista; esto solo informa del fallo.
 const reportWriteError = (error: unknown) => {
   useBoardStore.setState((state) => {
-    state.error = error instanceof Error ? error.message : 'Error al guardar en Supabase';
+    if (error instanceof Error && error.message) {
+      state.error = error.message;
+      return;
+    }
+    if (error && typeof error === 'object' && 'message' in error) {
+      const msg = String((error as { message: unknown }).message);
+      if (msg) {
+        state.error = msg;
+        return;
+      }
+    }
+    state.error = 'Error al guardar en Supabase';
   });
 };
 
@@ -42,54 +59,64 @@ const persistBoardOrder = (boardId: number) => {
   boardService.saveTaskOrder(rows).catch(reportWriteError);
 };
 
-// methods that change the state
-// to access the data of the store, use the reactive selectors
+const defaultsDiffer = (a: Board[], b: Board[]) =>
+  a.length !== b.length || a.some((board, i) => board.isDefault !== b[i]?.isDefault);
+
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
   currentBoardId: null,
   boards: [],
   error: null,
   fetchBoards: async () => {
-    // Evita recargar si los tableros ya están en memoria.
     if (useBoardStore.getState().boards.length > 0) {
       return;
     }
 
     try {
       const boards = await boardService.getBoards();
+      const normalized = ensureSingleDefault(boards);
+      const defaultId = getDefaultBoardId(normalized);
+
       set((state) => {
         state.error = null;
-        state.boards = boards;
+        state.boards = normalized;
+        state.currentBoardId = defaultId;
       });
+
+      if (defaultsDiffer(boards, normalized) && defaultId !== null) {
+        // Segundo plano: no tumbar la home si falla (p. ej. columna is_default ausente).
+        boardService.setDefaultBoard(defaultId).catch((err) => {
+          console.warn('No se pudo persistir el tablero por defecto:', err);
+        });
+      }
     } catch (error) {
       set((state) => {
         state.error = error instanceof Error ? error.message : 'Error al cargar los tableros';
         state.boards = [];
+        state.currentBoardId = null;
       });
     }
   },
-  // Los datos ya se cargan completos en fetchBoards; aquí solo se selecciona el tablero.
   fetchBoardDetails: async (_url: string, id: number) => {
     set((state) => {
       state.currentBoardId = id;
     });
   },
-  addNewBoard: (name?: string, color?: string) => {
-    let created: Board | null = null;
-    set((state) => {
-      const board: Board = {
-        id: getNextBoardId(state.boards),
+  addNewBoard: async (name?: string, color?: string) => {
+    const isFirst = useBoardStore.getState().boards.length === 0;
+    try {
+      const board = await boardService.insertBoard({
         name: name || 'Nuevo tablero',
         emoji: '',
         color: color || BOARD_COLORS[0],
-        link: '',
-        tasks: [],
-      };
-      state.boards.push(board);
-      state.currentBoardId = board.id;
-      created = board;
-    });
-    if (created) {
-      boardService.insertBoard(created).catch(reportWriteError);
+        isDefault: isFirst,
+      });
+      set((state) => {
+        state.boards.push(board);
+        state.currentBoardId = board.id;
+        state.error = null;
+      });
+    } catch (error) {
+      reportWriteError(error);
     }
   },
   updateBoard: (id: number, name: string, color: string) => {
@@ -102,40 +129,64 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     });
     boardService.updateBoard(id, { name, color }).catch(reportWriteError);
   },
+  setDefaultBoard: (id: number) => {
+    const target = useBoardStore.getState().boards.find((b) => b.id === id);
+    if (!target || target.isDefault) return;
+
+    set((state) => {
+      for (const board of state.boards) {
+        board.isDefault = board.id === id;
+      }
+    });
+    boardService.setDefaultBoard(id).catch(reportWriteError);
+  },
   removeBoard: () => {
     let removedId: number | null = null;
+    let promotedDefaultId: number | null = null;
     set((state) => {
       removedId = state.currentBoardId;
+      const wasDefault = state.boards.find((b) => b.id === removedId)?.isDefault ?? false;
       state.boards = state.boards.filter((board) => board.id !== state.currentBoardId);
-      state.currentBoardId = null;
+
+      if (state.boards.length === 0) {
+        state.currentBoardId = null;
+        return;
+      }
+
+      if (wasDefault || state.boards.length === 1 || !state.boards.some((b) => b.isDefault)) {
+        state.boards.forEach((b, i) => {
+          b.isDefault = i === 0;
+        });
+        promotedDefaultId = state.boards[0].id;
+      }
+
+      state.currentBoardId = getDefaultBoardId(state.boards);
     });
     if (removedId !== null) {
       boardService.deleteBoard(removedId).catch(reportWriteError);
     }
+    if (promotedDefaultId !== null) {
+      boardService.setDefaultBoard(promotedDefaultId).catch(reportWriteError);
+    }
   },
-  addNewTask: (taskData: Omit<Task, 'id'>) => {
-    let inserted: { boardId: number; task: Task; position: number } | null = null;
-    set((state) => {
-      if (state.currentBoardId === null) return;
+  addNewTask: async (taskData: Omit<Task, 'id'>) => {
+    const boardId = useBoardStore.getState().currentBoardId;
+    if (boardId === null) return;
 
-      const newTask: Task = {
-        id: getNextTaskId(),
-        ...taskData,
-      };
+    const board = useBoardStore.getState().boards.find((b) => b.id === boardId);
+    if (!board) return;
 
-      const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
-      if (boardIndex !== -1) {
-        state.boards[boardIndex].tasks.push(newTask);
-        inserted = {
-          boardId: state.currentBoardId,
-          task: newTask,
-          position: state.boards[boardIndex].tasks.length - 1,
-        };
-      }
-    });
-    if (inserted) {
-      const { boardId, task, position } = inserted;
-      boardService.insertTask(boardId, task, position).catch(reportWriteError);
+    try {
+      const task = await boardService.insertTask(boardId, taskData, board.tasks.length);
+      set((state) => {
+        const boardIndex = state.boards.findIndex((b) => b.id === boardId);
+        if (boardIndex !== -1) {
+          state.boards[boardIndex].tasks.push(task);
+        }
+        state.error = null;
+      });
+    } catch (error) {
+      reportWriteError(error);
     }
   },
   updateTask: (taskId, taskData) => {
@@ -230,7 +281,6 @@ export const useBoardStore = create<BoardStore>()(
   )
 );
 
-// Selectores reactivos para acceder a los datos de la store
 export const useCurrentBoardTasks = () => {
   return useBoardStore(
     useShallow((state: BoardStore) => {
@@ -257,16 +307,4 @@ export const useTasksByStatus = (status: string) => {
       return currentBoard?.tasks.filter((task) => task.status === status) ?? [];
     })
   );
-};
-
-// Devuelve un id de tarea único a nivel global (la tabla `tasks` usa PK global).
-const getNextTaskId = (): number => {
-  const boards = useBoardStore.getState().boards;
-  const allTaskIds = boards.flatMap((board) => board.tasks.map((task) => task.id));
-  return allTaskIds.length > 0 ? Math.max(...allTaskIds) + 1 : 1;
-};
-
-const getNextBoardId = (boards: Board[]): number => {
-  const allBoardIds = boards.map((board) => board.id);
-  return allBoardIds.length > 0 ? Math.max(...allBoardIds) + 1 : 1;
 };

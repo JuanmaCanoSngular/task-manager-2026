@@ -4,31 +4,31 @@
 
 @layer base {
   /* ── Design tokens ─────────────────────────────────────────────
-     Fuente única del sistema visual (minimalista moderno). Marca
-     indigo/violeta, en concordancia con los emails (_shared/emails.js). */
+     Marca: tinta + teal (Kanban limpio, sin violeta genérico).
+     Alineado con emails (_shared/emails.js). */
   :root {
-    --brand: #6366f1;
-    --brand-2: #8b5cf6;
-    --brand-strong: #4f46e5;
-    --app-bg: #f1f5f9;
+    --brand: #0d9488;
+    --brand-2: #0f766e;
+    --brand-strong: #115e59;
+    --app-bg: #f0f4f3;
     --surface: #ffffff;
-    --surface-2: #f8fafc;
-    --border: #e2e8f0;
-    --text: #0f172a;
-    --text-muted: #64748b;
-    --shadow-card: 0 6px 24px rgba(15, 23, 42, 0.08);
-    --shadow-brand: 0 8px 20px rgba(99, 102, 241, 0.28);
+    --surface-2: #f7faf9;
+    --border: #d9e2df;
+    --text: #0c1222;
+    --text-muted: #5b6b66;
+    --shadow-card: 0 6px 24px rgba(12, 18, 34, 0.07);
+    --shadow-brand: 0 8px 20px rgba(13, 148, 136, 0.28);
   }
 
   .dark {
-    --app-bg: #0b0f19;
-    --surface: #111827;
-    --surface-2: #0f172a;
-    --border: #1f2937;
-    --text: #f8fafc;
-    --text-muted: #94a3b8;
-    --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.4);
-    --shadow-brand: 0 8px 20px rgba(99, 102, 241, 0.35);
+    --app-bg: #0a0f0e;
+    --surface: #111816;
+    --surface-2: #0d1312;
+    --border: #1c2926;
+    --text: #f4f7f6;
+    --text-muted: #8fa19b;
+    --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.45);
+    --shadow-brand: 0 8px 20px rgba(13, 148, 136, 0.32);
   }
 
   html {
@@ -36,6 +36,7 @@
   }
 
   body {
+    @apply font-sans antialiased;
     background-color: var(--app-bg);
     color: var(--text);
   }
@@ -49,8 +50,8 @@
   }
 
   .card-active {
-    @apply relative bg-gradient-to-r from-indigo-500/10 to-violet-500/10 dark:from-indigo-500/20 dark:to-violet-500/20
-           before:absolute before:inset-0 before:rounded-2xl before:p-[1px] before:bg-gradient-to-r before:from-indigo-500 before:to-violet-500 before:opacity-60
+    @apply relative bg-gradient-to-r from-teal-500/10 to-teal-700/10 dark:from-teal-500/20 dark:to-teal-700/20
+           before:absolute before:inset-0 before:rounded-2xl before:p-[1px] before:bg-gradient-to-r before:from-teal-500 before:to-teal-700 before:opacity-60
            before:content-[''] before:-z-10;
   }
 
@@ -71,7 +72,7 @@
   .input-base {
     @apply block w-full rounded-xl border-0 py-3 px-4 text-sm shadow-sm
            ring-1 ring-inset ring-gray-300 dark:ring-gray-600
-           focus:ring-2 focus:ring-inset focus:ring-indigo-500
+           focus:ring-2 focus:ring-inset focus:ring-teal-600
            placeholder:text-gray-400 dark:placeholder:text-gray-500;
     background-color: var(--surface);
     color: var(--text);
@@ -96,7 +97,7 @@
   /* Botón de agregar (CTA principal, degradado de marca) */
   .btn-add {
     @apply btn-base text-white font-semibold
-           focus:ring-indigo-500/50 hover:brightness-105 active:brightness-95;
+           focus:ring-teal-600/50 hover:brightness-105 active:brightness-95;
     background-image: linear-gradient(135deg, var(--brand), var(--brand-2));
     box-shadow: var(--shadow-brand);
   }
@@ -104,7 +105,7 @@
   /* Botón primario de marca (CTA principal) */
   .btn-primary {
     @apply btn-base justify-center text-white font-semibold
-           focus:ring-indigo-500/50 hover:brightness-105 active:brightness-95;
+           focus:ring-teal-600/50 hover:brightness-105 active:brightness-95;
     background-image: linear-gradient(135deg, var(--brand), var(--brand-2));
     box-shadow: var(--shadow-brand);
   }
@@ -124,11 +125,9 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* Marca / logo circular con degradado */
+  /* Contenedor del logo en pantallas de auth */
   .brand-badge {
-    @apply mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-2xl text-white;
-    background-image: linear-gradient(135deg, var(--brand), var(--brand-2));
-    box-shadow: var(--shadow-brand);
+    @apply mx-auto flex items-center justify-center;
   }
 
   /* Botón secundario (para acciones menos importantes) */
@@ -155,9 +154,9 @@
 
   .btn-icon-add {
     @apply btn-icon
-           bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20
-           dark:bg-indigo-400/10 dark:text-indigo-300 dark:hover:bg-indigo-400/20
-           focus:ring-indigo-500/50;
+           bg-teal-500/10 text-teal-700 hover:bg-teal-500/20
+           dark:bg-teal-400/10 dark:text-teal-300 dark:hover:bg-teal-400/20
+           focus:ring-teal-600/50;
   }
 
   /* Modal styles */
@@ -246,7 +245,7 @@
 
   /* Estilos para el área de drop cuando se está arrastrando sobre ella */
   .drop-zone-active {
-    @apply bg-indigo-50/60 dark:bg-indigo-900/20 border-2 border-dashed border-indigo-300 dark:border-indigo-600;
+    @apply bg-teal-50/60 dark:bg-teal-900/20 border-2 border-dashed border-teal-300 dark:border-teal-600;
   }
 
   /* Estilos para la card mientras se arrastra */

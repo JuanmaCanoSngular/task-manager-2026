@@ -34,14 +34,14 @@ export const BoardSelectMobile = () => {
         onChange={handleChange}
         aria-label="Seleccionar tablero"
         className={`w-full h-16 pl-4 pr-10 rounded-xl bg-card dark:bg-card-dark border-2 appearance-none cursor-pointer [color:transparent] [text-shadow:0_0_0_transparent] transition-all duration-300
-          ${currentBoardId !== null ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-400'}`}
+          ${currentBoardId !== null ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-teal-400 dark:hover:border-teal-400'}`}
       >
         <option value={-1} className="text-light dark:text-dark">
           Seleccionar tablero
         </option>
         {boards.map((board) => (
           <option key={board.id} value={board.id} className="text-light dark:text-dark">
-            {board.name}
+            {board.isDefault || boards.length === 1 ? `★ ${board.name}` : board.name}
           </option>
         ))}
       </select>
@@ -54,9 +54,14 @@ export const BoardSelectMobile = () => {
               style={{ backgroundColor: currentBoard.color }}
               aria-hidden="true"
             />
-            <span className="text-lg font-medium text-light dark:text-dark">
+            <span className="text-lg font-medium text-light dark:text-dark truncate">
               {currentBoard.name}
             </span>
+            {(currentBoard.isDefault || boards.length === 1) && (
+              <span className="ml-2 text-amber-400 flex-shrink-0" aria-label="Tablero por defecto">
+                ★
+              </span>
+            )}
           </>
         ) : (
           <span className="text-gray-500 dark:text-gray-400">Seleccionar tablero</span>

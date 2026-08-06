@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Board } from '../../interfaces/board.interface';
 import { useBoardStore } from '../../stores/board.store';
-import { TrashIcon, PencilIcon } from '@heroicons/react/20/solid';
+import { TrashIcon, PencilIcon, StarIcon } from '@heroicons/react/20/solid';
+import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { BoardModal } from './board-modal/BoardModal';
 
@@ -16,7 +17,10 @@ export const BoardCard = ({ board }: BoardCardProps) => {
   const fetchBoardDetails = useBoardStore((state) => state.fetchBoardDetails);
   const removeBoard = useBoardStore((state) => state.removeBoard);
   const updateBoard = useBoardStore((state) => state.updateBoard);
+  const setDefaultBoard = useBoardStore((state) => state.setDefaultBoard);
   const isActive = currentBoardId === board.id;
+  const onlyOneBoard = useBoardStore((state) => state.boards.length === 1);
+  const isDefault = board.isDefault || onlyOneBoard;
 
   const handleDelete = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
@@ -26,6 +30,13 @@ export const BoardCard = ({ board }: BoardCardProps) => {
   const handleEdit = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
     setIsEditOpen(true);
+  };
+
+  const handleDefault = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    if (!isDefault) {
+      setDefaultBoard(board.id);
+    }
   };
 
   const handleClick = () => {
@@ -43,12 +54,13 @@ export const BoardCard = ({ board }: BoardCardProps) => {
     }
   };
 
-  const keyActivate = (handler: (e: React.KeyboardEvent) => void) => (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handler(e);
-    }
-  };
+  const keyActivate = (handler: (e: React.MouseEvent | React.KeyboardEvent) => void) =>
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handler(e);
+      }
+    };
 
   return (
     <>
@@ -65,39 +77,62 @@ export const BoardCard = ({ board }: BoardCardProps) => {
             ? { backgroundColor: `${board.color}1f`, borderColor: `${board.color}66` }
             : undefined
         }
-        className={`card-base ${isActive ? '' : 'card-hover'} relative group cursor-pointer py-2.5 px-3 gap-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset ${
-          isActive ? 'pr-16' : ''
+        className={`card-base ${isActive ? '' : 'card-hover'} relative group cursor-pointer py-2.5 px-3 gap-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset ${
+          isActive ? 'pr-[4.5rem]' : 'pr-9'
         }`}
       >
-        {isActive && (
-          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex items-center gap-0.5">
-            <button
-              onClick={handleEdit}
-              onKeyDown={keyActivate(handleEdit)}
-              tabIndex={0}
-              className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
-              aria-label={`Editar tablero ${board.name}`}
+        <div className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex items-center gap-0.5">
+          {isDefault ? (
+            <span
+              className="p-1 text-amber-400"
+              title="Tablero por defecto"
+              aria-label="Tablero por defecto"
             >
-              <PencilIcon className="w-3.5 h-3.5" />
-            </button>
+              <StarIcon className="w-3.5 h-3.5" aria-hidden="true" />
+            </span>
+          ) : (
             <button
-              onClick={handleDelete}
-              onKeyDown={keyActivate(handleDelete)}
+              type="button"
+              onClick={handleDefault}
+              onKeyDown={keyActivate(handleDefault)}
               tabIndex={0}
-              className="p-1 rounded-md text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
-              aria-label={`Eliminar tablero ${board.name}`}
+              className="p-1 rounded-md text-slate-400 hover:text-amber-400 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
+              aria-label={`Marcar ${board.name} como tablero por defecto`}
+              title="Marcar como tablero por defecto"
             >
-              <TrashIcon className="w-3.5 h-3.5" />
+              <StarOutlineIcon className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
-          </div>
-        )}
+          )}
+          {isActive && (
+            <>
+              <button
+                onClick={handleEdit}
+                onKeyDown={keyActivate(handleEdit)}
+                tabIndex={0}
+                className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
+                aria-label={`Editar tablero ${board.name}`}
+              >
+                <PencilIcon className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleDelete}
+                onKeyDown={keyActivate(handleDelete)}
+                tabIndex={0}
+                className="p-1 rounded-md text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                aria-label={`Eliminar tablero ${board.name}`}
+              >
+                <TrashIcon className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
+        </div>
 
         <span
           className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
           style={{ backgroundColor: board.color }}
           aria-hidden="true"
         />
-        <h2 className="text-sm font-medium truncate">{board.name}</h2>
+        <h2 className="text-sm font-medium truncate min-w-0">{board.name}</h2>
       </div>
 
       <BoardModal

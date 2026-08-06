@@ -1,3 +1,5 @@
+import { BrandLockup } from '../brand/BrandLockup';
+
 interface DeniedAccessProps {
   onSignOut: () => void;
 }
@@ -6,11 +8,9 @@ interface DeniedAccessProps {
 export const DeniedAccess = ({ onSignOut }: DeniedAccessProps) => (
   <div className="auth-shell">
     <div className="auth-card space-y-6">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-2xl text-red-600 dark:bg-red-500/15 dark:text-red-400">
-        ✕
-      </div>
+      <BrandLockup markSize={40} stacked />
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
+        <h1 className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>
           Acceso denegado
         </h1>
         <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
@@ -18,7 +18,12 @@ export const DeniedAccess = ({ onSignOut }: DeniedAccessProps) => (
           administrador.
         </p>
       </div>
-      <button type="button" onClick={onSignOut} className="btn-secondary w-full justify-center" aria-label="Cerrar sesión">
+      <button
+        type="button"
+        onClick={onSignOut}
+        className="btn-secondary w-full justify-center"
+        aria-label="Cerrar sesión"
+      >
         Cerrar sesión
       </button>
     </div>

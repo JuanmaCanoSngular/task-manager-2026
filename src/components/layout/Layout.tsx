@@ -1,5 +1,8 @@
 import { useBoardStore } from '../../stores/board.store';
 import { ErrorBanner } from '../common/ErrorBanner';
+import { BrandLockup } from '../brand/BrandLockup';
+import { SignOutButton } from '../auth/SignOutButton';
+import { BRAND_NAME } from '../../brand';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,28 +22,21 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="h-screen flex flex-col text-light dark:text-dark transition-colors duration-300">
-      <header className="flex-shrink-0 p-4">
-        <h1 className="text-2xl font-bold text-center">
+      <header className="relative flex-shrink-0 flex items-center justify-center p-4">
+        <h1 className="text-center">
           <button
             onClick={handleLogoClick}
             onKeyDown={handleKeyDown}
             tabIndex={0}
-            className="inline-flex items-center gap-2 rounded-xl px-2 py-1 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            aria-label="Ir al inicio"
+            className="inline-flex items-center rounded-xl px-2 py-1 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 dark:focus:ring-offset-[var(--app-bg)]"
+            aria-label={`Ir al inicio — ${BRAND_NAME}`}
           >
-            <span
-              aria-hidden="true"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-base text-white"
-              style={{
-                backgroundImage: 'linear-gradient(135deg, var(--brand), var(--brand-2))',
-                boxShadow: 'var(--shadow-brand)',
-              }}
-            >
-              ✓
-            </span>
-            <span style={{ color: 'var(--text)' }}>Gestión de tareas</span>
+            <BrandLockup markSize={36} />
           </button>
         </h1>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          <SignOutButton />
+        </div>
       </header>
 
       <ErrorBanner />

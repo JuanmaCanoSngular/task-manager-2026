@@ -1,3 +1,5 @@
+import { BrandLockup } from '../brand/BrandLockup';
+
 interface PendingAccessProps {
   email?: string;
   onSignOut: () => void;
@@ -8,9 +10,9 @@ interface PendingAccessProps {
 export const PendingAccess = ({ email, onSignOut }: PendingAccessProps) => (
   <div className="auth-shell">
     <div className="auth-card space-y-6">
-      <div className="brand-badge">⏳</div>
+      <BrandLockup markSize={40} stacked />
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
+        <h1 className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>
           Solicitud enviada
         </h1>
         <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
@@ -18,7 +20,12 @@ export const PendingAccess = ({ email, onSignOut }: PendingAccessProps) => (
           pantalla se actualizará automáticamente en cuanto se autorice.
         </p>
       </div>
-      <button type="button" onClick={onSignOut} className="btn-secondary w-full justify-center" aria-label="Cerrar sesión">
+      <button
+        type="button"
+        onClick={onSignOut}
+        className="btn-secondary w-full justify-center"
+        aria-label="Cerrar sesión"
+      >
         Cerrar sesión
       </button>
     </div>

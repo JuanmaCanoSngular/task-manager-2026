@@ -9,16 +9,19 @@ import { ApprovalResult } from './components/auth/ApprovalResult';
 
 const AppContent = () => {
   const error = useBoardStore((state) => state.error);
+  const boards = useBoardStore((state) => state.boards);
   const fetchBoards = useBoardStore((state) => state.fetchBoards);
 
   useEffect(() => {
     fetchBoards();
   }, [fetchBoards]);
 
-  if (error) {
+  // Solo pantalla completa si falló la carga inicial (sin tableros).
+  // Los fallos de escritura se muestran en ErrorBanner dentro del Layout.
+  if (error && boards.length === 0) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-background text-light dark:bg-background-dark dark:text-dark">
-        <p className="text-xl text-red-400">Error: {error}</p>
+      <div className="auth-shell">
+        <p className="text-xl text-red-500">Error: {error}</p>
       </div>
     );
   }
@@ -29,13 +32,13 @@ const AppContent = () => {
       <div className="absolute -top-40 left-4 z-50 focus-within:top-4">
         <a
           href="#main-content"
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="bg-teal-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
         >
           Skip to main content
         </a>
         <a
           href="#boards-list"
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="bg-teal-600 text-white px-4 py-2 rounded-lg ml-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
         >
           Skip to boards list
         </a>

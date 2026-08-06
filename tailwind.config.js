@@ -4,6 +4,10 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Source Sans 3"', 'system-ui', 'sans-serif'],
+        display: ['"Fraunces"', 'Georgia', 'serif'],
+      },
       colors: {
         light: '#23272f',
         dark: '#fff',
@@ -11,7 +15,7 @@ export default {
         'background-dark': '#181a20',
         card: '#fff',
         'card-dark': '#23272f',
-        primary: '#2563eb',
+        primary: '#0d9488',
       },
     },
   },

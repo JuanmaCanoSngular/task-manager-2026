@@ -5,7 +5,20 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 const mocks = vi.hoisted(() => {
   const orderMock = vi.fn();
   const eqMock = vi.fn(() => Promise.resolve({ error: null as Error | null }));
-  const insertMock = vi.fn(() => Promise.resolve({ error: null as Error | null }));
+  const singleMock = vi.fn(() =>
+    Promise.resolve({
+      data: {
+        id: 42,
+        name: 'Nuevo',
+        emoji: '🎯',
+        color: '#000',
+        is_default: false,
+      } as Record<string, unknown>,
+      error: null as Error | null,
+    })
+  );
+  const selectAfterInsertMock = vi.fn(() => ({ single: singleMock }));
+  const insertMock = vi.fn(() => ({ select: selectAfterInsertMock }));
   const selectMock = vi.fn(() => ({ order: orderMock }));
   const updateMock = vi.fn(() => ({ eq: eqMock }));
   const deleteMock = vi.fn(() => ({ eq: eqMock }));
@@ -15,13 +28,40 @@ const mocks = vi.hoisted(() => {
     update: updateMock,
     delete: deleteMock,
   }));
-  return { orderMock, eqMock, insertMock, selectMock, updateMock, deleteMock, fromMock };
+  const getSessionMock = vi.fn(() =>
+    Promise.resolve({ data: { session: null as { user: { id: string } } | null } })
+  );
+  return {
+    orderMock,
+    eqMock,
+    insertMock,
+    selectMock,
+    updateMock,
+    deleteMock,
+    fromMock,
+    getSessionMock,
+    singleMock,
+    selectAfterInsertMock,
+  };
 });
 
-const { orderMock, eqMock, insertMock, updateMock, deleteMock, fromMock } = mocks;
+const {
+  orderMock,
+  eqMock,
+  insertMock,
+  updateMock,
+  deleteMock,
+  fromMock,
+  getSessionMock,
+  singleMock,
+  selectAfterInsertMock,
+} = mocks;
 
 vi.mock('../../src/services/supabase', () => ({
-  supabase: { from: mocks.fromMock },
+  supabase: {
+    from: mocks.fromMock,
+    auth: { getSession: mocks.getSessionMock },
+  },
 }));
 
 import { boardService } from '../../src/services/board.service';
@@ -91,26 +131,61 @@ describe('Board Service (Supabase)', () => {
   });
 
   describe('mutaciones', () => {
-    test('insertBoard inserta en la tabla boards', async () => {
-      await boardService.insertBoard({ id: 5, name: 'Nuevo', emoji: '🎯', color: '#000' });
-      expect(fromMock).toHaveBeenCalledWith('boards');
-      expect(insertMock).toHaveBeenCalledWith({
-        id: 5,
+    test('insertBoard incluye user_id cuando hay sesión y devuelve el id de la DB', async () => {
+      getSessionMock.mockResolvedValueOnce({
+        data: { session: { user: { id: 'user-abc' } } },
+      });
+      const created = await boardService.insertBoard({
         name: 'Nuevo',
         emoji: '🎯',
         color: '#000',
+        isDefault: false,
       });
+      expect(insertMock).toHaveBeenCalledWith({
+        name: 'Nuevo',
+        emoji: '🎯',
+        color: '#000',
+        is_default: false,
+        user_id: 'user-abc',
+      });
+      expect(selectAfterInsertMock).toHaveBeenCalled();
+      expect(created.id).toBe(42);
     });
 
-    test('insertTask inserta la tarea con board_id y posición', async () => {
-      await boardService.insertTask(
+    test('setDefaultBoard limpia el resto y marca el elegido', async () => {
+      const neqMock = vi.fn(() => Promise.resolve({ error: null }));
+      updateMock
+        .mockReturnValueOnce({ neq: neqMock } as unknown as ReturnType<typeof updateMock>)
+        .mockReturnValueOnce({ eq: eqMock });
+
+      await boardService.setDefaultBoard(3);
+
+      expect(updateMock).toHaveBeenCalledWith({ is_default: false });
+      expect(neqMock).toHaveBeenCalledWith('id', 3);
+      expect(updateMock).toHaveBeenCalledWith({ is_default: true });
+      expect(eqMock).toHaveBeenCalledWith('id', 3);
+    });
+
+    test('insertTask inserta la tarea sin id de cliente y la devuelve', async () => {
+      singleMock.mockResolvedValueOnce({
+        data: {
+          id: 10,
+          board_id: 1,
+          title: 'T',
+          status: 'backlog',
+          background: null,
+          tags: ['design'],
+          position: 3,
+        } as Record<string, unknown>,
+        error: null,
+      });
+      const created = await boardService.insertTask(
         1,
-        { id: 10, title: 'T', status: 'backlog', tags: ['design'], background: undefined },
+        { title: 'T', status: 'backlog', tags: ['design'], background: undefined },
         3
       );
       expect(fromMock).toHaveBeenCalledWith('tasks');
       expect(insertMock).toHaveBeenCalledWith({
-        id: 10,
         board_id: 1,
         title: 'T',
         status: 'backlog',
@@ -118,6 +193,7 @@ describe('Board Service (Supabase)', () => {
         tags: ['design'],
         position: 3,
       });
+      expect(created.id).toBe(10);
     });
 
     test('deleteTask borra por id', async () => {
@@ -155,10 +231,22 @@ describe('Board Service (Supabase)', () => {
     });
 
     test('propaga el error si una escritura falla', async () => {
-      insertMock.mockResolvedValueOnce({ error: new Error('insert fail') });
+      singleMock.mockResolvedValueOnce({ data: null as unknown as Record<string, unknown>, error: new Error('insert fail') });
       await expect(
-        boardService.insertBoard({ id: 9, name: 'x', emoji: '', color: '' })
+        boardService.insertBoard({ name: 'x', emoji: '', color: '', isDefault: true })
       ).rejects.toThrow('insert fail');
+    });
+
+    test('getBoards mapea is_default a isDefault', async () => {
+      orderMock
+        .mockResolvedValueOnce({
+          data: [{ id: 1, name: 'A', emoji: '', color: '#fff', is_default: true }],
+          error: null,
+        })
+        .mockResolvedValueOnce({ data: [], error: null });
+
+      const result = await boardService.getBoards();
+      expect(result[0].isDefault).toBe(true);
     });
   });
 });
