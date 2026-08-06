@@ -20,11 +20,15 @@ export async function extractTitleWithGemini(text) {
   const apiKey = Deno.env.get('GEMINI_API_KEY');
   if (!apiKey) throw new Error('GEMINI_API_KEY no configurada en Supabase secrets');
 
-  const prompt = `Eres un asistente de un tablero Kanban en español.
-El usuario quiere crear UNA tarea. Extrae un título corto y claro en español (máx. 80 caracteres).
-Quita muletillas como "recuérdame", "por favor", "mañana" si no aportan.
-No inventes detalles. No uses comillas en el título.
-Responde SOLO con JSON: {"title":"..."}
+  const prompt = `Eres un asistente de un tablero Kanban. Trabajas SOLO en castellano (español de España).
+
+Reglas:
+- El mensaje del usuario debe estar en castellano. Si está en otro idioma o es incomprensible, responde exactamente: {"title":null,"error":"solo_castellano"}
+- El título de la tarea SIEMPRE en castellano. Nunca inglés ni otros idiomas.
+- Extrae UNA tarea: título corto y claro (máx. 80 caracteres).
+- Quita muletillas ("recuérdame", "por favor", "mañana"…) si no aportan al título.
+- No inventes detalles que no estén en el mensaje. No uses comillas en el título.
+- Responde SOLO con JSON: {"title":"..."} o {"title":null,"error":"solo_castellano"}
 
 Mensaje:
 ${text}`;
@@ -63,8 +67,11 @@ ${text}`;
     .join('\n')
     .trim();
 
-  const title = parseTitleFromModelText(raw);
-  return title ? title.slice(0, 120) : null;
+  const parsed = parseTitleFromModelText(raw);
+  if (parsed && typeof parsed === 'object' && parsed.rejected) {
+    return parsed;
+  }
+  return typeof parsed === 'string' ? parsed.slice(0, 120) : null;
 }
 
 function parseTitleFromModelText(raw) {
@@ -73,6 +80,9 @@ function parseTitleFromModelText(raw) {
   // 1) JSON completo
   try {
     const parsed = JSON.parse(raw);
+    if (parsed?.error === 'solo_castellano' || parsed?.title === null) {
+      return { rejected: 'solo_castellano' };
+    }
     const t = normalizeTitle(parsed?.title);
     if (t) return t;
   } catch {
@@ -80,14 +90,18 @@ function parseTitleFromModelText(raw) {
   }
 
   // 2) Extrae el primer objeto {"title":"..."} embebido (por si hay texto alrededor)
-  const match = raw.match(/\{[\s\S]*?"title"\s*:\s*"((?:\\.|[^"\\])*)"[\s\S]*?\}/);
+  const match = raw.match(/\{[\s\S]*?"title"\s*:\s*(null|"((?:\\.|[^"\\])*)")[\s\S]*?\}/);
   if (match) {
     try {
       const parsed = JSON.parse(match[0]);
+      if (parsed?.error === 'solo_castellano' || parsed?.title === null) {
+        return { rejected: 'solo_castellano' };
+      }
       const t = normalizeTitle(parsed?.title);
       if (t) return t;
     } catch {
-      const t = normalizeTitle(match[1]?.replace(/\\"/g, '"'));
+      if (match[1] === 'null') return { rejected: 'solo_castellano' };
+      const t = normalizeTitle(match[2]?.replace(/\\"/g, '"'));
       if (t) return t;
     }
   }
@@ -123,7 +137,14 @@ export async function createTaskOnDefault(supabase, userId, text) {
   let title;
   let usedGemini = false;
   try {
-    title = await extractTitleWithGemini(text);
+    const extracted = await extractTitleWithGemini(text);
+    if (extracted && typeof extracted === 'object' && extracted.rejected === 'solo_castellano') {
+      return {
+        error:
+          'Solo entiendo mensajes en castellano. Escribe la tarea en español, por favor.',
+      };
+    }
+    title = typeof extracted === 'string' ? extracted : null;
     usedGemini = Boolean(title);
   } catch (err) {
     console.error('Gemini fallback:', err);

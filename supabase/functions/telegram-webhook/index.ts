@@ -271,7 +271,7 @@ function formatTaskList(columnLabel, boardName, tasks) {
 function helpText() {
   return (
     'Task Manager App — bot\n\n' +
-    '• Escribe una tarea → va a Pendiente\n' +
+    '• Escribe una tarea en castellano → va a Pendiente\n' +
     '• /pendientes — lista Pendiente\n' +
     '• /bloqueos — lista Bloqueos\n' +
     '• /desvincular — quita el vínculo\n' +
