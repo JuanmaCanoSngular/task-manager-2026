@@ -25,18 +25,24 @@ tablero por defecto del usuario.
 | Área | Detalle |
 |------|---------|
 | Persistencia | Boards y tasks en Supabase; IDs por secuencia Postgres |
-| Auth | Login Google + aprobación/denegación + emails + Edge Functions + CI; `VITE_AUTH_ENABLED` activo; inserts con `user_id` (RLS) |
-| Tablero por defecto | `is_default`; estrella a la derecha; carga al entrar; un solo default |
-| Columna Bloqueos | Label **Bloqueos** + color rojo (status interno `in-review`) |
-| Marca / UI | Look tinta + teal; logo de columnas; botón Google moderno; cerrar sesión |
+| Auth | Login Google + aprobación + emails + Edge Functions; `VITE_AUTH_ENABLED`; RLS/`user_id`; menú cuenta (cerrar / borrar) |
+| Tablero por defecto | `is_default`; estrella; carga al entrar |
+| Columna Bloqueos | Label **Bloqueos** + rojo (status interno `in-review`) |
+| Marca / UI | Tinta + teal; logo columnas; Source Sans 3 self-hosted |
+| Tema | Claro/oscuro: View Transitions + `clip-path`; toggle sol/luna en header |
+| Etiquetas | CRUD por usuario; estándar Urgente / Importante / Idea |
+| Imagen tarjeta | URL externa opcional (`tasks.background`); sin hosting |
+| Telegram | Bot + Gemini: vincular, crear, `/pendientes`, `/bloqueos` |
+| Keep-alive | Cron GitHub Actions cada 3 días (Supabase free) |
 | Idioma | Solo español |
-| Calidad | ~272 tests, deploy en Vercel |
+| Calidad | Tests + deploy Vercel |
 
 ### Pendiente relevante
 
-- Columnas 100 % personalizables por tablero (CRUD + borrar con confirmación).
-- Fondo de tarjeta por URL (sin storage).
-- Dominio corto `juanmacano.eu/tablero` → URL de producción (al final).
+- **A3** Columnas 100 % personalizables por tablero (mayor reto abierto).
+- Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
+- Dominio corto `juanmacano.eu/tablero` → producción (**E1**, al final).
+- Alinear README / DEVELOPERS con el estado real (menor).
 
 ---
 
@@ -55,17 +61,18 @@ tablero por defecto del usuario.
 - En la provisión de usuarios nuevos hay una tarea de ejemplo en Bloqueos.
 - Queda pendiente en A3 que sea una columna editable por tablero (no solo label global).
 
-### A3. Columnas personalizables por tablero
+### A3. Columnas personalizables por tablero ← **siguiente**
 
 - Crear / renombrar / color / eliminar (con confirmación y cascade de tasks).
 - Modelo `columns` por `board_id`; dejar de hardcodear `TASK_STATUS`.
-- **Pendiente** sigue siendo el inbox por defecto de tareas nuevas.
+- Migrar tareas existentes (`status` → `column_id`).
+- **Pendiente** sigue siendo el inbox por defecto de tareas nuevas (y del bot).
+- Impacta UI (DnD, formularios), Realtime y agente Telegram (`/pendientes`, `/bloqueos`).
 
 ### A4. Imagen de fondo de tarjeta (URL) — ✅
 
-- El usuario pega una URL http(s); se guarda en `tasks.background`.
-- Preview en el formulario y en la tarjeta del tablero.
-- Sin Unsplash ni hosting propio de archivos.
+- URL http(s) en `tasks.background`; preview en modal y tarjeta.
+- Sin Unsplash ni hosting. SQL si falta la columna: `supabase/add-task-background.sql`.
 
 ---
 
@@ -74,7 +81,8 @@ tablero por defecto del usuario.
 ### B1. Tema claro / oscuro — ✅
 
 - `localStorage` (`theme-storage`); default oscuro; anti-FOUC con `public/theme.js`.
-- Cambio de tema con **View Transitions** + `clip-path` en `::view-transition-new(root)` (600 ms); fallback sin animación si no hay soporte o `prefers-reduced-motion`.
+- View Transitions + `clip-path` en `::view-transition-new(root)` (600 ms).
+- Toggle minimal sol/luna arriba a la izquierda.
 - Sync multi-dispositivo vía Supabase: fuera de alcance por ahora.
 
 ### B2. Keep-alive Supabase (plan free) — ✅
@@ -89,7 +97,7 @@ tablero por defecto del usuario.
 
 ### C1. Acceso restringido — ✅ en uso
 
-- Google + perfiles + RLS + `user_id` + secuencias de ID.
+- Google + perfiles + RLS + `user_id` + secuencias de ID + borrado de cuenta.
 - Pendiente menor: alinear README / DEVELOPERS con el estado real.
 
 ### C2. Etiquetas personalizadas — ✅
@@ -110,7 +118,7 @@ consultar pendientes/bloqueos **sin abrir la web**.
 
 La UI web **no** incluye captura con IA (redundante con el formulario normal).
 
-### Cerebro (parcialmente en código)
+### Estado MVP — ✅ en uso
 
 - Edge Function `agent-create-task` + `_shared/agent.js`: Gemini → tarea en
   tablero default + Pendiente.
@@ -136,7 +144,14 @@ Comandos:
 - `/bloqueos` → tareas en Bloqueos
 - `/desvincular` · `/ayuda`
 
-### D1. Criterios de aceptación
+### Ampliación (media prioridad)
+
+- Voz en Telegram (mensajes de audio → Gemini).
+- WhatsApp / Alexa más adelante.
+- Tras A3: mapear `/pendientes` y `/bloqueos` a columnas por tablero, no a
+  status globales hardcodeados.
+
+### D1. Criterios de aceptación (MVP) — ✅
 
 1. Usuario empareja Telegram con su cuenta (una vez).
 2. Texto en el bot → una tarea en `is_default` + `backlog`.
@@ -170,6 +185,7 @@ Comandos:
 - Login por email + código (descartado; Google).
 - Storage propio de imágenes.
 - Colaboración multi-usuario en el mismo tablero.
+- Sync de tema multi-dispositivo.
 
 ---
 
@@ -179,10 +195,11 @@ Comandos:
 1. **A3** Columnas personalizables (Pendiente = inbox; Bloqueos editable)
 
 ### Media
-2. **D** Voz en Telegram / WhatsApp / Alexa
+2. **D** Voz en Telegram (luego WhatsApp / Alexa)
+3. Docs: README / DEVELOPERS al día
 
 ### Al final
-5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+4. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 
@@ -197,28 +214,27 @@ Comandos:
 ```
 profiles          — auth + status de acceso
 boards            — user_id, name, color, is_default, …
-columns           — board_id, name, color, position   ← A3
+columns           — board_id, name, color, position   ← A3 (pendiente)
 tasks             — board_id, status|column_id, title, tags, background (URL), …
-tags              — C2
-channel_links     — user_id, provider, external_id    ← D Telegram+
+tags              — C2 ✅
+channel_links     — user_id, provider, external_id    ← D Telegram ✅
 ```
 
 ---
 
 ## Entregables por iteración
 
-### Iteración actual — Telegram + Gemini
-- Bot + webhook + emparejar cuenta (código en UI)
-- Crear tarea + `/pendientes` + `/bloqueos`
-- Secrets: `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`,
-  `TELEGRAM_BOT_USERNAME` — ver `supabase/TELEGRAM.md`
+### Hecho recientemente
+- Tema (View Transitions) + toggle minimal
+- Imagen por URL (sin Unsplash)
+- Etiquetas, Telegram MVP, keep-alive, borrado de cuenta
 
-### Siguiente — Tablero flexible + marca
-- Nombre propio
-- Columnas CRUD + Bloqueos/Pendiente como defaults de tablero
+### Siguiente — **A3 Tablero flexible**
+- Tabla `columns` + migración desde `TASK_STATUS`
+- CRUD columnas (UI + cascade)
+- Adaptar DnD, formularios, Realtime y bot Telegram
 
-### Operación
-- Keep-alive, tema, etiquetas
+### Después
 - Voz / WhatsApp / Alexa
 - **Al final:** redirect `juanmacano.eu/tablero`
 
@@ -229,3 +245,7 @@ channel_links     — user_id, provider, external_id    ← D Telegram+
 Pendiente = inbox de captura (humano, agente o canal externo). Bloqueos = rojo,
 atención especial. El dominio corto es cosmética de acceso; se hace cuando la
 URL final no vaya a cambiar.
+
+**Mayor reto abierto: A3.** No es solo UI: hay que cambiar el modelo de datos,
+migrar tareas, y que el Kanban + Telegram sigan entendiendo «inbox» y
+«bloqueos» sin romper lo que ya funciona.
