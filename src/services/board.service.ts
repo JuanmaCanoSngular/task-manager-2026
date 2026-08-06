@@ -72,6 +72,14 @@ export const boardService = {
     if (error) throw error;
   },
 
+  async updateBoard(id: number, data: { name: string; color: string }): Promise<void> {
+    const { error } = await supabase
+      .from('boards')
+      .update({ name: data.name, color: data.color })
+      .eq('id', id);
+    if (error) throw error;
+  },
+
   async insertTask(boardId: number, task: Task, position: number): Promise<void> {
     const { error } = await supabase.from('tasks').insert({
       id: task.id,

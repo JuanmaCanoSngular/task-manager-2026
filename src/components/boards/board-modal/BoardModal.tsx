@@ -6,10 +6,20 @@ import { BoardForm } from './BoardForm';
 interface BoardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (name: string, emoji: string, color: string) => void;
+  onSubmit: (name: string, color: string) => void;
+  mode?: 'create' | 'edit';
+  initialName?: string;
+  initialColor?: string;
 }
 
-export const BoardModal = ({ isOpen, onClose, onSubmit }: BoardModalProps) => (
+export const BoardModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  mode = 'create',
+  initialName,
+  initialColor,
+}: BoardModalProps) => (
   <Transition appear show={isOpen} as={Fragment}>
     <Dialog as="div" className="relative z-50" onClose={onClose}>
       <Transition.Child
@@ -38,14 +48,20 @@ export const BoardModal = ({ isOpen, onClose, onSubmit }: BoardModalProps) => (
             <Dialog.Panel className="modal-panel">
               <div className="flex items-center justify-between mb-6">
                 <Dialog.Title as="h3" className="modal-title">
-                  Create new board
+                  {mode === 'edit' ? 'Editar tablero' : 'Nuevo tablero'}
                 </Dialog.Title>
                 <button onClick={onClose} className="modal-close-button">
                   <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
 
-              <BoardForm onSubmit={onSubmit} onCancel={onClose} />
+              <BoardForm
+                onSubmit={onSubmit}
+                onCancel={onClose}
+                initialName={initialName}
+                initialColor={initialColor}
+                submitLabel={mode === 'edit' ? 'Guardar cambios' : 'Crear tablero'}
+              />
             </Dialog.Panel>
           </Transition.Child>
         </div>

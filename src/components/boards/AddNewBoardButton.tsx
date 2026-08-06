@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PlusCircleIcon } from '@heroicons/react/20/solid';
+import { PlusIcon } from '@heroicons/react/20/solid';
 import { BoardModal } from './board-modal/BoardModal';
 import { useBoardStore } from '../../stores/board.store';
 
@@ -15,8 +15,8 @@ export const AddNewBoardButton = () => {
     setIsModalOpen(false);
   };
 
-  const handleSubmit = (name: string, emoji: string, color: string) => {
-    addNewBoard(name, emoji, color);
+  const handleSubmit = (name: string, color: string) => {
+    addNewBoard(name, color);
     handleCloseModal();
   };
 
@@ -33,13 +33,11 @@ export const AddNewBoardButton = () => {
         onClick={handleOpenModal}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        className="btn-add w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
+        className="w-full flex items-center justify-center py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:text-indigo-600 hover:border-indigo-400 dark:hover:text-indigo-300 dark:hover:border-indigo-500 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset"
         aria-label="Añadir nuevo tablero"
+        title="Añadir nuevo tablero"
       >
-        <h2 className="text-xl">Añadir nuevo tablero</h2>
-        <span className="flex items-center justify-center w-6 h-6">
-          <PlusCircleIcon className="w-6 h-6 text-current" />
-        </span>
+        <PlusIcon className="w-5 h-5" aria-hidden="true" />
       </button>
 
       <BoardModal isOpen={isModalOpen} onClose={handleCloseModal} onSubmit={handleSubmit} />

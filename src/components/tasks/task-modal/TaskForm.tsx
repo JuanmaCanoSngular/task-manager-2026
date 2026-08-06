@@ -97,7 +97,7 @@ export const TaskForm = ({ mode, initialData, onSubmit, onCancel }: TaskFormProp
         <button type="button" onClick={onCancel} className="btn-secondary">
           Cancelar
         </button>
-        <button type="submit" className="btn-add">
+        <button type="submit" className="btn-primary">
           {mode === 'create' ? 'Añadir tarea' : 'Guardar cambios'}
         </button>
       </div>

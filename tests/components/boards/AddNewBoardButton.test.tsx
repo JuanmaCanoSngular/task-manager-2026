@@ -33,7 +33,7 @@ describe('AddNewBoardButton', () => {
     expect(button).toHaveAttribute('aria-label', 'Añadir nuevo tablero');
   });
 
-  test('should display correct text content', async () => {
+  test('should be icon-only (accessible name from aria-label)', async () => {
     const addNewBoard = vi.fn();
     vi.doMock('../../../src/stores/board.store', () => ({
       useBoardStore: () => mockBoardStore({ addNewBoard }),
@@ -42,8 +42,10 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    expect(screen.getByText('Añadir nuevo tablero')).toBeInTheDocument();
-    expect(getByRole.heading(2)).toHaveTextContent('Añadir nuevo tablero');
+    // Sin texto visible; el nombre accesible viene del aria-label.
+    expect(screen.queryByText('Añadir nuevo tablero')).not.toBeInTheDocument();
+    const button = getByRole.button(/añadir nuevo tablero/i);
+    expect(button.querySelector('svg')).toBeInTheDocument();
   });
 
   test('should have proper CSS classes', async () => {
@@ -56,7 +58,7 @@ describe('AddNewBoardButton', () => {
     render(<AddNewBoardButton />);
 
     const button = getByRole.button(/añadir nuevo tablero/i);
-    expect(button).toHaveClass('btn-add', 'w-full');
+    expect(button).toHaveClass('w-full', 'border-dashed');
   });
 
   test('should open modal when button is clicked', async () => {
@@ -85,10 +87,9 @@ describe('AddNewBoardButton', () => {
 
     render(<AddNewBoardButton />);
 
-    // The icon should be present in the DOM
-    const iconContainer = screen.getByText('Añadir nuevo tablero').nextElementSibling;
-    expect(iconContainer).toBeInTheDocument();
-    expect(iconContainer).toHaveClass('flex', 'items-center', 'justify-center', 'w-6', 'h-6');
+    // El icono (svg) debe estar en el botón.
+    const button = getByRole.button(/añadir nuevo tablero/i);
+    expect(button.querySelector('svg')).toBeInTheDocument();
   });
 
   test('should have proper button structure', async () => {
@@ -103,9 +104,8 @@ describe('AddNewBoardButton', () => {
     const button = getByRole.button(/añadir nuevo tablero/i);
     expect(button).toBeInTheDocument();
 
-    // Check that the button contains the heading
-    const heading = getByRole.heading(2);
-    expect(button).toContainElement(heading);
+    // El botón contiene el icono.
+    expect(button.querySelector('svg')).toBeInTheDocument();
   });
 
   test('should be keyboard accessible', async () => {
@@ -161,7 +161,6 @@ describe('AddNewBoardButton', () => {
 
     // Check for proper semantic elements
     expect(getByRole.button(/añadir nuevo tablero/i)).toBeInTheDocument();
-    expect(getByRole.heading(2)).toBeInTheDocument();
   });
 
   test('should render BoardModal component', async () => {

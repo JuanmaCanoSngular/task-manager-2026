@@ -34,7 +34,7 @@ export const BoardSelectMobile = () => {
         onChange={handleChange}
         aria-label="Seleccionar tablero"
         className={`w-full h-16 pl-4 pr-10 rounded-xl bg-card dark:bg-card-dark border-2 appearance-none cursor-pointer [color:transparent] [text-shadow:0_0_0_transparent] transition-all duration-300
-          ${currentBoardId !== null ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-400'}`}
+          ${currentBoardId !== null ? 'card-active' : 'border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-400'}`}
       >
         <option value={-1} className="text-light dark:text-dark">
           Seleccionar tablero
@@ -50,13 +50,13 @@ export const BoardSelectMobile = () => {
         {currentBoard ? (
           <>
             <span
-              className="flex items-center justify-center w-10 h-10 rounded-full text-xl mr-3"
+              className="w-3 h-3 rounded-full mr-3 flex-shrink-0"
               style={{ backgroundColor: currentBoard.color }}
               aria-hidden="true"
-            >
-              {currentBoard.emoji}
+            />
+            <span className="text-lg font-medium text-light dark:text-dark">
+              {currentBoard.name}
             </span>
-            <span className="text-xl text-light dark:text-dark">{currentBoard.name}</span>
           </>
         ) : (
           <span className="text-gray-500 dark:text-gray-400">Seleccionar tablero</span>

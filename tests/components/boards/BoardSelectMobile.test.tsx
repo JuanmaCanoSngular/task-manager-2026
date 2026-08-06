@@ -46,9 +46,8 @@ describe('BoardSelectMobile', () => {
     // Options should be present
     expect(screen.getAllByText('Board 1').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Board 2').length).toBeGreaterThan(0);
-    // The selected board name and emoji should be visible
+    // The selected board name should be visible
     expect(screen.getAllByText('Board 2').length).toBeGreaterThan(0);
-    expect(screen.getByText('🎯')).toBeInTheDocument();
   });
 
   test('renders correctly with no boards', async () => {

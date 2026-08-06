@@ -39,20 +39,20 @@ describe('BoardStore Integration Tests', () => {
 
   test('should add a new board', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board Test', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board Test', 'bg-blue-500');
     });
     const boards = useBoardStore.getState().boards;
     expect(boards).toHaveLength(1);
     expect(boards[0].name).toBe('Board Test');
-    expect(boards[0].emoji).toBe('📋');
+    expect(boards[0].emoji).toBe('');
     expect(boards[0].color).toBe('bg-blue-500');
     expect(useBoardStore.getState().currentBoardId).toBe(boards[0].id);
   });
 
   test('should remove a board', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
-      useBoardStore.getState().addNewBoard('Board 2', '📝', 'bg-green-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 2', 'bg-green-500');
     });
     const boardIdToRemove = useBoardStore.getState().currentBoardId;
     act(() => {
@@ -65,7 +65,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should add a new task to the current board', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
@@ -83,7 +83,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should update a task', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
@@ -111,7 +111,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should remove a task', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
@@ -133,7 +133,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should move a task to a new status', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
@@ -155,7 +155,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should update task order within a status', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const task1 = {
@@ -184,7 +184,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should handle error when updating a non-existent task', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     // Try to update a task that doesn't exist
@@ -201,7 +201,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should handle error when removing a non-existent task', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     // Try to remove a task that doesn't exist
@@ -214,7 +214,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should handle error when moving a non-existent task', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     // Try to move a task that doesn't exist
@@ -227,7 +227,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should handle error when updating task order with invalid indices', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const task1 = {
@@ -319,7 +319,7 @@ describe('BoardStore Selectors', () => {
 
   test('useCurrentBoardTasks returns tasks of current board', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
       useBoardStore
         .getState()
         .addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
@@ -336,7 +336,7 @@ describe('BoardStore Selectors', () => {
 
   test('useCurrentBoard returns the current board', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const { result } = renderHook(() => boardStoreModule.useCurrentBoard());
     expect(result.current).not.toBeNull();
@@ -350,7 +350,7 @@ describe('BoardStore Selectors', () => {
 
   test('useTasksByStatus returns tasks with given status', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
       useBoardStore
         .getState()
         .addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
@@ -389,7 +389,7 @@ describe('BoardStore API Integration Tests', () => {
   test('fetchBoards should not call API if boards already exist', async () => {
     // Add a board first
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
 
     // Try to fetch boards again
@@ -453,7 +453,7 @@ describe('BoardStore API Integration Tests', () => {
   // ya no llama al servicio, solo selecciona el tablero activo.
   test('fetchBoardDetails should set currentBoardId without calling the service', async () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
       useBoardStore
         .getState()
         .addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
@@ -521,7 +521,7 @@ describe('BoardStore Edge Cases', () => {
 
   test('moveTask with destinationIndex should reorder tasks correctly', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
       useBoardStore
         .getState()
         .addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
@@ -549,7 +549,7 @@ describe('BoardStore Edge Cases', () => {
 
   test('updateTaskOrder should handle edge cases with empty status', () => {
     act(() => {
-      useBoardStore.getState().addNewBoard('Board 1', '📋', 'bg-blue-500');
+      useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
       useBoardStore
         .getState()
         .addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
@@ -576,7 +576,7 @@ describe('BoardStore Edge Cases', () => {
     expect(boards).toHaveLength(1);
     expect(boards[0].name).toBe('Nuevo tablero');
     expect(boards[0].emoji).toBe('');
-    expect(boards[0].color).toBe('');
+    expect(boards[0].color).toBe('#6366f1');
   });
 
   test('addNewBoard with partial values', () => {
@@ -588,6 +588,6 @@ describe('BoardStore Edge Cases', () => {
     expect(boards).toHaveLength(1);
     expect(boards[0].name).toBe('Custom Board');
     expect(boards[0].emoji).toBe('');
-    expect(boards[0].color).toBe('');
+    expect(boards[0].color).toBe('#6366f1');
   });
 });

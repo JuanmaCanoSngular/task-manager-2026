@@ -1,5 +1,5 @@
 import { create, StateCreator } from 'zustand';
-import { Board } from '../interfaces/board.interface';
+import { Board, BOARD_COLORS } from '../interfaces/board.interface';
 import { Task, TaskStatus } from '../interfaces/task.interface';
 import { boardService } from '../services/board.service';
 import { devtools } from 'zustand/middleware';
@@ -12,7 +12,8 @@ interface BoardStore {
   error: string | null;
   fetchBoards: () => Promise<void>;
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
-  addNewBoard: (name?: string, emoji?: string, color?: string) => void;
+  addNewBoard: (name?: string, color?: string) => void;
+  updateBoard: (id: number, name: string, color: string) => void;
   removeBoard: () => void;
   addNewTask: (task: Omit<Task, 'id'>) => void;
   updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
@@ -72,14 +73,14 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       state.currentBoardId = id;
     });
   },
-  addNewBoard: (name?: string, emoji?: string, color?: string) => {
+  addNewBoard: (name?: string, color?: string) => {
     let created: Board | null = null;
     set((state) => {
       const board: Board = {
         id: getNextBoardId(state.boards),
         name: name || 'Nuevo tablero',
-        emoji: emoji || '',
-        color: color || '',
+        emoji: '',
+        color: color || BOARD_COLORS[0],
         link: '',
         tasks: [],
       };
@@ -90,6 +91,16 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     if (created) {
       boardService.insertBoard(created).catch(reportWriteError);
     }
+  },
+  updateBoard: (id: number, name: string, color: string) => {
+    set((state) => {
+      const board = state.boards.find((b) => b.id === id);
+      if (board) {
+        board.name = name;
+        board.color = color;
+      }
+    });
+    boardService.updateBoard(id, { name, color }).catch(reportWriteError);
   },
   removeBoard: () => {
     let removedId: number | null = null;
