@@ -34,25 +34,21 @@ tablero por defecto del usuario.
 
 ### Pendiente relevante
 
-- Nombre propio definitivo (hoy: **Task Manager App**).
 - Columnas 100 % personalizables por tablero (CRUD + borrar con confirmación).
 - Fondo de tarjeta por URL (sin storage).
 - Etiquetas personalizadas (hoy tags fijas en inglés).
-- Keep-alive cron Supabase free.
-- Agente **Telegram + Gemini** (crear + listar pendientes; sin UI IA en la web).
 - Dominio corto `juanmacano.eu/tablero` → URL de producción (al final).
 
 ---
 
 ## Fase A — Producto e identidad
 
-### A1. Nombre y header
+### A1. Nombre y header — ✅ decidido
 
-- Título actual: **Task Manager App** (placeholder).
+- Nombre oficial: **Task Manager App** (se mantiene; no se busca otro).
 - Tagline: *Tu tablero, sin ruido.*
 - Logo: tres columnas + punto rojo (Bloqueos).
 - Look: tinta + teal; Source Sans 3 (self-hosted).
-- Pendiente: nombre propio tipo “bloc cool” (Scratch, Jot, Apunte, Margen…).
 
 ### A2. Columna «Bloqueos» — ✅ (MVP)
 
@@ -80,9 +76,11 @@ tablero por defecto del usuario.
 - Revisar animación y anti-FOUC.
 - Supabase solo si queremos sync multi-dispositivo.
 
-### B2. Keep-alive Supabase (plan free)
+### B2. Keep-alive Supabase (plan free) — ✅
 
-- Cron (GitHub Actions) cada 3–5 días: ping ligero para que no pausen el proyecto.
+- Workflow `.github/workflows/keepalive-supabase.yml`
+- Cron cada 3 días + `workflow_dispatch`
+- Secrets del repo: `SUPABASE_URL`, `SUPABASE_ANON_KEY`
 
 ---
 
@@ -174,19 +172,16 @@ Comandos:
 ## Prioridad recomendada
 
 ### Alta
-1. **D1** Bot Telegram + Gemini (crear + `/pendientes`)
-2. **A1** Nombre propio definitivo
-3. **A3** Columnas personalizables (Pendiente = inbox; Bloqueos editable)
+1. **A3** Columnas personalizables (Pendiente = inbox; Bloqueos editable)
 
 ### Media
-4. **A4** Imagen de tarjeta por URL
-5. **B2** Keep-alive Supabase
-6. **B1** Tema (animación / FOUC)
-7. **C2** Etiquetas personalizadas
-8. **D** Voz en Telegram / WhatsApp / Alexa
+2. **A4** Imagen de tarjeta por URL
+3. **B1** Tema (animación / FOUC)
+4. **C2** Etiquetas personalizadas
+5. **D** Voz en Telegram / WhatsApp / Alexa
 
 ### Al final
-9. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+6. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 

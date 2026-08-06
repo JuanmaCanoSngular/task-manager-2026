@@ -167,6 +167,9 @@ RLS por usuario); `supabase/telegram-schema.sql` (vínculos Telegram);
 Despliegue
 ----------
 - La app es una SPA estática. En el repo se ha configurado para desplegar en Vercel (ver `README.md`). Para deploy manual, crear build y subir `dist/`.
+- Keep-alive Supabase (plan free): `.github/workflows/keepalive-supabase.yml`
+  (cron cada 3 días). Secrets del repo GitHub: `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+  (mismos valores que `VITE_SUPABASE_*` del cliente).
 
 Consejos para PRs y revisión de código
 -------------------------------------
