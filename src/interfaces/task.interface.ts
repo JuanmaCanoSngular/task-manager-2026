@@ -41,4 +41,10 @@ export interface Task {
   status: TaskStatus;
   tags: TaskTag[];
   background?: string;
+  /** ISO timestamptz de creación (Supabase `created_at`). */
+  createdAt?: string;
 }
+
+/** Campos editables al crear/actualizar (sin id ni timestamps). */
+export type TaskDraft = Omit<Task, 'id' | 'createdAt'>;
+

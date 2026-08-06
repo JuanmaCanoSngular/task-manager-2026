@@ -61,6 +61,11 @@ vi.mock('../../src/services/supabase', () => ({
   supabase: {
     from: mocks.fromMock,
     auth: { getSession: mocks.getSessionMock },
+    channel: vi.fn(() => ({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+    })),
+    removeChannel: vi.fn(),
   },
 }));
 

@@ -1,7 +1,7 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
-import { Task } from '../../../interfaces/task.interface';
+import { Task, TaskDraft } from '../../../interfaces/task.interface';
 import { TaskForm } from './TaskForm';
 
 interface TaskModalProps {
@@ -9,7 +9,7 @@ interface TaskModalProps {
   onClose: () => void;
   mode: 'create' | 'edit';
   task?: Task;
-  onSubmit: (data: Omit<Task, 'id'>) => void;
+  onSubmit: (data: TaskDraft) => void;
 }
 
 export const TaskModal = ({ isOpen, onClose, mode, task, onSubmit }: TaskModalProps) => {

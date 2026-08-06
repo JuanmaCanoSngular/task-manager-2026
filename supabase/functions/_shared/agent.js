@@ -158,11 +158,35 @@ export async function createTaskOnDefault(supabase, userId, text) {
     return { error: 'No pude entender la tarea. Prueba a reformular.' };
   }
 
-  const { count } = await supabase
+  // Coloca la nueva tarea arriba de su columna (position mínima entre hermanas).
+  const { data: siblings } = await supabase
     .from('tasks')
-    .select('id', { count: 'exact', head: true })
+    .select('id, position')
     .eq('board_id', board.id)
-    .eq('status', 'backlog');
+    .eq('status', 'backlog')
+    .order('position', { ascending: true });
+
+  const insertAt =
+    siblings && siblings.length > 0
+      ? Math.min(...siblings.map((s) => s.position ?? 0))
+      : 0;
+
+  const { data: toShift } = await supabase
+    .from('tasks')
+    .select('id, position')
+    .eq('board_id', board.id)
+    .gte('position', insertAt);
+
+  if (toShift?.length) {
+    await Promise.all(
+      toShift.map((row) =>
+        supabase
+          .from('tasks')
+          .update({ position: (row.position ?? 0) + 1 })
+          .eq('id', row.id)
+      )
+    );
+  }
 
   const { data: task, error: insertError } = await supabase
     .from('tasks')
@@ -172,7 +196,7 @@ export async function createTaskOnDefault(supabase, userId, text) {
       title,
       status: 'backlog',
       tags: [],
-      position: count ?? 0,
+      position: insertAt,
     })
     .select('id, title, status')
     .single();

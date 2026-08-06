@@ -161,7 +161,8 @@ Frontend (Telegram):
 - `src/components/auth/TelegramLinkButton.tsx` — en el header con auth.
 
 Datos: `supabase/auth-schema.sql` (tabla `profiles`, `user_id` en boards/tasks,
-RLS por usuario); `supabase/telegram-schema.sql` (vínculos Telegram).
+RLS por usuario); `supabase/telegram-schema.sql` (vínculos Telegram);
+`supabase/realtime-tasks.sql` (Realtime en `tasks` para refresco en vivo).
 
 Despliegue
 ----------

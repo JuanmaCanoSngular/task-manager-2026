@@ -33,6 +33,9 @@ vi.mock('../../../src/stores/board.store', () => ({
       removeTask: vi.fn(),
       moveTask: vi.fn(),
       setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
     };
     return selector(state);
@@ -59,6 +62,9 @@ describe('RemoveBoardMobileButton', () => {
         removeTask: vi.fn(),
         moveTask: vi.fn(),
         setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -94,6 +100,9 @@ describe('RemoveBoardMobileButton', () => {
         removeTask: vi.fn(),
         moveTask: vi.fn(),
         setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -127,6 +136,9 @@ describe('RemoveBoardMobileButton', () => {
         removeTask: vi.fn(),
         moveTask: vi.fn(),
         setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -178,6 +190,9 @@ describe('RemoveBoardMobileButton', () => {
         removeTask: vi.fn(),
         moveTask: vi.fn(),
         setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -226,6 +241,9 @@ describe('RemoveBoardMobileButton', () => {
         removeTask: vi.fn(),
         moveTask: vi.fn(),
         setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -271,6 +289,9 @@ describe('RemoveBoardMobileButton', () => {
         removeTask: vi.fn(),
         moveTask: vi.fn(),
         setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);
@@ -318,6 +339,9 @@ describe('RemoveBoardMobileButton', () => {
         removeTask: vi.fn(),
         moveTask: vi.fn(),
         setDefaultBoard: vi.fn(),
+        applyRemoteTaskInsert: vi.fn(),
+        applyRemoteTaskUpdate: vi.fn(),
+        applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
       };
       return selector(state);

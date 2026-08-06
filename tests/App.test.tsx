@@ -7,6 +7,10 @@ beforeAll(() => {
   setupWindowMocks();
 });
 
+vi.mock('../src/hooks/useTasksRealtime', () => ({
+  useTasksRealtime: () => undefined,
+}));
+
 beforeEach(() => {
   // Estos tests cubren la app sin el gate de auth, con independencia del .env local.
   vi.stubEnv('VITE_AUTH_ENABLED', 'false');

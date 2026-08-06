@@ -5,7 +5,7 @@ import {
   ensureSingleDefault,
   getDefaultBoardId,
 } from '../interfaces/board.interface';
-import { Task, TaskStatus } from '../interfaces/task.interface';
+import { Task, TaskDraft, TaskStatus } from '../interfaces/task.interface';
 import { boardService } from '../services/board.service';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -21,11 +21,15 @@ interface BoardStore {
   updateBoard: (id: number, name: string, color: string) => void;
   setDefaultBoard: (id: number) => void;
   removeBoard: () => void;
-  addNewTask: (task: Omit<Task, 'id'>) => Promise<void>;
-  updateTask: (taskId: number, taskData: Omit<Task, 'id'>) => void;
+  addNewTask: (task: TaskDraft) => Promise<void>;
+  updateTask: (taskId: number, taskData: TaskDraft) => void;
   removeTask: (taskId: number) => void;
   moveTask: (taskId: number, newStatus: TaskStatus, destinationIndex?: number) => void;
   updateTaskOrder: (status: TaskStatus, sourceIndex: number, destinationIndex: number) => void;
+  /** Sync desde Realtime (Telegram / otras pestañas). No escribe en DB. */
+  applyRemoteTaskInsert: (boardId: number, task: Task) => void;
+  applyRemoteTaskUpdate: (boardId: number, task: Task) => void;
+  applyRemoteTaskDelete: (taskId: number) => void;
 }
 
 // Registra en el store el error de una escritura en Supabase (write-through).
@@ -61,6 +65,16 @@ const persistBoardOrder = (boardId: number) => {
 
 const defaultsDiffer = (a: Board[], b: Board[]) =>
   a.length !== b.length || a.some((board, i) => board.isDefault !== b[i]?.isDefault);
+
+/** Inserta la tarea al inicio de su columna (status), sin tocar el orden manual previo del resto. */
+const insertAtTopOfStatus = (tasks: Task[], task: Task) => {
+  const firstOfStatus = tasks.findIndex((t) => t.status === task.status);
+  if (firstOfStatus === -1) {
+    tasks.push(task);
+    return;
+  }
+  tasks.splice(firstOfStatus, 0, task);
+};
 
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
   currentBoardId: null,
@@ -169,7 +183,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       boardService.setDefaultBoard(promotedDefaultId).catch(reportWriteError);
     }
   },
-  addNewTask: async (taskData: Omit<Task, 'id'>) => {
+  addNewTask: async (taskData) => {
     const boardId = useBoardStore.getState().currentBoardId;
     if (boardId === null) return;
 
@@ -177,32 +191,51 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     if (!board) return;
 
     try {
-      const task = await boardService.insertTask(boardId, taskData, board.tasks.length);
+      // position provisional; tras colocar arriba se re-persiste el orden.
+      const task = await boardService.insertTask(boardId, taskData, 0);
       set((state) => {
         const boardIndex = state.boards.findIndex((b) => b.id === boardId);
         if (boardIndex !== -1) {
-          state.boards[boardIndex].tasks.push(task);
+          insertAtTopOfStatus(state.boards[boardIndex].tasks, task);
         }
         state.error = null;
       });
+      persistBoardOrder(boardId);
     } catch (error) {
       reportWriteError(error);
     }
   },
   updateTask: (taskId, taskData) => {
+    let affectedBoardId: number | null = null;
     set((state) => {
       const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
       if (boardIndex === -1) return;
 
       const taskIndex = state.boards[boardIndex].tasks.findIndex((task) => task.id === taskId);
-      if (taskIndex !== -1) {
-        state.boards[boardIndex].tasks[taskIndex] = {
-          ...state.boards[boardIndex].tasks[taskIndex],
-          ...taskData,
-        };
+      if (taskIndex === -1) return;
+
+      const prev = state.boards[boardIndex].tasks[taskIndex];
+      const statusChanged = prev.status !== taskData.status;
+      const next: Task = {
+        ...prev,
+        title: taskData.title,
+        status: taskData.status,
+        tags: taskData.tags,
+        background: taskData.background,
+      };
+
+      if (statusChanged) {
+        state.boards[boardIndex].tasks.splice(taskIndex, 1);
+        insertAtTopOfStatus(state.boards[boardIndex].tasks, next);
+        affectedBoardId = state.boards[boardIndex].id;
+      } else {
+        state.boards[boardIndex].tasks[taskIndex] = next;
       }
     });
     boardService.updateTask(taskId, taskData).catch(reportWriteError);
+    if (affectedBoardId !== null) {
+      persistBoardOrder(affectedBoardId);
+    }
   },
   removeTask: (taskId) => {
     set((state) => {
@@ -214,6 +247,53 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       }
     });
     boardService.deleteTask(taskId).catch(reportWriteError);
+  },
+  applyRemoteTaskInsert: (boardId, task) => {
+    set((state) => {
+      const board = state.boards.find((b) => b.id === boardId);
+      if (!board) return;
+      if (board.tasks.some((t) => t.id === task.id)) return;
+      insertAtTopOfStatus(board.tasks, task);
+    });
+  },
+  applyRemoteTaskUpdate: (boardId, task) => {
+    set((state) => {
+      let fromBoard: (typeof state.boards)[number] | null = null;
+      let fromIndex = -1;
+      for (const board of state.boards) {
+        const idx = board.tasks.findIndex((t) => t.id === task.id);
+        if (idx !== -1) {
+          fromBoard = board;
+          fromIndex = idx;
+          break;
+        }
+      }
+
+      if (fromBoard && fromBoard.id === boardId && fromIndex !== -1) {
+        const prevStatus = fromBoard.tasks[fromIndex].status;
+        // Mismo tablero: actualiza campos. Si cambia de columna, va arriba de la nueva.
+        if (prevStatus === task.status) {
+          fromBoard.tasks[fromIndex] = task;
+          return;
+        }
+        fromBoard.tasks.splice(fromIndex, 1);
+        insertAtTopOfStatus(fromBoard.tasks, task);
+        return;
+      }
+
+      if (fromBoard && fromIndex !== -1) {
+        fromBoard.tasks.splice(fromIndex, 1);
+      }
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) insertAtTopOfStatus(board.tasks, task);
+    });
+  },
+  applyRemoteTaskDelete: (taskId) => {
+    set((state) => {
+      for (const board of state.boards) {
+        board.tasks = board.tasks.filter((t) => t.id !== taskId);
+      }
+    });
   },
   moveTask: (taskId, newStatus, destinationIndex) => {
     let affectedBoardId: number | null = null;

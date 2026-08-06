@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { Task, TASK_TAGS } from '../../interfaces/task.interface';
+import { Task, TaskDraft, TASK_TAGS } from '../../interfaces/task.interface';
 import { TaskModal } from './task-modal/TaskModal';
 import { useBoardStore } from '../../stores/board.store';
 import { TrashIcon } from '@heroicons/react/20/solid';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { formatRelativeCreatedAt, isRecentlyCreated } from '../../utils/relativeTime';
 
 interface TaskCardProps {
   task: Task;
@@ -16,8 +17,10 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const updateTask = useBoardStore((state) => state.updateTask);
   const removeTask = useBoardStore((state) => state.removeTask);
+  const recent = isRecentlyCreated(task.createdAt);
+  const relativeLabel = task.createdAt ? formatRelativeCreatedAt(task.createdAt) : null;
 
-  const handleSubmit = (data: Omit<Task, 'id'>) => {
+  const handleSubmit = (data: TaskDraft) => {
     updateTask(task.id, data);
     setIsOpen(false);
   };
@@ -60,7 +63,7 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             aria-label={`Editar tarea: ${task.title}`}
             className={`card-base flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:-translate-y-0.5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition drag-handle ${
               snapshot.isDragging ? 'card-dragging' : ''
-            }`}
+            } ${recent ? 'card-recent' : ''}`}
             style={{
               ...provided.draggableProps.style,
               backgroundColor: 'var(--surface)',
@@ -87,13 +90,13 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             <div className={`relative z-10 w-full ${task.background ? 'mt-28' : ''}`}>
               <p className="text-sm mb-2 text-left">{task.title}</p>
               <div className="mt-2 flex flex-wrap gap-2 justify-start">
-                {task.tags.map((tag, index) => {
+                {task.tags.map((tag, tagIndex) => {
                   const tagInfo = TASK_TAGS.find((t) => t.tag === tag);
                   if (!tagInfo) return null;
 
                   return (
                     <span
-                      key={index}
+                      key={tagIndex}
                       className={`tag-base ${tagInfo.bgColor} ${tagInfo.textColor}`}
                     >
                       {tagInfo.label}
@@ -101,6 +104,16 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
                   );
                 })}
               </div>
+              {relativeLabel && (
+                <p
+                  className={`mt-3 w-full text-right text-[11px] leading-none ${
+                    recent ? 'text-teal-700 dark:text-teal-400 font-medium' : 'text-[var(--text-muted)]'
+                  }`}
+                  title={task.createdAt ? new Date(task.createdAt).toLocaleString('es') : undefined}
+                >
+                  {relativeLabel}
+                </p>
+              )}
             </div>
           </div>
         )}

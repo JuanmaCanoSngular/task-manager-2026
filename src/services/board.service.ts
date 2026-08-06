@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { Board } from '../interfaces/board.interface';
 import { Task, TaskStatus, TaskTag } from '../interfaces/task.interface';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // Fila tal cual vive en la tabla `tasks` de Supabase.
 interface TaskRow {
@@ -11,6 +12,7 @@ interface TaskRow {
   background: string | null;
   tags: string[];
   position: number;
+  created_at?: string | null;
 }
 
 interface BoardRow {
@@ -21,18 +23,25 @@ interface BoardRow {
   is_default?: boolean | null;
 }
 
-const rowToTask = (row: TaskRow): Task => ({
+export const rowToTask = (row: TaskRow): Task => ({
   id: row.id,
   title: row.title,
   status: row.status as TaskStatus,
   tags: (row.tags ?? []) as TaskTag[],
   background: row.background ?? undefined,
+  createdAt: row.created_at ?? undefined,
 });
 
 /** UID de la sesión actual (null si auth off / sin login). Necesario para RLS por user_id. */
 const getSessionUserId = async (): Promise<string | null> => {
   const { data } = await supabase.auth.getSession();
   return data.session?.user.id ?? null;
+};
+
+export type TaskRealtimeHandlers = {
+  onInsert: (boardId: number, task: Task) => void;
+  onUpdate: (boardId: number, task: Task) => void;
+  onDelete: (taskId: number) => void;
 };
 
 export const boardService = {
@@ -117,7 +126,11 @@ export const boardService = {
     if (error) throw error;
   },
 
-  async insertTask(boardId: number, task: Omit<Task, 'id'>, position: number): Promise<Task> {
+  async insertTask(
+    boardId: number,
+    task: Omit<Task, 'id' | 'createdAt'>,
+    position: number
+  ): Promise<Task> {
     const userId = await getSessionUserId();
     const row: Record<string, unknown> = {
       board_id: boardId,
@@ -135,7 +148,7 @@ export const boardService = {
     return rowToTask(data as TaskRow);
   },
 
-  async updateTask(taskId: number, task: Omit<Task, 'id'>): Promise<void> {
+  async updateTask(taskId: number, task: Omit<Task, 'id' | 'createdAt'>): Promise<void> {
     const { error } = await supabase
       .from('tasks')
       .update({
@@ -165,5 +178,46 @@ export const boardService = {
     );
     const failed = results.find((r) => r.error);
     if (failed?.error) throw failed.error;
+  },
+
+  /**
+   * Suscripción Realtime a cambios en `tasks` (Telegram, otras pestañas, etc.).
+   * Requiere `supabase/realtime-tasks.sql` en el proyecto.
+   */
+  subscribeTasks(handlers: TaskRealtimeHandlers): () => void {
+    const channel: RealtimeChannel = supabase
+      .channel('tasks-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'tasks' },
+        (payload) => {
+          const row = payload.new as TaskRow;
+          if (!row?.id || row.board_id == null) return;
+          handlers.onInsert(row.board_id, rowToTask(row));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'tasks' },
+        (payload) => {
+          const row = payload.new as TaskRow;
+          if (!row?.id || row.board_id == null) return;
+          handlers.onUpdate(row.board_id, rowToTask(row));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'tasks' },
+        (payload) => {
+          const row = payload.old as Partial<TaskRow>;
+          if (row?.id == null) return;
+          handlers.onDelete(row.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   },
 };

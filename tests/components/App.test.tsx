@@ -1,7 +1,10 @@
-import { describe, test, beforeAll } from 'vitest';
+import { describe, test, beforeAll, vi } from 'vitest';
 import { render } from '@testing-library/react';
-import { vi } from 'vitest';
 import App from '../../src/App';
+
+vi.mock('../../src/hooks/useTasksRealtime', () => ({
+  useTasksRealtime: () => undefined,
+}));
 
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {

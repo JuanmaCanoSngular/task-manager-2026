@@ -6,6 +6,7 @@ import { Layout } from './components/layout/Layout';
 import { ToggleTheme } from './components/layout/ToggleTheme';
 import { AuthGate } from './components/auth/AuthGate';
 import { ApprovalResult } from './components/auth/ApprovalResult';
+import { useTasksRealtime } from './hooks/useTasksRealtime';
 
 const AppContent = () => {
   const error = useBoardStore((state) => state.error);
@@ -16,6 +17,7 @@ const AppContent = () => {
     fetchBoards();
   }, [fetchBoards]);
 
+  useTasksRealtime();
   // Solo pantalla completa si falló la carga inicial (sin tableros).
   // Los fallos de escritura se muestran en ErrorBanner dentro del Layout.
   if (error && boards.length === 0) {

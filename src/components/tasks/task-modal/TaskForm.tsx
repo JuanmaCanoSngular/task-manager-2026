@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Task } from '../../../interfaces/task.interface';
+import { Task, TaskDraft } from '../../../interfaces/task.interface';
 import { TASK_STATUS, TASK_TAGS } from '../../../interfaces/task.interface';
 import { imageService } from '../../../services/image.service';
 import { TaskTitle } from './TaskTitle';
@@ -15,7 +15,7 @@ const MAX_TAGS = 4;
 interface TaskFormProps {
   mode: 'create' | 'edit';
   initialData?: Partial<Task>;
-  onSubmit: (data: Omit<Task, 'id'>) => void;
+  onSubmit: (data: TaskDraft) => void;
   onCancel: () => void;
 }
 

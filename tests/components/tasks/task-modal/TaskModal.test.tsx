@@ -13,7 +13,7 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskForm', () => ({
   }: {
     mode: 'create' | 'edit';
     initialData?: Partial<Task>;
-    onSubmit: (data: Omit<Task, 'id'>) => void;
+    onSubmit: (data: Omit<Task, 'id' | 'createdAt'>) => void;
     onCancel: () => void;
   }) => (
     <div>
