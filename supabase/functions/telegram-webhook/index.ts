@@ -158,7 +158,8 @@ async function handleUpdate(update, botToken) {
   await sendMessage(
     botToken,
     chatId,
-    `✅ Añadida a Pendiente en «${result.board.name}»:\n• ${result.task.title}`
+    `✅ Añadida a Pendiente en «${result.board.name}»:\n• ${result.task.title}` +
+      (result.usedGemini ? '' : '\n_(sin Gemini: título = mensaje)_')
   );
 }
 

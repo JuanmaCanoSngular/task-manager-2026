@@ -26,6 +26,12 @@ supabase secrets set \
   GEMINI_API_KEY="tu-clave-ai-studio"
 ```
 
+Modelo por defecto: `gemini-3.5-flash` (el `2.0-flash` ya no existe). Opcional:
+
+```bash
+supabase secrets set GEMINI_MODEL="gemini-3.5-flash"
+```
+
 `TELEGRAM_WEBHOOK_SECRET` protege el webhook (header
 `X-Telegram-Bot-Api-Secret-Token`). Guárdalo: lo necesitas al registrar el webhook.
 

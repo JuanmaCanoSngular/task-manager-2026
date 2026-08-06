@@ -1,7 +1,7 @@
 // Lógica compartida del agente (Gemini + tablero default).
 // Importable desde Edge Functions Deno.
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-3.5-flash';
 
 export async function extractTitleWithGemini(text) {
   const apiKey = Deno.env.get('GEMINI_API_KEY');
@@ -71,8 +71,10 @@ export async function createTaskOnDefault(supabase, userId, text) {
   }
 
   let title;
+  let usedGemini = false;
   try {
     title = await extractTitleWithGemini(text);
+    usedGemini = Boolean(title);
   } catch (err) {
     console.error('Gemini fallback:', err);
     title = null;
@@ -106,7 +108,7 @@ export async function createTaskOnDefault(supabase, userId, text) {
 
   if (insertError) return { error: insertError.message };
 
-  return { board, task };
+  return { board, task, usedGemini };
 }
 
 export async function listPendingTasks(supabase, userId) {
