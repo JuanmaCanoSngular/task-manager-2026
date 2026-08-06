@@ -30,7 +30,7 @@ export const ApprovalResult = ({ result, email }: ApprovalResultProps) => {
       <div className="auth-card space-y-5">
         <BrandLockup markSize={40} stacked />
         <div className="space-y-2">
-          <h1 className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>
+          <h1 className="font-sans text-xl font-bold" style={{ color: 'var(--text)' }}>
             {title}
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>

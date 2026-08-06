@@ -51,7 +51,7 @@ tablero por defecto del usuario.
 - Título actual: **Task Manager App** (placeholder).
 - Tagline: *Tu tablero, sin ruido.*
 - Logo: tres columnas + punto rojo (Bloqueos).
-- Look: tinta + teal; Fraunces + Source Sans 3.
+- Look: tinta + teal; Source Sans 3 (self-hosted).
 - Pendiente: nombre propio tipo “bloc cool” (Scratch, Jot, Apunte, Margen…).
 
 ### A2. Columna «Bloqueos» — ✅ (MVP)

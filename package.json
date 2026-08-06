@@ -18,6 +18,7 @@
     "validate": "npm run lint"
   },
   "dependencies": {
+    "@fontsource/source-sans-3": "^5.3.0",
     "@headlessui/react": "^2.2.10",
     "@hello-pangea/dnd": "^18.0.1",
     "@heroicons/react": "^2.2.0",

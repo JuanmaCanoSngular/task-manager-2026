@@ -28,7 +28,7 @@ export const BrandLockup = ({
     <BrandMark size={markSize} className={stacked ? 'shadow-[var(--shadow-brand)] rounded-[14px]' : undefined} />
     <span className={`flex flex-col leading-none ${stacked ? 'items-center' : 'items-start text-left'}`}>
       <span
-        className={`font-display font-semibold tracking-tight ${stacked ? 'text-2xl sm:text-3xl' : 'text-[1.25rem]'} ${wordmarkClassName}`}
+        className={`font-sans font-bold tracking-tight ${stacked ? 'text-2xl sm:text-3xl' : 'text-[1.25rem]'} ${wordmarkClassName}`}
         style={{ color: 'var(--text)' }}
       >
         {BRAND_NAME}

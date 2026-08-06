@@ -12,7 +12,7 @@ export const PendingAccess = ({ email, onSignOut }: PendingAccessProps) => (
     <div className="auth-card space-y-6">
       <BrandLockup markSize={40} stacked />
       <div className="space-y-2">
-        <h1 className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>
+        <h1 className="font-sans text-xl font-bold" style={{ color: 'var(--text)' }}>
           Solicitud enviada
         </h1>
         <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
