@@ -26,10 +26,11 @@ supabase secrets set \
   GEMINI_API_KEY="tu-clave-ai-studio"
 ```
 
-Modelo por defecto: `gemini-3.5-flash` (el `2.0-flash` ya no existe). Opcional:
+Modelo por defecto: `gemini-3.1-flash-lite` (rápido; evita basura de “thinking”).
+Opcional:
 
 ```bash
-supabase secrets set GEMINI_MODEL="gemini-3.5-flash"
+supabase secrets set GEMINI_MODEL="gemini-3.1-flash-lite"
 ```
 
 `TELEGRAM_WEBHOOK_SECRET` protege el webhook (header

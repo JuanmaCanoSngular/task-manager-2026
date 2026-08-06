@@ -1,18 +1,32 @@
 // Lógica compartida del agente (Gemini + tablero default).
 // Importable desde Edge Functions Deno.
 
-const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-3.5-flash';
+// 3.1 flash-lite: barato y sin “thinking” ruidoso. Override con secret GEMINI_MODEL.
+const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-3.1-flash-lite';
+
+const JUNK_TITLES = new Set([
+  'h',
+  'here',
+  'ok',
+  'yes',
+  'sure',
+  'title',
+  'json',
+  'task',
+  'tarea',
+]);
 
 export async function extractTitleWithGemini(text) {
   const apiKey = Deno.env.get('GEMINI_API_KEY');
   if (!apiKey) throw new Error('GEMINI_API_KEY no configurada en Supabase secrets');
 
   const prompt = `Eres un asistente de un tablero Kanban en español.
-El usuario quiere crear UNA tarea. Extrae un título corto y claro (máx. 120 caracteres).
-No inventes detalles que no estén en el mensaje. No uses comillas en el título.
-Responde SOLO con JSON válido de esta forma: {"title":"..."}
+El usuario quiere crear UNA tarea. Extrae un título corto y claro en español (máx. 80 caracteres).
+Quita muletillas como "recuérdame", "por favor", "mañana" si no aportan.
+No inventes detalles. No uses comillas en el título.
+Responde SOLO con JSON: {"title":"..."}
 
-Mensaje del usuario:
+Mensaje:
 ${text}`;
 
   const url =
@@ -25,9 +39,11 @@ ${text}`;
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 128,
+        temperature: 0.1,
+        maxOutputTokens: 256,
         responseMimeType: 'application/json',
+        // Evita que el razonamiento en inglés contamine el parseo ("Here", "H", …).
+        thinkingConfig: { thinkingBudget: 0 },
       },
     }),
   });
@@ -39,18 +55,52 @@ ${text}`;
   }
 
   const payload = await res.json();
-  const raw =
-    payload?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+  const parts = payload?.candidates?.[0]?.content?.parts ?? [];
+  // Ignora partes de "thought" si el modelo las envía.
+  const raw = parts
+    .filter((p) => !p.thought && typeof p.text === 'string')
+    .map((p) => p.text)
+    .join('\n')
+    .trim();
 
+  const title = parseTitleFromModelText(raw);
+  return title ? title.slice(0, 120) : null;
+}
+
+function parseTitleFromModelText(raw) {
+  if (!raw) return null;
+
+  // 1) JSON completo
   try {
     const parsed = JSON.parse(raw);
-    const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
-    if (!title) return null;
-    return title.slice(0, 120);
+    const t = normalizeTitle(parsed?.title);
+    if (t) return t;
   } catch {
-    const fallback = raw.replace(/^["'\s]+|["'\s]+$/g, '').split('\n')[0]?.trim();
-    return fallback ? fallback.slice(0, 120) : null;
+    // sigue
   }
+
+  // 2) Extrae el primer objeto {"title":"..."} embebido (por si hay texto alrededor)
+  const match = raw.match(/\{[\s\S]*?"title"\s*:\s*"((?:\\.|[^"\\])*)"[\s\S]*?\}/);
+  if (match) {
+    try {
+      const parsed = JSON.parse(match[0]);
+      const t = normalizeTitle(parsed?.title);
+      if (t) return t;
+    } catch {
+      const t = normalizeTitle(match[1]?.replace(/\\"/g, '"'));
+      if (t) return t;
+    }
+  }
+
+  return null;
+}
+
+function normalizeTitle(value) {
+  if (typeof value !== 'string') return null;
+  const t = value.trim().replace(/^["'«»]+|["'«»]+$/g, '');
+  if (!t || t.length < 3) return null;
+  if (JUNK_TITLES.has(t.toLowerCase())) return null;
+  return t;
 }
 
 export async function getDefaultBoard(supabase, userId) {
@@ -80,7 +130,7 @@ export async function createTaskOnDefault(supabase, userId, text) {
     title = null;
   }
   if (!title) {
-    // Sin Gemini (o error): usa el mensaje tal cual como título.
+    // Sin Gemini (o basura rechazada): usa el mensaje tal cual como título.
     title = text.split('\n')[0].trim().slice(0, 120);
   }
   if (!title) {
