@@ -155,10 +155,12 @@ Backend (Supabase Edge Functions, en `supabase/functions/`):
 - `telegram-webhook` — updates del bot (sin JWT; `TELEGRAM_WEBHOOK_SECRET`).
   Guía: [`supabase/TELEGRAM.md`](supabase/TELEGRAM.md).
   Schema: [`supabase/telegram-schema.sql`](supabase/telegram-schema.sql).
+- `delete-account` — borra Auth + datos del usuario autenticado (JWT).
 
 Frontend (Telegram):
 - `src/services/telegram.service.ts`
 - `src/components/auth/TelegramLinkButton.tsx` — en el header con auth.
+- `src/components/auth/UserMenu.tsx` — avatar: cerrar sesión / eliminar cuenta.
 
 Datos: `supabase/auth-schema.sql` (tabla `profiles`, `user_id` en boards/tasks,
 RLS por usuario); `supabase/telegram-schema.sql` (vínculos Telegram);

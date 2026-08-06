@@ -1,7 +1,7 @@
 import { useBoardStore } from '../../stores/board.store';
 import { ErrorBanner } from '../common/ErrorBanner';
 import { BrandLockup } from '../brand/BrandLockup';
-import { SignOutButton } from '../auth/SignOutButton';
+import { UserMenu } from '../auth/UserMenu';
 import { TelegramLinkButton } from '../auth/TelegramLinkButton';
 import { TagsManagerButton } from '../tags/TagsManagerButton';
 import { BRAND_NAME } from '../../brand';
@@ -39,7 +39,7 @@ export const Layout = ({ children }: LayoutProps) => {
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           <TagsManagerButton />
           <TelegramLinkButton />
-          <SignOutButton />
+          <UserMenu />
         </div>
       </header>
 

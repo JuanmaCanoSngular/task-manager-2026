@@ -17,6 +17,6 @@ verify_jwt = true
 [functions.telegram-link]
 verify_jwt = true
 
-# telegram-webhook: lo llama Telegram (sin JWT). Seguridad vía secret_token.
-[functions.telegram-webhook]
-verify_jwt = false
+# delete-account: el usuario borra su propia cuenta (JWT).
+[functions.delete-account]
+verify_jwt = true

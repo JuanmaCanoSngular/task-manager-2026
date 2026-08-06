@@ -44,4 +44,18 @@ export const authService = {
   async requestAccess(): Promise<void> {
     await supabase.functions.invoke('request-access');
   },
+
+  /** Borra la cuenta y todos los datos del usuario (Edge Function + Auth admin). */
+  async deleteAccount(): Promise<void> {
+    const { data, error } = await supabase.functions.invoke('delete-account', {
+      method: 'POST',
+    });
+    if (error) {
+      throw new Error(error.message || 'No se pudo eliminar la cuenta');
+    }
+    if (data?.error) {
+      throw new Error(typeof data.error === 'string' ? data.error : 'Error al eliminar');
+    }
+    await supabase.auth.signOut();
+  },
 };
