@@ -2,6 +2,7 @@ import { useBoardStore } from '../../stores/board.store';
 import { ErrorBanner } from '../common/ErrorBanner';
 import { BrandLockup } from '../brand/BrandLockup';
 import { SignOutButton } from '../auth/SignOutButton';
+import { TelegramLinkButton } from '../auth/TelegramLinkButton';
 import { BRAND_NAME } from '../../brand';
 
 interface LayoutProps {
@@ -34,7 +35,8 @@ export const Layout = ({ children }: LayoutProps) => {
             <BrandLockup markSize={36} />
           </button>
         </h1>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <TelegramLinkButton />
           <SignOutButton />
         </div>
       </header>

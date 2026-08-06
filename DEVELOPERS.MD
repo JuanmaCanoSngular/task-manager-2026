@@ -149,10 +149,19 @@ Backend (Supabase Edge Functions, en `supabase/functions/`):
   `pending` con un token y envía email al owner (Resend) con el enlace de aprobación.
 - `approve-access` — la abre el owner desde el email; valida el token (un solo
   uso), marca `approved` y provisiona un tablero de ejemplo para el usuario.
+- `agent-create-task` — cerebro del agente (Gemini): texto → tarea en el
+  tablero `is_default`, columna Pendiente. Secret: `GEMINI_API_KEY`.
+- `telegram-link` — genera/consulta/elimina vínculo Telegram (JWT).
+- `telegram-webhook` — updates del bot (sin JWT; `TELEGRAM_WEBHOOK_SECRET`).
+  Guía: [`supabase/TELEGRAM.md`](supabase/TELEGRAM.md).
+  Schema: [`supabase/telegram-schema.sql`](supabase/telegram-schema.sql).
+
+Frontend (Telegram):
+- `src/services/telegram.service.ts`
+- `src/components/auth/TelegramLinkButton.tsx` — en el header con auth.
 
 Datos: `supabase/auth-schema.sql` (tabla `profiles`, `user_id` en boards/tasks,
-RLS por usuario). NO ejecutar hasta que el login esté integrado: cierra la RLS
-abierta y romperia la app sin auth.
+RLS por usuario); `supabase/telegram-schema.sql` (vínculos Telegram).
 
 Despliegue
 ----------

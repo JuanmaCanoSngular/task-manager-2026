@@ -8,3 +8,15 @@ verify_jwt = true
 # La seguridad la da el token de un solo uso.
 [functions.approve-access]
 verify_jwt = false
+
+# agent-create-task: captura con Gemini; requiere sesión del usuario.
+[functions.agent-create-task]
+verify_jwt = true
+
+# telegram-link: genera códigos de emparejamiento; requiere sesión.
+[functions.telegram-link]
+verify_jwt = true
+
+# telegram-webhook: lo llama Telegram (sin JWT). Seguridad vía secret_token.
+[functions.telegram-webhook]
+verify_jwt = false

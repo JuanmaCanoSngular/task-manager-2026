@@ -33,7 +33,7 @@ describe('BoardContent', () => {
     render(<BoardContent />);
     expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
     expect(screen.getByText(/en progreso/i)).toBeInTheDocument();
-    expect(screen.getByText(/en revisión/i)).toBeInTheDocument();
+    expect(screen.getByText(/bloqueos/i)).toBeInTheDocument();
     expect(screen.getByText(/completada/i)).toBeInTheDocument();
   });
 
@@ -58,6 +58,7 @@ describe('BoardContent', () => {
       'md:grid-cols-2',
       'lg:grid-cols-4',
       'gap-4',
+      'md:gap-5',
       'h-full'
     );
   });
@@ -97,7 +98,7 @@ describe('BoardContent', () => {
     const columns = [
       screen.getByText(/pendiente/i),
       screen.getByText(/en progreso/i),
-      screen.getByText(/en revisión/i),
+      screen.getByText(/bloqueos/i),
       screen.getByText(/completada/i),
     ];
     expect(columns).toHaveLength(4);
@@ -119,7 +120,7 @@ describe('BoardContent', () => {
     render(<BoardContent />);
     expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
     expect(screen.getByText(/en progreso/i)).toBeInTheDocument();
-    expect(screen.getByText(/en revisión/i)).toBeInTheDocument();
+    expect(screen.getByText(/bloqueos/i)).toBeInTheDocument();
     expect(screen.getByText(/completada/i)).toBeInTheDocument();
   });
 
@@ -139,7 +140,7 @@ describe('BoardContent', () => {
     render(<BoardContent />);
     const backlogColumn = screen.getByText(/pendiente/i);
     const inProgressColumn = screen.getByText(/en progreso/i);
-    const inReviewColumn = screen.getByText(/en revisión/i);
+    const inReviewColumn = screen.getByText(/bloqueos/i);
     const completedColumn = screen.getByText(/completada/i);
     expect(backlogColumn).toBeInTheDocument();
     expect(inProgressColumn).toBeInTheDocument();
