@@ -136,7 +136,7 @@ export const boardService = {
       board_id: boardId,
       title: task.title,
       status: task.status,
-      background: task.background ?? null,
+      background: task.background?.trim() || null,
       tags: task.tags,
       position,
     };
@@ -154,7 +154,7 @@ export const boardService = {
       .update({
         title: task.title,
         status: task.status,
-        background: task.background ?? null,
+        background: task.background?.trim() || null,
         tags: task.tags,
       })
       .eq('id', taskId);

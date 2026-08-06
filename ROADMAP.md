@@ -61,9 +61,11 @@ tablero por defecto del usuario.
 - Modelo `columns` por `board_id`; dejar de hardcodear `TASK_STATUS`.
 - **Pendiente** sigue siendo el inbox por defecto de tareas nuevas.
 
-### A4. Imagen de fondo de tarjeta (URL remota)
+### A4. Imagen de fondo de tarjeta (URL) — ✅
 
-- Pegar URL y/o buscar (Unsplash); guardar solo la URL, sin binarios.
+- El usuario pega una URL http(s); se guarda en `tasks.background`.
+- Preview en el formulario y en la tarjeta del tablero.
+- Sin Unsplash ni hosting propio de archivos.
 
 ---
 
@@ -177,8 +179,7 @@ Comandos:
 1. **A3** Columnas personalizables (Pendiente = inbox; Bloqueos editable)
 
 ### Media
-2. **A4** Imagen de tarjeta por URL
-3. **D** Voz en Telegram / WhatsApp / Alexa
+2. **D** Voz en Telegram / WhatsApp / Alexa
 
 ### Al final
 5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
@@ -197,7 +198,7 @@ Comandos:
 profiles          — auth + status de acceso
 boards            — user_id, name, color, is_default, …
 columns           — board_id, name, color, position   ← A3
-tasks             — board_id, status|column_id, title, tags, background_url, …
+tasks             — board_id, status|column_id, title, tags, background (URL), …
 tags              — C2
 channel_links     — user_id, provider, external_id    ← D Telegram+
 ```
@@ -215,7 +216,6 @@ channel_links     — user_id, provider, external_id    ← D Telegram+
 ### Siguiente — Tablero flexible + marca
 - Nombre propio
 - Columnas CRUD + Bloqueos/Pendiente como defaults de tablero
-- Imagen por URL
 
 ### Operación
 - Keep-alive, tema, etiquetas

@@ -1,23 +1,6 @@
 import { vi } from 'vitest';
-import axios from 'axios';
-// Hoist axios mock to top-level to match Vitest's hoisting behavior
-vi.mock('axios');
 import { Board } from '../../src/interfaces/board.interface';
 
-// Global axios mock for all tests
-export const setupAxiosMock = () => {
-  const mockedAxios = vi.mocked(axios);
-  // Ensure get always returns a Promise
-  (mockedAxios.get as unknown as ReturnType<typeof vi.fn>).mockImplementation(() =>
-    Promise.resolve({ data: {} })
-  );
-  return {
-    mockedAxios,
-    mockedGet: mockedAxios.get as unknown as ReturnType<typeof vi.fn>,
-  };
-};
-
-// Global window.matchMedia mock
 export const setupMatchMediaMock = () => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -29,7 +12,6 @@ export const setupMatchMediaMock = () => {
   });
 };
 
-// Example board data for tests
 export const exampleBoards: Board[] = [
   {
     id: 1,
@@ -53,7 +35,6 @@ export const exampleBoards: Board[] = [
   },
 ];
 
-// Example single board for tests
 export const exampleBoard: Board = {
   id: 1,
   name: 'Productivity Board',
@@ -66,14 +47,12 @@ export const exampleBoard: Board = {
       title: 'Sample Task',
       status: 'backlog',
       tags: ['technical'],
-      background: 'https://example.com/image.jpg',
     },
   ],
   isDefault: true,
   isLocal: false,
 };
 
-// Example axios responses for tests
 export const exampleResponses = {
   boardList: {
     data: exampleBoards,

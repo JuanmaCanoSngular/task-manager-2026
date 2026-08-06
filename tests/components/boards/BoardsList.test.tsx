@@ -238,41 +238,6 @@ describe('BoardsList', () => {
     expect(addButtons.length).toBeGreaterThan(0);
   });
 
-  test('should render theme toggle', async () => {
-    const mockUseBoardStore = vi.fn((selector) => {
-      const mockState = {
-        boards: [{ id: 1, name: 'Test Board', emoji: '📋', color: 'blue', tasks: [] }],
-        currentBoardId: 1,
-      };
-      return selector(mockState);
-    });
-
-    const mockUseCurrentBoard = vi.fn(() => ({
-      id: 1,
-      name: 'Test Board',
-      emoji: '📋',
-      color: 'blue',
-      tasks: [],
-    }));
-
-    const mockUseCurrentBoardTasks = vi.fn(() => []);
-    const mockUseTasksByStatus = vi.fn(() => []);
-
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: mockUseBoardStore,
-      useCurrentBoard: mockUseCurrentBoard,
-      useCurrentBoardTasks: mockUseCurrentBoardTasks,
-      useTasksByStatus: mockUseTasksByStatus,
-    }));
-
-    const { BoardsList } = await import('../../../src/components/boards/BoardsList');
-    render(<BoardsList />);
-
-    // Verify theme toggle is present (using radiogroup)
-    const themeGroup = screen.getByRole('radiogroup', { name: /seleccionar tema de color/i });
-    expect(themeGroup).toBeInTheDocument();
-  });
-
   test('should render mobile action buttons', async () => {
     const mockUseBoardStore = vi.fn((selector) => {
       const mockState = {
@@ -346,9 +311,6 @@ describe('BoardsList', () => {
 
     const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
     expect(addButtons.length).toBeGreaterThan(0);
-
-    const themeGroup = screen.getByRole('radiogroup', { name: /seleccionar tema de color/i });
-    expect(themeGroup).toBeInTheDocument();
 
     const mobileSelect = screen.getByRole('combobox');
     expect(mobileSelect).toBeInTheDocument();

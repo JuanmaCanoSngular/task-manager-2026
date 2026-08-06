@@ -40,7 +40,6 @@ describe('TaskModal', () => {
     title: 'Test Task',
     status: 'in-progress',
     tags: ['technical'],
-    background: 'https://example.com/image.jpg',
   };
 
   test('should render correctly when open in create mode', () => {
@@ -177,7 +176,6 @@ describe('TaskModal', () => {
       title: 'Different Task',
       status: 'completed',
       tags: ['front-end', 'design'],
-      background: 'https://example.com/different-image.jpg',
     };
     render(<TaskModal {...defaultProps} mode="edit" task={differentTask} />);
     expect(screen.getByText(JSON.stringify(differentTask))).toBeInTheDocument();

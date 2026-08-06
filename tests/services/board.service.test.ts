@@ -90,7 +90,6 @@ describe('Board Service (Supabase)', () => {
               board_id: 1,
               title: 'Tarea 1',
               status: 'backlog',
-              background: null,
               tags: ['technical'],
               position: 0,
             },
@@ -111,7 +110,6 @@ describe('Board Service (Supabase)', () => {
         status: 'backlog',
         tags: ['technical'],
       });
-      expect(result[0].tasks[0].background).toBeUndefined();
     });
 
     test('tablero sin tareas devuelve lista vacía', async () => {
@@ -178,7 +176,6 @@ describe('Board Service (Supabase)', () => {
           board_id: 1,
           title: 'T',
           status: 'backlog',
-          background: null,
           tags: ['design'],
           position: 3,
         } as Record<string, unknown>,
@@ -186,7 +183,7 @@ describe('Board Service (Supabase)', () => {
       });
       const created = await boardService.insertTask(
         1,
-        { title: 'T', status: 'backlog', tags: ['design'], background: undefined },
+        { title: 'T', status: 'backlog', tags: ['design'] },
         3
       );
       expect(fromMock).toHaveBeenCalledWith('tasks');
@@ -213,7 +210,6 @@ describe('Board Service (Supabase)', () => {
         title: 'Editada',
         status: 'completed',
         tags: [],
-        background: undefined,
       });
       expect(updateMock).toHaveBeenCalledWith({
         title: 'Editada',

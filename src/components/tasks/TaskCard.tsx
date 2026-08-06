@@ -87,9 +87,14 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
             {task.background && (
               <img
                 src={task.background}
-                alt="Fondo de la tarea"
+                alt=""
                 className="absolute top-0 left-0 w-full h-28 object-cover rounded-t-xl"
                 style={{ zIndex: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             )}
             <div className={`relative z-10 w-full ${task.background ? 'mt-28' : ''}`}>

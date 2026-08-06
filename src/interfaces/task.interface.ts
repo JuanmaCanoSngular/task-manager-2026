@@ -13,6 +13,7 @@ export interface Task {
   status: TaskStatus;
   /** IDs de filas en `tags` (UUID como string). */
   tags: string[];
+  /** URL https de imagen externa (no hospedamos archivos). */
   background?: string;
   /** ISO timestamptz de creación (Supabase `created_at`). */
   createdAt?: string;

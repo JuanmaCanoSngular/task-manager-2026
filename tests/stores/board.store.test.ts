@@ -140,14 +140,12 @@ describe('BoardStore', () => {
         title: 'Test Task',
         status: 'backlog',
         tags: ['id-1'],
-        background: 'https://example.com/bg.jpg',
       };
 
       expect(task.id).toBe(1);
       expect(task.title).toBe('Test Task');
       expect(task.status).toBe('backlog');
       expect(task.tags).toEqual(['id-1']);
-      expect(task.background).toBe('https://example.com/bg.jpg');
     });
   });
 

@@ -24,12 +24,11 @@ vi.mock('../../src/services/board.service', () => ({
     deleteBoard: vi.fn(() => Promise.resolve()),
     updateBoard: vi.fn(() => Promise.resolve()),
     setDefaultBoard: vi.fn(() => Promise.resolve()),
-    insertTask: vi.fn(async (_boardId: number, task: { title: string; status: string; tags: string[]; background?: string }) => ({
+    insertTask: vi.fn(async (_boardId: number, task: { title: string; status: string; tags: string[] }) => ({
       id: Math.floor(Math.random() * 100000) + 1,
       title: task.title,
       status: task.status,
       tags: task.tags,
-      background: task.background,
     })),
     updateTask: vi.fn(() => Promise.resolve()),
     deleteTask: vi.fn(() => Promise.resolve()),

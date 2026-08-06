@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { TaskForm } from '../../../../src/components/tasks/task-modal/TaskForm';
 import { TASK_STATUS } from '../../../../src/interfaces/task.interface';
@@ -10,7 +10,6 @@ const MOCK_TAGS = [
   { tag: 'tag-extra', label: 'Extra' },
 ];
 
-// Mock child components
 vi.mock('../../../../src/components/tasks/task-modal/TaskTitle', () => ({
   TaskTitle: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => (
     <div className="space-y-2">
@@ -24,52 +23,8 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskTitle', () => ({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter a descriptive title for your task"
         required
-        className="block w-full rounded-lg border-0 py-3 px-4 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:bg-gray-700 sm:text-sm sm:leading-6"
+        className="block w-full rounded-lg border-0 py-3 px-4"
       />
-    </div>
-  ),
-}));
-
-vi.mock('../../../../src/components/tasks/task-modal/TaskBackground', () => ({
-  TaskBackground: ({
-    isLoading,
-    onGenerate,
-  }: {
-    backgroundImage: string;
-    isLoading: boolean;
-    onGenerate: () => void;
-    onRemove: () => void;
-  }) => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Background Image
-        </label>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onGenerate}
-            disabled={isLoading}
-            aria-label="Generate new background image"
-            className="btn-icon-add"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-              data-slot="icon"
-            >
-              <path
-                clipRule="evenodd"
-                d="M1 5.25A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25v9.5A2.25 2.25 0 0 1 16.75 17H3.25A2.25 2.25 0 0 1 1 14.75v-9.5Zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75v-2.69l-2.22-2.219a.75.75 0 0 0-1.06 0l-1.91 1.909.47.47a.75.75 0 1 1-1.06 1.06L6.53 8.091a.75.75 0 0 0-1.06 0l-2.97 2.97ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
-                fillRule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
     </div>
   ),
 }));
@@ -78,45 +33,7 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskStatus', () => ({
   TaskStatus: ({ value }: { value: string; onChange: (value: string) => void }) => (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
-      <div className="relative mt-1">
-        <button
-          type="button"
-          className="relative w-full cursor-default rounded-lg border-0 py-3 px-4 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:bg-gray-700 sm:text-sm sm:leading-6"
-          aria-haspopup="listbox"
-          aria-expanded="false"
-        >
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-3 h-3 rounded-full ${
-                value === 'completed'
-                  ? 'bg-green-400'
-                  : value === 'in-progress'
-                    ? 'bg-yellow-400'
-                    : 'bg-gray-500'
-              }`}
-            />
-            <span className="block truncate text-gray-900 dark:text-white">
-              {TASK_STATUS.find((s) => s.status === value)?.label || 'Backlog'}
-            </span>
-          </div>
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-              data-slot="icon"
-            >
-              <path
-                clipRule="evenodd"
-                d="M10.53 3.47a.75.75 0 0 0-1.06 0L6.22 6.72a.75.75 0 0 0 1.06 1.06L10 5.06l2.72 2.72a.75.75 0 1 0 1.06-1.06l-3.25-3.25Zm-4.31 9.81 3.25 3.25a.75.75 0 0 0 1.06 0l3.25-3.25a.75.75 0 1 0-1.06-1.06L10 14.94l-2.72-2.72a.75.75 0 0 0-1.06 1.06Z"
-                fillRule="evenodd"
-              />
-            </svg>
-          </span>
-        </button>
-      </div>
+      <span>{TASK_STATUS.find((s) => s.status === value)?.label || 'Backlog'}</span>
     </div>
   ),
 }));
@@ -129,19 +46,10 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskTags', () => ({
     selectedTags: string[];
     showWarning: boolean;
     onToggleTag: (tag: string) => void;
+    onManage?: () => void;
   }) => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {selectedTags.length}/4 selected
-        </span>
-      </div>
-      <div
-        className="flex flex-wrap gap-2 pt-1"
-        role="group"
-        aria-label="Available tags for the task"
-      >
+    <div>
+      <div aria-label="Available tags for the task">
         {MOCK_TAGS.map((tagOption) => {
           const isSelected = selectedTags.includes(tagOption.tag);
           return (
@@ -149,28 +57,18 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskTags', () => ({
               key={tagOption.tag}
               type="button"
               onClick={() => onToggleTag(tagOption.tag)}
-              aria-label={`${isSelected ? 'Deselect' : 'Select'} tag ${tagOption.tag}`}
-              aria-pressed={isSelected}
-              className={`tag-base ${
-                isSelected
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
+              aria-label={
+                isSelected ? `Deselect tag ${tagOption.tag}` : `Select tag ${tagOption.tag}`
+              }
             >
               {tagOption.tag}
             </button>
           );
         })}
       </div>
+      <span>{selectedTags.length}/4 selected</span>
     </div>
   ),
-}));
-
-// Mock image service
-vi.mock('../../../../src/services/image.service', () => ({
-  imageService: {
-    getTaskBackground: vi.fn(),
-  },
 }));
 
 describe('TaskForm', () => {
@@ -187,12 +85,7 @@ describe('TaskForm', () => {
   test('should render form with all components', () => {
     render(<TaskForm {...defaultProps} />);
 
-    // Verify that all components are present
     expect(screen.getByLabelText('Task Title')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Generate new background image' })
-    ).toBeInTheDocument();
-    expect(screen.getByText('Background Image')).toBeInTheDocument();
     expect(screen.getByText('Status')).toBeInTheDocument();
     expect(screen.getByLabelText('Available tags for the task')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
@@ -208,28 +101,12 @@ describe('TaskForm', () => {
     expect(titleInput.value).toBe('New Task Title');
   });
 
-  test('should handle background generation', async () => {
-    const mockImageUrl = 'https://example.com/image.jpg';
-    const { imageService } = await import('../../../../src/services/image.service');
-    vi.mocked(imageService.getTaskBackground).mockResolvedValue(mockImageUrl);
-
-    render(<TaskForm {...defaultProps} />);
-
-    const generateButton = screen.getByLabelText('Generate new background image');
-    fireEvent.click(generateButton);
-
-    await waitFor(() => {
-      expect(imageService.getTaskBackground).toHaveBeenCalled();
-    });
-  });
-
   test('should handle tag selection', () => {
     render(<TaskForm {...defaultProps} />);
 
     const tagButton = screen.getByRole('button', { name: 'Select tag tag-urgente' });
     fireEvent.click(tagButton);
 
-    // Verify that the tag was selected
     expect(screen.getByRole('button', { name: 'Deselect tag tag-urgente' })).toBeInTheDocument();
     expect(screen.getByText('1/4 selected')).toBeInTheDocument();
   });
@@ -244,7 +121,6 @@ describe('TaskForm', () => {
     const tagButton = screen.getByRole('button', { name: 'Deselect tag tag-urgente' });
     fireEvent.click(tagButton);
 
-    // Verify that the tag was deselected
     expect(screen.getByRole('button', { name: 'Select tag tag-urgente' })).toBeInTheDocument();
     expect(screen.getByText('0/4 selected')).toBeInTheDocument();
   });
@@ -272,7 +148,24 @@ describe('TaskForm', () => {
       title: 'Test Task',
       status: TASK_STATUS[0].status,
       tags: [],
-      background: '',
+      background: undefined,
+    });
+  });
+
+  test('incluye la URL de imagen al enviar', () => {
+    render(<TaskForm {...defaultProps} />);
+
+    fireEvent.change(screen.getByLabelText('Task Title'), { target: { value: 'Con foto' } });
+    fireEvent.change(screen.getByLabelText(/imagen/i), {
+      target: { value: 'https://cdn.example.com/a.jpg' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir tarea' }));
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith({
+      title: 'Con foto',
+      status: TASK_STATUS[0].status,
+      tags: [],
+      background: 'https://cdn.example.com/a.jpg',
     });
   });
 
@@ -301,7 +194,6 @@ describe('TaskForm', () => {
       title: 'Updated Task',
       status: 'completed' as const,
       tags: ['tag-urgente'],
-      background: 'https://example.com/bg.jpg',
     };
 
     rerender(<TaskForm {...defaultProps} initialData={initialData} />);
@@ -323,36 +215,5 @@ describe('TaskForm', () => {
     const form = document.querySelector('form');
     expect(form).toBeInTheDocument();
     expect(form).toHaveClass('mt-6', 'space-y-6');
-  });
-
-  test('should handle background image removal', () => {
-    const initialData = {
-      background: 'https://example.com/bg.jpg',
-    };
-
-    render(<TaskForm {...defaultProps} initialData={initialData} />);
-
-    // Verify that the generate background button is present
-    expect(
-      screen.getByRole('button', { name: 'Generate new background image' })
-    ).toBeInTheDocument();
-    // And that the label text is in the document
-    expect(screen.getByText('Background Image')).toBeInTheDocument();
-  });
-
-  test('should handle loading state during image generation', async () => {
-    const { imageService } = await import('../../../../src/services/image.service');
-    vi.mocked(imageService.getTaskBackground).mockImplementation(
-      () =>
-        new Promise((resolve) => setTimeout(() => resolve('https://example.com/image.jpg'), 100))
-    );
-
-    render(<TaskForm {...defaultProps} />);
-
-    const generateButton = screen.getByLabelText('Generate new background image');
-    fireEvent.click(generateButton);
-
-    // Verify that the button is disabled during loading
-    expect(generateButton).toBeDisabled();
   });
 });
