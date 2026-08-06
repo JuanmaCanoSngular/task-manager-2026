@@ -69,11 +69,11 @@ tablero por defecto del usuario.
 
 ## Fase B — Preferencias y operación
 
-### B1. Tema claro / oscuro
+### B1. Tema claro / oscuro — ✅
 
-- Hoy: `localStorage` (`theme-storage`); default oscuro.
-- Revisar animación y anti-FOUC.
-- Supabase solo si queremos sync multi-dispositivo.
+- `localStorage` (`theme-storage`); default oscuro; anti-FOUC con `public/theme.js`.
+- Cambio de tema con **View Transitions** + `clip-path` en `::view-transition-new(root)` (600 ms); fallback sin animación si no hay soporte o `prefers-reduced-motion`.
+- Sync multi-dispositivo vía Supabase: fuera de alcance por ahora.
 
 ### B2. Keep-alive Supabase (plan free) — ✅
 
@@ -178,8 +178,7 @@ Comandos:
 
 ### Media
 2. **A4** Imagen de tarjeta por URL
-3. **B1** Tema (animación / FOUC)
-4. **D** Voz en Telegram / WhatsApp / Alexa
+3. **D** Voz en Telegram / WhatsApp / Alexa
 
 ### Al final
 5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción

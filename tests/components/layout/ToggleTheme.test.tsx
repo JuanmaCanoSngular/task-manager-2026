@@ -2,7 +2,6 @@ import '@testing-library/jest-dom';
 import { describe, test, expect, vi, beforeAll, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 
-// Mock matchMedia and ResizeObserver
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -10,14 +9,6 @@ beforeAll(() => {
       matches: false,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-    })),
-  });
-  Object.defineProperty(window, 'ResizeObserver', {
-    writable: true,
-    value: vi.fn().mockImplementation(() => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
     })),
   });
 });
@@ -28,77 +19,32 @@ afterEach(() => {
 });
 
 describe('ToggleTheme', () => {
-  test('should render both theme buttons', async () => {
+  test('en modo claro muestra el icono de luna', async () => {
     vi.doMock('../../../src/stores/theme.store', () => ({
       useThemeStore: () => ({ isDark: false, setTheme: vi.fn() }),
     }));
     const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
     render(<ToggleTheme />);
-    expect(screen.getByRole('radio', { name: /oscuro/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /claro/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /modo oscuro/i })).toBeInTheDocument();
   });
 
-  test('should have correct aria attributes and roles', async () => {
+  test('en modo oscuro muestra el icono de sol', async () => {
     vi.doMock('../../../src/stores/theme.store', () => ({
-      useThemeStore: () => ({ isDark: false, setTheme: vi.fn() }),
+      useThemeStore: () => ({ isDark: true, setTheme: vi.fn() }),
     }));
     const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
     render(<ToggleTheme />);
-    const group = screen.getByRole('radiogroup');
-    expect(group).toBeInTheDocument();
-    expect(group).toHaveAttribute('aria-label', expect.stringMatching(/theme|color/i));
-    const darkBtn = screen.getByRole('radio', { name: /oscuro/i });
-    const lightBtn = screen.getByRole('radio', { name: /claro/i });
-    expect(darkBtn).toHaveAttribute('aria-pressed', 'false');
-    expect(lightBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /modo claro/i })).toBeInTheDocument();
   });
 
-  test('should call setTheme(true) when clicking dark button', async () => {
-    const setTheme = vi.fn();
-    vi.doMock('../../../src/stores/theme.store', () => ({
-      useThemeStore: () => ({ isDark: false, setTheme }),
-    }));
-    const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
-    render(<ToggleTheme />);
-    const darkBtn = screen.getByRole('radio', { name: /oscuro/i });
-    fireEvent.click(darkBtn);
-    expect(setTheme).toHaveBeenCalledWith(true);
-  });
-
-  test('should call setTheme(false) when clicking light button', async () => {
+  test('al pulsar cambia al tema contrario', async () => {
     const setTheme = vi.fn();
     vi.doMock('../../../src/stores/theme.store', () => ({
       useThemeStore: () => ({ isDark: true, setTheme }),
     }));
     const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
     render(<ToggleTheme />);
-    const lightBtn = screen.getByRole('radio', { name: /claro/i });
-    fireEvent.click(lightBtn);
+    fireEvent.click(screen.getByRole('button', { name: /modo claro/i }));
     expect(setTheme).toHaveBeenCalledWith(false);
-  });
-
-  test('should visually indicate the active theme', async () => {
-    // Light active
-    vi.doMock('../../../src/stores/theme.store', () => ({
-      useThemeStore: () => ({ isDark: false, setTheme: vi.fn() }),
-    }));
-    const { ToggleTheme } = await import('../../../src/components/layout/ToggleTheme');
-    render(<ToggleTheme />);
-    let radios = screen.getAllByRole('radio');
-    expect(radios[1]).toHaveClass('bg-white'); // Light
-    expect(radios[0]).not.toHaveClass('bg-white'); // Dark
-    cleanup();
-    vi.resetModules();
-    // Dark active
-    vi.doMock('../../../src/stores/theme.store', () => ({
-      useThemeStore: () => ({ isDark: true, setTheme: vi.fn() }),
-    }));
-    const { ToggleTheme: ToggleThemeDark } = await import(
-      '../../../src/components/layout/ToggleTheme'
-    );
-    render(<ToggleThemeDark />);
-    radios = screen.getAllByRole('radio');
-    expect(radios[0]).toHaveClass('bg-white'); // Dark
-    expect(radios[1]).not.toHaveClass('bg-white'); // Light
   });
 });

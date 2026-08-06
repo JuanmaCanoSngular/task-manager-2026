@@ -31,10 +31,6 @@
     --shadow-brand: 0 8px 20px rgba(13, 148, 136, 0.32);
   }
 
-  html {
-    @apply transition-colors duration-200;
-  }
-
   body {
     @apply font-sans antialiased;
     background-color: var(--app-bg);

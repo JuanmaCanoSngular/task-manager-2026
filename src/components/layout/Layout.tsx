@@ -4,6 +4,7 @@ import { BrandLockup } from '../brand/BrandLockup';
 import { UserMenu } from '../auth/UserMenu';
 import { TelegramLinkButton } from '../auth/TelegramLinkButton';
 import { TagsManagerButton } from '../tags/TagsManagerButton';
+import { ToggleTheme } from './ToggleTheme';
 import { BRAND_NAME } from '../../brand';
 
 interface LayoutProps {
@@ -23,8 +24,11 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="h-screen flex flex-col text-light dark:text-dark transition-colors duration-300">
+    <div className="h-screen flex flex-col text-light dark:text-dark">
       <header className="relative flex-shrink-0 flex items-center justify-center p-4">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2">
+          <ToggleTheme />
+        </div>
         <h1 className="text-center">
           <button
             onClick={handleLogoClick}

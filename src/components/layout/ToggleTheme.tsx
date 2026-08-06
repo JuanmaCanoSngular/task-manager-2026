@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { MoonIcon, SunIcon } from '@heroicons/react/20/solid';
+import { MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import { useThemeStore } from '../../stores/theme.store';
 
 export const ToggleTheme = () => {
@@ -15,49 +15,15 @@ export const ToggleTheme = () => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [setTheme]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      setTheme(!isDark);
-    }
-  };
-
   return (
-    <div
-      className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1 w-full"
-      role="radiogroup"
-      aria-label="Seleccionar tema de color"
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
+    <button
+      type="button"
+      onClick={() => setTheme(!isDark)}
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-muted)] shadow-sm shadow-black/10 ring-1 ring-black/5 hover:text-[var(--text)] hover:shadow-md dark:shadow-black/40 dark:ring-white/10 dark:hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 dark:focus:ring-offset-[var(--app-bg)]"
+      aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      title={isDark ? 'Modo claro' : 'Modo oscuro'}
     >
-      <button
-        className={`flex items-center justify-center w-1/2 px-3 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 ${
-          isDark
-            ? 'bg-white text-slate-900 shadow-md border-2 border-teal-500'
-            : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50 border-2 border-transparent'
-        }`}
-        onClick={() => setTheme(true)}
-        aria-pressed={isDark}
-        aria-label="Cambiar a modo oscuro"
-        role="radio"
-      >
-        <MoonIcon className="w-4 h-4 mr-2" />
-        <span className="font-medium">Oscuro</span>
-      </button>
-      <button
-        className={`flex items-center justify-center w-1/2 px-3 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 ${
-          !isDark
-            ? 'bg-white text-slate-900 shadow-md border-2 border-teal-500'
-            : 'text-slate-300 hover:text-slate-100 hover:bg-slate-600 border-2 border-transparent'
-        }`}
-        onClick={() => setTheme(false)}
-        aria-pressed={!isDark}
-        aria-label="Cambiar a modo claro"
-        role="radio"
-      >
-        <SunIcon className="w-4 h-4 mr-2" />
-        <span className="font-medium">Claro</span>
-      </button>
-    </div>
+      {isDark ? <SunIcon className="h-5 w-5" aria-hidden /> : <MoonIcon className="h-5 w-5" aria-hidden />}
+    </button>
   );
 };

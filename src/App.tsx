@@ -3,7 +3,6 @@ import { useBoardStore } from './stores/board.store';
 import { BoardsList } from './components/boards/BoardsList';
 import { BoardContent } from './components/boards/BoardContent';
 import { Layout } from './components/layout/Layout';
-import { ToggleTheme } from './components/layout/ToggleTheme';
 import { AuthGate } from './components/auth/AuthGate';
 import { ApprovalResult } from './components/auth/ApprovalResult';
 import { useTasksRealtime } from './hooks/useTasksRealtime';
@@ -59,10 +58,6 @@ const AppContent = () => {
             <BoardContent />
           </section>
         </div>
-
-        <footer className="flex-shrink-0 md:hidden mt-4">
-          <ToggleTheme />
-        </footer>
       </div>
     </Layout>
   );

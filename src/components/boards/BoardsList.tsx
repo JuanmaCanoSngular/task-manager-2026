@@ -3,7 +3,6 @@ import { BoardCard } from './BoardCard';
 import { AddNewBoardButton } from './AddNewBoardButton';
 import { BoardSelectMobile } from './BoardSelectMobile';
 import { RemoveBoardMobileButton } from './RemoveBoardMobileButton';
-import { ToggleTheme } from '../layout/ToggleTheme';
 
 export const BoardsList = () => {
   const boards = useBoardStore((state) => state.boards);
@@ -16,7 +15,7 @@ export const BoardsList = () => {
       </div>
 
       {/* List of boards for desktop */}
-      <div className="hidden md:flex flex-col h-full justify-between">
+      <div className="hidden md:flex flex-col h-full">
         <nav aria-label="Navegación de tableros">
           <div className="flex flex-col gap-4" role="list">
             {boards.map((board) => (
@@ -25,8 +24,6 @@ export const BoardsList = () => {
             <AddNewBoardButton />
           </div>
         </nav>
-
-        <ToggleTheme />
       </div>
 
       {/* Action buttons for mobile */}
