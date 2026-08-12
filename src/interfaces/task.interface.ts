@@ -8,6 +8,10 @@ export interface Task {
   background?: string;
   /** ISO timestamptz de creación (Supabase `created_at`). */
   createdAt?: string;
+  /** Número de comentarios en la tarea (carga del tablero). */
+  commentCount?: number;
+  /** Primeros caracteres del comentario más reciente (tooltip en tarjeta). */
+  latestCommentPreview?: string;
 }
 
 /** Campos editables al crear/actualizar (sin id ni timestamps). */

@@ -3,6 +3,7 @@ import { Board } from '../interfaces/board.interface';
 import { BoardColumn, sortColumns } from '../interfaces/column.interface';
 import { Task } from '../interfaces/task.interface';
 import { columnService } from './column.service';
+import { commentService } from './comment.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface TaskRow {
@@ -88,10 +89,26 @@ export const boardService = {
       }
     }
 
+    const taskRows = (tasks ?? []) as TaskRow[];
+    const allTaskIds = taskRows.map((row) => row.id);
+
+    let commentSummaries: Awaited<ReturnType<typeof commentService.summariesByTaskIds>> = {};
+    try {
+      commentSummaries = await commentService.summariesByTaskIds(allTaskIds);
+    } catch {
+      /* tabla task_comments aún no migrada */
+    }
+
     const tasksByBoard = new Map<number, Task[]>();
-    for (const row of (tasks ?? []) as TaskRow[]) {
+    for (const row of taskRows) {
+      const task = rowToTask(row);
+      const summary = commentSummaries[row.id];
+      if (summary?.count) {
+        task.commentCount = summary.count;
+        task.latestCommentPreview = summary.latestPreview;
+      }
       const list = tasksByBoard.get(row.board_id) ?? [];
-      list.push(rowToTask(row));
+      list.push(task);
       tasksByBoard.set(row.board_id, list);
     }
 

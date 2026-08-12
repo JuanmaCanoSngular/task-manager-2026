@@ -43,9 +43,13 @@ export const BoardContent = () => {
 
   const scrollOnDesktop = columns.length > 4;
 
+  const columnsScrollClass = scrollOnDesktop
+    ? 'overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth'
+    : 'overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth md:overflow-x-hidden md:w-full';
+
   const columnShellClass = scrollOnDesktop
-    ? 'w-full min-w-full flex-shrink-0 snap-center md:w-56 md:min-w-[14rem] md:snap-start'
-    : 'w-full min-w-full flex-shrink-0 snap-center md:flex-1 md:min-w-[11rem] md:basis-0 md:max-w-md md:w-auto md:min-w-0';
+    ? 'w-full min-w-full flex-shrink-0 snap-center md:w-72 md:min-w-[18rem] md:snap-start'
+    : 'w-full min-w-full flex-shrink-0 snap-center md:flex-1 md:min-w-0 md:max-w-none md:basis-0';
 
   const handleDragStart = (start: DragStart) => {
     if (start.type === COLUMN_DND_TYPE) {
@@ -117,7 +121,7 @@ export const BoardContent = () => {
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="board-columns-scroll flex gap-3 md:gap-5 flex-1 min-h-0 min-w-0 overflow-x-auto overflow-y-hidden pb-2 snap-x snap-mandatory scroll-smooth"
+              className={`board-columns-scroll flex gap-3 md:gap-5 flex-1 min-h-0 min-w-0 pb-2 ${columnsScrollClass}`}
               data-testid="board-columns-scroll"
             >
               {columns.map((column, index) => (

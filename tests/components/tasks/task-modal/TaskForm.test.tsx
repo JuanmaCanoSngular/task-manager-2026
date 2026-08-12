@@ -225,6 +225,8 @@ describe('TaskForm', () => {
 
     const form = document.querySelector('form');
     expect(form).toBeInTheDocument();
-    expect(form).toHaveClass('mt-6', 'space-y-6');
+    expect(form).toHaveClass('space-y-6');
+    expect(form?.parentElement).toHaveClass('mt-6', 'space-y-6');
+    expect(screen.getByRole('button', { name: 'Añadir tarea' })).toHaveAttribute('form', 'task-form');
   });
 });

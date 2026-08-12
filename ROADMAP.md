@@ -36,10 +36,10 @@ tablero por defecto del usuario.
 | Keep-alive | Cron GitHub Actions cada 3 días (Supabase free) |
 | Idioma | Solo español |
 | Calidad | Tests + deploy Vercel |
+| Comentarios | Hilo simple por tarea en modal de edición (`task_comments`) |
 
 ### Pendiente relevante
 
-- **A5** Comentarios en tareas (añadir / editar; contexto de bloqueos, etc.).
 - **A6** Buscador de imágenes en creación/edición de tarea (thumbnails, vista grande, quitar/cambiar).
 - Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
 - **F1** Posible integración bidireccional con Google Calendar (exploración).
@@ -77,12 +77,12 @@ tablero por defecto del usuario.
 - Sin Unsplash ni hosting. SQL si falta la columna: `supabase/add-task-background.sql`.
 - Ampliación prevista en **A6** (buscador integrado; sigue sin almacenar archivos propios).
 
-### A5. Comentarios en tarea
+### A5. Comentarios en tarea — ✅ (MVP)
 
-- Añadir y editar comentarios dentro de una tarea (hilo simple, no colaboración multi-usuario).
+- Añadir, editar y eliminar comentarios dentro de una tarea (hilo simple, no colaboración multi-usuario).
 - Caso de uso: al pasar a Bloqueos, dejar contexto — p. ej. *«Pasado a bloqueo: llamar el martes a Julián a ver si me manda el listado»*.
-- Tabla orientativa `task_comments` (`task_id`, `body`, `created_at`, `updated_at`, `user_id`).
-- Tras A3 (no bloquea columnas).
+- Tabla `task_comments` (`supabase/comments-schema.sql`): `task_id`, `body`, `created_at`, `updated_at`, `user_id`.
+- UI en modal de edición de tarea (`TaskComments`).
 
 ### A6. Buscador de imágenes en la tarea
 
@@ -229,18 +229,17 @@ Comandos:
 ## Prioridad recomendada
 
 ### Alta
-1. **A5** Comentarios en tarea
+1. **A6** Buscador de imágenes en la tarea (thumbnails + lightbox + quitar/cambiar)
 
 ### Media
-2. **A6** Buscador de imágenes en la tarea (thumbnails + lightbox + quitar/cambiar)
-3. **D** Voz en Telegram (luego WhatsApp / Alexa)
-4. Docs: README + `docs/SETUP.md` al día
+2. **D** Voz en Telegram (luego WhatsApp / Alexa)
+3. Docs: README + `docs/SETUP.md` al día
 
 ### Baja / exploración
-5. **F1** Google Calendar bidireccional
+4. **F1** Google Calendar bidireccional
 
 ### Al final
-6. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 
@@ -257,7 +256,7 @@ profiles          — auth + status de acceso
 boards            — user_id, name, color, is_default, …
 columns           — board_id, name, color, position, slug, is_inbox   ← A3 ✅
 tasks             — board_id, column_id, title, tags, background (URL), …
-task_comments     — task_id, body, timestamps   ← A5 (pendiente)
+task_comments     — task_id, body, timestamps   ← A5 ✅
 tags              — C2 ✅
 channel_links     — user_id, provider, external_id    ← D Telegram ✅
 ```
@@ -271,11 +270,10 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 - Imagen por URL (sin Unsplash)
 - Etiquetas, Telegram MVP, keep-alive, borrado de cuenta
 
-### Siguiente — **A5 Comentarios en tarea**
-- Tabla `task_comments` + UI en modal de tarea
+### Siguiente — **A6 Buscador de imágenes**
+- Edge Function + grid thumbnails en modal de tarea
 
 ### Después
-- **A6** Buscador de imágenes (grid thumbnails, vista grande, quitar/cambiar)
 - Voz / WhatsApp / Alexa
 - **F1** Google Calendar bidireccional (exploración)
 - **Al final:** redirect `juanmacano.eu/tablero`

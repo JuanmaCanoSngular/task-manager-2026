@@ -103,8 +103,9 @@ Ejecuta los scripts en el **SQL Editor** de Supabase, en este orden, en un proye
 | 5 | `supabase/tags-schema.sql` | Etiquetas por usuario |
 | 6 | `supabase/columns-schema.sql` | Columnas personalizables (`board_columns`, `tasks.column_id`) |
 | 7 | `supabase/add-task-background.sql` | Columna `tasks.background` (URL de imagen) si no existe |
-| 8 | `supabase/realtime-tasks.sql` | Publicación Realtime para refresco en vivo |
-| 9 | `supabase/telegram-schema.sql` | Vínculos Telegram ↔ usuario (solo si usas el bot) |
+| 8 | `supabase/comments-schema.sql` | Comentarios en tareas (`task_comments`) |
+| 9 | `supabase/realtime-tasks.sql` | Publicación Realtime para refresco en vivo |
+| 10 | `supabase/telegram-schema.sql` | Vínculos Telegram ↔ usuario (solo si usas el bot) |
 
 > Si el proyecto ya existía sin columnas personalizables, basta con ejecutar `columns-schema.sql` (y los que falten de la lista).
 

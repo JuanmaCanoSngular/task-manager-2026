@@ -8,6 +8,7 @@ import { TaskImageUrl } from './TaskImageUrl';
 import { isValidImageUrl } from '../../../utils/imageUrl';
 import { TaskColumnSelect } from './TaskColumnSelect';
 import { TaskTags } from './TaskTags';
+import { TaskComments } from './TaskComments';
 
 interface TaskFormProps {
   mode: 'create' | 'edit';
@@ -71,21 +72,25 @@ export const TaskForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-      <TaskTitle value={title} onChange={setTitle} />
+    <div className="mt-6 space-y-6">
+      <form id="task-form" onSubmit={handleSubmit} className="space-y-6">
+        <TaskTitle value={title} onChange={setTitle} />
 
-      <TaskImageUrl value={backgroundUrl} onChange={setBackgroundUrl} />
+        <TaskImageUrl value={backgroundUrl} onChange={setBackgroundUrl} />
 
-      {columns.length > 0 && (
-        <TaskColumnSelect columns={columns} value={columnId} onChange={setColumnId} />
-      )}
+        {columns.length > 0 && (
+          <TaskColumnSelect columns={columns} value={columnId} onChange={setColumnId} />
+        )}
 
-      <TaskTags
-        selectedTags={selectedTags}
-        showWarning={showTagWarning}
-        onToggleTag={toggleTag}
-        onManage={onManageTags}
-      />
+        <TaskTags
+          selectedTags={selectedTags}
+          showWarning={showTagWarning}
+          onToggleTag={toggleTag}
+          onManage={onManageTags}
+        />
+      </form>
+
+      {mode === 'edit' && initialData?.id != null && <TaskComments taskId={initialData.id} />}
 
       <div className="pt-4 flex justify-end gap-3">
         <button type="button" onClick={onCancel} className="btn-secondary">
@@ -93,12 +98,13 @@ export const TaskForm = ({
         </button>
         <button
           type="submit"
+          form="task-form"
           className="btn-primary"
           disabled={!isValidImageUrl(backgroundUrl) || !columnId}
         >
           {mode === 'create' ? 'Añadir tarea' : 'Guardar cambios'}
         </button>
       </div>
-    </form>
+    </div>
   );
 };

@@ -39,6 +39,7 @@ interface BoardStore {
   applyRemoteTaskInsert: (boardId: number, task: Task) => void;
   applyRemoteTaskUpdate: (boardId: number, task: Task) => void;
   applyRemoteTaskDelete: (taskId: number) => void;
+  setTaskCommentSummary: (taskId: number, count: number, latestPreview?: string) => void;
 }
 
 const reportWriteError = (error: unknown) => {
@@ -386,6 +387,27 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     set((state) => {
       for (const board of state.boards) {
         board.tasks = board.tasks.filter((t) => t.id !== taskId);
+      }
+    });
+  },
+  setTaskCommentSummary: (taskId, count, latestPreview) => {
+    set((state) => {
+      for (const board of state.boards) {
+        const taskIndex = board.tasks.findIndex((t) => t.id === taskId);
+        if (taskIndex === -1) continue;
+
+        const task = board.tasks[taskIndex];
+        if (count > 0) {
+          board.tasks[taskIndex] = {
+            ...task,
+            commentCount: count,
+            latestCommentPreview: latestPreview,
+          };
+        } else {
+          const { commentCount: _c, latestCommentPreview: _p, ...rest } = task;
+          board.tasks[taskIndex] = rest;
+        }
+        break;
       }
     });
   },
