@@ -1,5 +1,8 @@
 # Telegram bot — setup
 
+> Resumen del producto y variables: [docs/SETUP.md](../docs/SETUP.md#telegram-y-gemini).
+> Índice de documentación: [docs/README.md](../docs/README.md).
+
 Un solo bot para toda la app. Cada usuario vincula su chat una vez desde la web
 («Telegram» en el header). El webhook usa Gemini para crear tareas en el
 tablero por defecto → columna Pendiente.

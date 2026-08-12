@@ -1,150 +1,87 @@
-# Task Manager App — Desafío DevChallenges
+# Task Manager — Kanban personal
 
 ![Deploy](https://img.shields.io/badge/deploy-vercel-000000?style=for-the-badge&logo=vercel)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 ![Tests](https://img.shields.io/badge/tests-vitest-yellow?style=for-the-badge)
 
-Demo en vivo: https://task-manager-mu-sandy.vercel.app/
+**Demo:** https://task-manager-mu-sandy.vercel.app/
 
-Descripción breve
------------------
-Aplicación de gestión de tareas con interfaz tipo Kanban, creada para el reto "Task Manager App" de DevChallenges. Permite crear, editar, mover y filtrar tareas, con soporte para temas (claro/oscuro), accesibilidad y persistencia remota en Supabase.
+Gestor de tareas con tablero Kanban: columnas personalizables, etiquetas, tema claro/oscuro, persistencia en Supabase y —opcionalmente— acceso restringido con Google, bot de **Telegram** y agente **Gemini** para crear tareas por mensaje.
 
-Características principales
--------------------------
-- ✅ Crear, editar y eliminar tareas con título, descripción, etiquetas y fondo opcional
-- 🔁 Arrastrar y soltar (drag & drop) tareas entre columnas de estado
-- 🏷 Etiquetas por tarea (hasta 4)
-- 🌗 Tema claro/oscuro con persistencia
-- ♿ Navegación por teclado y soporte ARIA para accesibilidad
-- 💾 Persistencia remota en Supabase (Postgres)
-- 📱 Diseño responsivo (móvil, tablet, escritorio)
+---
 
-Capturas y visuales
--------------------
-Incluye capturas de pantalla en la carpeta `public/screenshots/` (no incluidas por defecto). Para añadir imágenes al README, sube las imágenes al repo y enlázalas así:
+## Características
 
-```markdown
-![Tablero principal](public/screenshots/board.png)
-```
+- Tableros Kanban con **columnas personalizables** (crear, renombrar, colores, reordenar)
+- Tareas con título, etiquetas (hasta 4), imagen de fondo por URL y drag & drop
+- Tema claro/oscuro con transición animada
+- Persistencia en **Supabase** (Postgres) con sincronización en tiempo real
+- **Auth opcional** (`VITE_AUTH_ENABLED`): login Google + aprobación manual del owner
+- **Telegram + Gemini** (opcional): vincular el chat y crear tareas en lenguaje natural
+- Diseño responsive y accesible (ARIA, teclado)
+- Tests con Vitest + React Testing Library
 
-Stack tecnológico
------------------
-- Frontend: React + TypeScript
-- Bundler: Vite
-- Estilos: Tailwind CSS
-- State: Zustand (+ immer)
-- Persistencia: Supabase (Postgres)
-- Drag & Drop: @hello-pangea/dnd
-- Componentes accesibles: Headless UI
-- Tests: Vitest + React Testing Library
-- Formato y calidad: Prettier, ESLint
+---
 
-Instalación y uso (rápido)
--------------------------
-Requisitos: Node.js 18+ y npm o yarn.
+## Arranque rápido
+
+**Requisitos:** Node.js 18+, cuenta en [Supabase](https://supabase.com).
 
 ```bash
-# clona el repositorio
-git clone https://github.com/yourusername/task-manager.git
-cd task-manager
-
-# instala dependencias
+git clone https://github.com/JuanmaCanoSngular/task-manager-2026.git
+cd task-manager-2026
 npm install
-
-# servidor de desarrollo (abre http://localhost:5173)
-npm run dev
-
-# pruebas en modo watch
-npm test
-
-# build de producción
-npm run build
+cp .env.example .env   # rellena VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
+npm run dev            # http://localhost:5173
 ```
 
-Configuración de Supabase
--------------------------
-La app persiste los datos en Supabase. Necesitas un proyecto y sus credenciales.
+1. Crea un proyecto en Supabase.
+2. Ejecuta los scripts SQL en el orden de **[docs/SETUP.md](docs/SETUP.md)** (sección *Base de datos*).
+3. Pon las credenciales del proyecto en `.env`.
 
-1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. En el SQL Editor, ejecuta `supabase/schema.sql` (crea las tablas y carga datos de ejemplo).
-3. Crea un archivo `.env` en la raíz (ver `.env.example`) con:
+> **Modo demo:** deja `VITE_AUTH_ENABLED="false"` — la app funciona sin login (datos compartidos).
+>
+> **Modo producción:** auth, OAuth, Edge Functions y secrets — ver **[docs/SETUP.md](docs/SETUP.md)**.
 
-```bash
-VITE_SUPABASE_URL="https://TU-PROYECTO.supabase.co"
-VITE_SUPABASE_ANON_KEY="tu-anon-key"
-```
+---
 
-La `anon key` es pública por diseño (va en el cliente). No subas nunca la
-`service_role` key. `.env` está en `.gitignore`.
+## Documentación
 
-> Nota: por ahora no hay autenticación; los datos son compartidos (RLS abierta).
-> El aislamiento por usuario llegará con el login.
+Toda la documentación técnica está en **[docs/](docs/README.md)**:
 
-Scripts útiles
---------------
-- `npm run dev` — servidor de desarrollo
-- `npm run build` — build para producción
-- `npm run preview` — previsualizar build de producción
-- `npm test` — ejecutar tests
-- `npm run lint` — linting del código
-- `npm run typecheck` — comprobación de tipos con TypeScript
-- `npm run format` — formatear con Prettier
+| Documento | Contenido |
+|-----------|-----------|
+| **[docs/SETUP.md](docs/SETUP.md)** | Variables, SQL, auth, Telegram, Gemini, arquitectura, despliegue |
+| **[supabase/TELEGRAM.md](supabase/TELEGRAM.md)** | Setup del bot (BotFather, webhook) |
+| **[ROADMAP.md](ROADMAP.md)** | Evolución del producto |
 
-Estructura del proyecto
------------------------
-Las partes relevantes del repo:
+---
 
-```
-src/
-├─ components/        # Componentes React (boards, tasks, layout, etc.)
-├─ services/          # Lógica de persistencia / servicios auxiliares
-├─ stores/            # Stores de Zustand
-├─ interfaces/        # Tipos TypeScript
-├─ styles/            # CSS y utilidades Tailwind
-└─ main.tsx           # Entrada de la aplicación
-```
+## Stack
 
-Testing
--------
-El proyecto incluye tests unitarios y de componentes con `vitest` y `@testing-library/react`.
+React · TypeScript · Vite · Tailwind CSS · Zustand · Supabase · @hello-pangea/dnd · Headless UI · Vitest
 
-```bash
-# ejecutar tests
-npm test
+---
 
-# ejecutar coverage
-npm run test:coverage
-```
+## Scripts
 
-Despliegue
----------
-Es una SPA estática: se puede desplegar en Vercel, Netlify, GitHub Pages o cualquier hosting estático. Con Vercel la integración es inmediata si conectas el repositorio.
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run preview` | Previsualizar build |
+| `npm test` | Tests |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Comprobación de tipos |
 
-Buenas prácticas y accesibilidad
---------------------------------
-- Sigue buenas prácticas de accesibilidad (ARIA, focus management)
-- Evita cargas de imágenes innecesarias para mejorar rendimiento
-- Añade tests al crear nueva funcionalidad
+---
 
-Contribuir
----------
-1. Haz fork
-2. Crea una rama: `git checkout -b feature/mi-cambio`
-3. Haz commits claros y atómicos
-4. Abre un Pull Request
+## Despliegue
 
-Próximos pasos
---------------
-- Revisar y actualizar dependencias (lo haremos a continuación)
-- Añadir capturas de pantalla y gif de interacción
+SPA estática compatible con Vercel, Netlify, etc. Configura las mismas variables `VITE_*` en el panel del hosting. Checklist completo en [docs/SETUP.md](docs/SETUP.md).
 
-Licencia
---------
-Proyecto con licencia MIT — ver archivo `LICENSE`.
+---
 
-Créditos
--------
-- Reto: DevChallenges — https://devchallenges.io/
+## Licencia
 
-Creado con ❤️ para la comunidad DevChallenges
+MIT — ver [LICENSE](LICENSE).

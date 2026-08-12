@@ -42,7 +42,6 @@ tablero por defecto del usuario.
 - **A5** Comentarios en tareas (añadir / editar; contexto de bloqueos, etc.).
 - Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
 - Dominio corto `juanmacano.eu/tablero` → producción (**E1**, al final).
-- Alinear README / DEVELOPERS con el estado real (menor).
 - Ejecutar `supabase/columns-schema.sql` en Supabase si el tablero aún no carga columnas.
 
 ---
@@ -106,7 +105,7 @@ tablero por defecto del usuario.
 ### C1. Acceso restringido — ✅ en uso
 
 - Google + perfiles + RLS + `user_id` + secuencias de ID + borrado de cuenta.
-- Pendiente menor: alinear README / DEVELOPERS con el estado real.
+- Pendiente menor: mantener `docs/` al día con el estado real.
 
 ### C2. Etiquetas personalizadas — ✅
 
@@ -204,7 +203,7 @@ Comandos:
 
 ### Media
 2. **D** Voz en Telegram (luego WhatsApp / Alexa)
-3. Docs: README / DEVELOPERS al día
+3. Docs: README + `docs/SETUP.md` al día
 
 ### Al final
 4. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
