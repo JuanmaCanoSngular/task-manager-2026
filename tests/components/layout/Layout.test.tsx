@@ -109,7 +109,7 @@ describe('Layout', () => {
 
     const layoutContainer = getByRole.main().parentElement;
     expect(layoutContainer).toHaveClass('h-screen', 'flex', 'flex-col');
-    expect(getByRole.banner()).toHaveClass('flex-shrink-0', 'p-4', 'relative');
+    expect(getByRole.banner()).toHaveClass('flex-shrink-0', 'grid', 'items-center');
     expect(getByRole.main()).toHaveClass('flex-1');
   });
 

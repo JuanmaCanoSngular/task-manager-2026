@@ -2,7 +2,6 @@ import { useBoardStore } from '../../stores/board.store';
 import { ErrorBanner } from '../common/ErrorBanner';
 import { BrandLockup } from '../brand/BrandLockup';
 import { UserMenu } from '../auth/UserMenu';
-import { TelegramLinkButton } from '../auth/TelegramLinkButton';
 import { TagsManagerButton } from '../tags/TagsManagerButton';
 import { ToggleTheme } from './ToggleTheme';
 import { BRAND_NAME } from '../../brand';
@@ -25,24 +24,25 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="h-screen flex flex-col text-light dark:text-dark overflow-hidden">
-      <header className="relative flex-shrink-0 flex items-center justify-center p-4">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2">
+      <header className="flex-shrink-0 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-3 sm:px-4 sm:py-4">
+        <div className="flex items-center justify-start">
           <ToggleTheme />
         </div>
-        <h1 className="text-center">
+
+        <h1 className="flex justify-center min-w-0">
           <button
             onClick={handleLogoClick}
             onKeyDown={handleKeyDown}
             tabIndex={0}
-            className="inline-flex items-center rounded-xl px-2 py-1 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 dark:focus:ring-offset-[var(--app-bg)]"
+            className="inline-flex items-center rounded-xl px-1 py-1 sm:px-2 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 dark:focus:ring-offset-[var(--app-bg)] max-w-full"
             aria-label={`Ir al inicio — ${BRAND_NAME}`}
           >
-            <BrandLockup markSize={36} />
+            <BrandLockup markSize={32} wordmarkClassName="truncate text-sm sm:text-[1.25rem]" />
           </button>
         </h1>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+
+        <div className="flex items-center justify-end gap-1 sm:gap-2 flex-shrink-0">
           <TagsManagerButton />
-          <TelegramLinkButton />
           <UserMenu />
         </div>
       </header>

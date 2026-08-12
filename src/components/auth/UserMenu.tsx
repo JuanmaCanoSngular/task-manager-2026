@@ -4,16 +4,19 @@ import { authService } from '../../services/auth.service';
 import { useBoardStore } from '../../stores/board.store';
 import { useTagStore } from '../../stores/tag.store';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { TelegramLinkDialog, useTelegramLink } from './TelegramLinkButton';
 
 const authEnabled = () => import.meta.env.VITE_AUTH_ENABLED === 'true';
 
 /** Avatar redondo + menú (cerrar sesión / eliminar cuenta). */
 export const UserMenu = () => {
   const [open, setOpen] = useState(false);
+  const [telegramOpen, setTelegramOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const { linked, refreshLinked, onStatusChange } = useTelegramLink();
 
   useEffect(() => {
     if (!open) return;
@@ -80,6 +83,17 @@ export const UserMenu = () => {
               type="button"
               role="menuitem"
               className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
+              onClick={() => {
+                setOpen(false);
+                setTelegramOpen(true);
+              }}
+            >
+              {linked ? 'Telegram vinculado' : 'Vincular Telegram'}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
               onClick={handleSignOut}
             >
               Cerrar sesión
@@ -104,6 +118,15 @@ export const UserMenu = () => {
           {error}
         </p>
       )}
+
+      <TelegramLinkDialog
+        open={telegramOpen}
+        onClose={() => {
+          setTelegramOpen(false);
+          void refreshLinked();
+        }}
+        onStatusChange={onStatusChange}
+      />
 
       <ConfirmDialog
         isOpen={confirmDelete}

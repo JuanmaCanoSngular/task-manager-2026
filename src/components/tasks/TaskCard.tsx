@@ -25,6 +25,10 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
   const recent = isRecentlyCreated(task.createdAt);
   const relativeLabel = task.createdAt ? formatRelativeCreatedAt(task.createdAt) : null;
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
+  const tagItems = task.tags
+    .map((tagId) => allTags.find((t) => t.id === tagId))
+    .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
+  const hasTags = tagItems.length > 0;
 
   const handleSubmit = (data: TaskDraft) => {
     updateTask(task.id, data);
@@ -71,9 +75,9 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
             tabIndex={0}
             role="listitem"
             aria-label={`Editar tarea: ${task.title}`}
-            className={`card-base flex-col gap-2 relative overflow-hidden items-start cursor-pointer hover:-translate-y-0.5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition drag-handle ${
+            className={`card-base flex-col relative items-start cursor-pointer hover:-translate-y-0.5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition drag-handle p-3 md:p-4 rounded-xl md:rounded-2xl ${
               snapshot.isDragging ? 'card-dragging' : ''
-            } ${recent ? 'card-recent' : ''}`}
+            } ${recent ? 'card-recent' : ''} ${task.background ? 'overflow-hidden' : ''}`}
             style={{
               ...provided.draggableProps.style,
               backgroundColor: 'var(--surface)',
@@ -102,33 +106,55 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
                 }}
               />
             )}
-            <div className={`relative z-10 w-full ${task.background ? 'mt-28' : ''}`}>
-              <p className="text-sm mb-2 text-left">{task.title}</p>
-              <div className="mt-2 flex flex-wrap gap-2 justify-start">
-                {task.tags.map((tagId) => {
-                  const tagInfo = allTags.find((t) => t.id === tagId);
-                  if (!tagInfo) return null;
-
-                  return (
-                    <span
-                      key={tagId}
-                      className="tag-base"
-                      style={tagChipStyle(tagInfo.color, true)}
-                    >
-                      {tagInfo.name}
-                    </span>
-                  );
-                })}
+            <div className={`relative z-10 w-full min-w-0 ${task.background ? 'mt-24 md:mt-28' : ''}`}>
+              <div
+                className={`flex items-start gap-2 min-w-0 ${recent ? 'pl-3' : ''} ${hasTags ? 'flex-col' : 'justify-between'}`}
+              >
+                <p className="text-sm leading-snug text-left flex-1 min-w-0">{task.title}</p>
+                {relativeLabel && !hasTags && (
+                  <time
+                    className={`shrink-0 text-[11px] leading-snug tabular-nums ${
+                      recent
+                        ? 'text-teal-700 dark:text-teal-400 font-medium'
+                        : 'text-[var(--text-muted)]'
+                    }`}
+                    dateTime={task.createdAt}
+                    title={task.createdAt ? new Date(task.createdAt).toLocaleString('es') : undefined}
+                  >
+                    {relativeLabel}
+                  </time>
+                )}
               </div>
-              {relativeLabel && (
-                <p
-                  className={`mt-3 w-full text-right text-[11px] leading-none ${
-                    recent ? 'text-teal-700 dark:text-teal-400 font-medium' : 'text-[var(--text-muted)]'
-                  }`}
-                  title={task.createdAt ? new Date(task.createdAt).toLocaleString('es') : undefined}
-                >
-                  {relativeLabel}
-                </p>
+
+              {hasTags && (
+                <div className="mt-1.5 flex items-center justify-between gap-2 min-w-0">
+                  <div className="flex flex-wrap gap-1 min-w-0">
+                    {tagItems.map((tagInfo) => (
+                      <span
+                        key={tagInfo.id}
+                        className="tag-base !px-2 !py-0.5 !text-[11px]"
+                        style={tagChipStyle(tagInfo.color, true)}
+                      >
+                        {tagInfo.name}
+                      </span>
+                    ))}
+                  </div>
+                  {relativeLabel && (
+                    <time
+                      className={`shrink-0 text-[11px] leading-snug tabular-nums ${
+                        recent
+                          ? 'text-teal-700 dark:text-teal-400 font-medium'
+                          : 'text-[var(--text-muted)]'
+                      }`}
+                      dateTime={task.createdAt}
+                      title={
+                        task.createdAt ? new Date(task.createdAt).toLocaleString('es') : undefined
+                      }
+                    >
+                      {relativeLabel}
+                    </time>
+                  )}
+                </div>
               )}
             </div>
           </div>

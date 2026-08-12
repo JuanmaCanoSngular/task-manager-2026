@@ -291,4 +291,24 @@
   .card-move-transition {
     @apply transition-all duration-300 ease-out;
   }
+
+  /* Scroll horizontal del tablero en móvil */
+  .board-columns-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--brand) 55%, transparent) transparent;
+  }
+
+  .board-columns-scroll::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .board-columns-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--brand) 50%, transparent);
+  }
+
+  .board-columns-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }

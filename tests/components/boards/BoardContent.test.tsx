@@ -50,7 +50,7 @@ describe('BoardContent', () => {
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
     const columnsContainer = screen.getByTestId('board-columns-scroll');
-    expect(columnsContainer).toHaveClass('flex', 'gap-4', 'overflow-x-auto', 'min-w-0');
+    expect(columnsContainer).toHaveClass('flex', 'gap-3', 'overflow-x-auto', 'min-w-0');
   });
 
   test('should have the main container with the correct classes', async () => {

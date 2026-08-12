@@ -25,20 +25,8 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe('TelegramLinkButton', () => {
-  test('no se muestra si auth está desactivada', async () => {
-    vi.stubEnv('VITE_AUTH_ENABLED', 'false');
-    vi.resetModules();
-    const { TelegramLinkButton } = await import(
-      '../../../src/components/auth/TelegramLinkButton'
-    );
-    const { container } = render(<TelegramLinkButton />);
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  test('sin vincular: botón neutro y genera código', async () => {
-    vi.stubEnv('VITE_AUTH_ENABLED', 'true');
-    vi.resetModules();
+describe('TelegramLinkDialog', () => {
+  test('sin vincular: genera código', async () => {
     getStatus.mockResolvedValue({
       linked: false,
       linkedAt: null,
@@ -56,16 +44,10 @@ describe('TelegramLinkButton', () => {
       expiresAt: new Date(Date.now() + 900000).toISOString(),
     });
 
-    const { TelegramLinkButton } = await import(
+    const { TelegramLinkDialog } = await import(
       '../../../src/components/auth/TelegramLinkButton'
     );
-    render(<TelegramLinkButton />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /vincular telegram/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /vincular telegram/i }));
+    render(<TelegramLinkDialog open onClose={vi.fn()} />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /vincular telegram/i })).toBeInTheDocument();
@@ -79,9 +61,7 @@ describe('TelegramLinkButton', () => {
     expect(generateCode).toHaveBeenCalled();
   });
 
-  test('vinculado: botón azul con etiqueta Vinculado', async () => {
-    vi.stubEnv('VITE_AUTH_ENABLED', 'true');
-    vi.resetModules();
+  test('vinculado: muestra estado y opción de desvincular', async () => {
     getStatus.mockResolvedValue({
       linked: true,
       linkedAt: '2026-08-06T12:00:00.000Z',
@@ -89,13 +69,41 @@ describe('TelegramLinkButton', () => {
       botUrl: 'https://t.me/DemoBot',
     });
 
-    const { TelegramLinkButton } = await import(
+    const { TelegramLinkDialog } = await import(
       '../../../src/components/auth/TelegramLinkButton'
     );
-    render(<TelegramLinkButton />);
+    render(<TelegramLinkDialog open onClose={vi.fn()} />);
 
-    const btn = await screen.findByRole('button', { name: /telegram vinculado/i });
-    expect(btn).toHaveTextContent('Vinculado');
-    expect(btn).toHaveStyle({ backgroundColor: '#229ED9' });
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /telegram vinculado/i })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /desvincular/i })).toBeInTheDocument();
+  });
+});
+
+describe('useTelegramLink', () => {
+  test('consulta el estado al montar con auth activa', async () => {
+    vi.stubEnv('VITE_AUTH_ENABLED', 'true');
+    vi.resetModules();
+    getStatus.mockResolvedValue({
+      linked: true,
+      linkedAt: null,
+      botUsername: 'DemoBot',
+      botUrl: 'https://t.me/DemoBot',
+    });
+
+    const { useTelegramLink } = await import('../../../src/components/auth/TelegramLinkButton');
+
+    const Probe = () => {
+      const { linked } = useTelegramLink();
+      return <span data-testid="linked">{linked === null ? 'loading' : String(linked)}</span>;
+    };
+
+    render(<Probe />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('linked')).toHaveTextContent('true');
+    });
+    expect(getStatus).toHaveBeenCalled();
   });
 });

@@ -21,6 +21,17 @@ vi.mock('../../../src/stores/tag.store', () => ({
   useTagStore: Object.assign(vi.fn(), { setState: vi.fn() }),
 }));
 
+const getStatus = vi.fn();
+const generateCode = vi.fn();
+
+vi.mock('../../../src/services/telegram.service', () => ({
+  telegramService: {
+    getStatus: (...args: unknown[]) => getStatus(...args),
+    generateCode: (...args: unknown[]) => generateCode(...args),
+    unlink: vi.fn(),
+  },
+}));
+
 beforeAll(() => {
   setupWindowMocks();
 });
@@ -29,6 +40,14 @@ beforeEach(() => {
   signOut.mockClear();
   deleteAccount.mockReset();
   deleteAccount.mockResolvedValue(undefined);
+  getStatus.mockReset();
+  generateCode.mockReset();
+  getStatus.mockResolvedValue({
+    linked: false,
+    linkedAt: null,
+    botUsername: 'DemoBot',
+    botUrl: 'https://t.me/DemoBot',
+  });
 });
 
 afterEach(() => {
@@ -71,5 +90,36 @@ describe('UserMenu', () => {
     await waitFor(() => {
       expect(deleteAccount).toHaveBeenCalledTimes(1);
     });
+  });
+
+  test('abre diálogo de Telegram desde el menú', async () => {
+    vi.stubEnv('VITE_AUTH_ENABLED', 'true');
+    vi.resetModules();
+    const { UserMenu } = await import('../../../src/components/auth/UserMenu');
+    render(<UserMenu />);
+
+    fireEvent.click(screen.getByRole('button', { name: /menú de cuenta/i }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: /vincular telegram/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /vincular telegram/i })).toBeInTheDocument();
+    });
+  });
+
+  test('muestra Telegram vinculado en el menú cuando ya está enlazado', async () => {
+    vi.stubEnv('VITE_AUTH_ENABLED', 'true');
+    vi.resetModules();
+    getStatus.mockResolvedValue({
+      linked: true,
+      linkedAt: '2026-08-06T12:00:00.000Z',
+      botUsername: 'DemoBot',
+      botUrl: 'https://t.me/DemoBot',
+    });
+    const { UserMenu } = await import('../../../src/components/auth/UserMenu');
+    render(<UserMenu />);
+
+    fireEvent.click(screen.getByRole('button', { name: /menú de cuenta/i }));
+
+    expect(await screen.findByRole('menuitem', { name: /telegram vinculado/i })).toBeInTheDocument();
   });
 });

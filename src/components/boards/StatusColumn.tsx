@@ -45,7 +45,7 @@ export const StatusColumn = ({
             {...provided.droppableProps}
             role="list"
             aria-label={`Tareas en ${column.name}`}
-            className={`flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden transition-all duration-200 rounded-xl p-2 ${
+            className={`flex flex-col gap-2 md:gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden transition-all duration-200 rounded-xl p-1.5 md:p-2 ${
               snapshot.isDraggingOver && !isColumnDragging
                 ? 'drop-zone-active'
                 : isColumnDragging

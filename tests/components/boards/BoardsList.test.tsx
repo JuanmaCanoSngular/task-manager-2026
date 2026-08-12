@@ -80,9 +80,9 @@ describe('BoardsList', () => {
     const { BoardsList } = await import('../../../src/components/boards/BoardsList');
     render(<BoardsList />);
 
-    // Verify that the component renders without errors even with no boards
-    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
-    expect(addButtons.length).toBeGreaterThan(0);
+    // Verify add new board button is present
+    const addButton = screen.getByRole('button', { name: /añadir nuevo tablero/i });
+    expect(addButton).toBeInTheDocument();
   });
 
   test('should have correct responsive structure', async () => {
@@ -128,42 +128,7 @@ describe('BoardsList', () => {
     );
   });
 
-  test('should render mobile select component', async () => {
-    const mockUseBoardStore = vi.fn((selector) => {
-      const mockState = {
-        boards: [{ id: 1, name: 'Test Board', emoji: '📋', color: 'blue', tasks: [] }],
-        currentBoardId: 1,
-      };
-      return selector(mockState);
-    });
-
-    const mockUseCurrentBoard = vi.fn(() => ({
-      id: 1,
-      name: 'Test Board',
-      emoji: '📋',
-      color: 'blue',
-      tasks: [],
-    }));
-
-    const mockUseCurrentBoardTasks = vi.fn(() => []);
-    const mockUseTasksByStatus = vi.fn(() => []);
-
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: mockUseBoardStore,
-      useCurrentBoard: mockUseCurrentBoard,
-      useCurrentBoardTasks: mockUseCurrentBoardTasks,
-      useTasksByStatus: mockUseTasksByStatus,
-    }));
-
-    const { BoardsList } = await import('../../../src/components/boards/BoardsList');
-    render(<BoardsList />);
-
-    // Verify mobile select is present (hidden on desktop)
-    const mobileSelect = screen.getByRole('combobox');
-    expect(mobileSelect).toBeInTheDocument();
-  });
-
-  test('should render desktop board cards', async () => {
+  test('should render board cards on all screen sizes', async () => {
     const mockUseBoardStore = vi.fn((selector) => {
       const mockState = {
         boards: [
@@ -234,11 +199,11 @@ describe('BoardsList', () => {
     render(<BoardsList />);
 
     // Verify add new board button is present
-    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
-    expect(addButtons.length).toBeGreaterThan(0);
+    const addButton = screen.getByRole('button', { name: /añadir nuevo tablero/i });
+    expect(addButton).toBeInTheDocument();
   });
 
-  test('should render mobile action buttons', async () => {
+  test('should render create task button', async () => {
     const mockUseBoardStore = vi.fn((selector) => {
       const mockState = {
         boards: [{ id: 1, name: 'Test Board', emoji: '📋', color: 'blue', tasks: [] }],
@@ -268,11 +233,7 @@ describe('BoardsList', () => {
     const { BoardsList } = await import('../../../src/components/boards/BoardsList');
     render(<BoardsList />);
 
-    // Verify mobile action buttons are present
-    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
-    const removeButton = screen.getByRole('button', { name: /eliminar el tablero actual/i });
-    expect(addButtons.length).toBeGreaterThan(0);
-    expect(removeButton).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /añadir nueva tarea/i })).toBeInTheDocument();
   });
 
   test('should have correct semantic structure', async () => {
@@ -306,13 +267,8 @@ describe('BoardsList', () => {
     render(<BoardsList />);
 
     // Verify the component has proper structure
-    const boardTexts = screen.getAllByText('Test Board');
-    expect(boardTexts.length).toBeGreaterThan(0);
-
-    const addButtons = screen.getAllByRole('button', { name: /añadir nuevo tablero/i });
-    expect(addButtons.length).toBeGreaterThan(0);
-
-    const mobileSelect = screen.getByRole('combobox');
-    expect(mobileSelect).toBeInTheDocument();
+    expect(screen.getAllByText('Test Board').length).toBeGreaterThan(0);
+    expect(screen.getByRole('navigation', { name: /navegación de tableros/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /añadir nuevo tablero/i })).toBeInTheDocument();
   });
 });

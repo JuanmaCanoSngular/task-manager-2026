@@ -20,9 +20,8 @@ const TelegramLogo = ({ className }: { className?: string }) => (
   </svg>
 );
 
-/** Vincular Telegram con la cuenta. Solo con auth activa. */
-export const TelegramLinkButton = () => {
-  const [open, setOpen] = useState(false);
+/** Estado de vínculo Telegram (para menú de usuario). */
+export const useTelegramLink = () => {
   const [linked, setLinked] = useState<boolean | null>(null);
 
   const refreshLinked = useCallback(async () => {
@@ -39,37 +38,14 @@ export const TelegramLinkButton = () => {
     void refreshLinked();
   }, [refreshLinked]);
 
-  if (!authEnabled()) return null;
-
-  const isLinked = linked === true;
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-          isLinked
-            ? 'text-white focus:ring-[#229ED9]/50 hover:brightness-110'
-            : 'btn-secondary'
-        }`}
-        style={isLinked ? { backgroundColor: TG_BLUE } : undefined}
-        aria-label={isLinked ? 'Telegram vinculado' : 'Vincular Telegram'}
-      >
-        <TelegramLogo className={`w-4 h-4 ${isLinked ? 'text-white' : 'text-[#229ED9]'}`} />
-        <span>{isLinked ? 'Vinculado' : 'Telegram'}</span>
-      </button>
-      <TelegramLinkDialog
-        open={open}
-        onClose={() => {
-          setOpen(false);
-          void refreshLinked();
-        }}
-        onStatusChange={(s) => setLinked(s.linked)}
-      />
-    </>
-  );
+  return {
+    linked,
+    refreshLinked,
+    onStatusChange: (s: TelegramLinkStatus) => setLinked(s.linked),
+  };
 };
+
+export const TelegramLinkDialog = TelegramLinkDialogInner;
 
 type DialogProps = {
   open: boolean;
@@ -77,7 +53,7 @@ type DialogProps = {
   onStatusChange?: (status: TelegramLinkStatus) => void;
 };
 
-function TelegramLinkDialog({ open, onClose, onStatusChange }: DialogProps) {
+function TelegramLinkDialogInner({ open, onClose, onStatusChange }: DialogProps) {
   const [status, setStatus] = useState<TelegramLinkStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

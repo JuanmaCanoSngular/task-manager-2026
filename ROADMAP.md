@@ -40,7 +40,9 @@ tablero por defecto del usuario.
 ### Pendiente relevante
 
 - **A5** Comentarios en tareas (añadir / editar; contexto de bloqueos, etc.).
+- **A6** Buscador de imágenes en creación/edición de tarea (thumbnails, vista grande, quitar/cambiar).
 - Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
+- **F1** Posible integración bidireccional con Google Calendar (exploración).
 - Dominio corto `juanmacano.eu/tablero` → producción (**E1**, al final).
 - Ejecutar `supabase/columns-schema.sql` en Supabase si el tablero aún no carga columnas.
 
@@ -73,6 +75,7 @@ tablero por defecto del usuario.
 
 - URL http(s) en `tasks.background`; preview en modal y tarjeta.
 - Sin Unsplash ni hosting. SQL si falta la columna: `supabase/add-task-background.sql`.
+- Ampliación prevista en **A6** (buscador integrado; sigue sin almacenar archivos propios).
 
 ### A5. Comentarios en tarea
 
@@ -80,6 +83,19 @@ tablero por defecto del usuario.
 - Caso de uso: al pasar a Bloqueos, dejar contexto — p. ej. *«Pasado a bloqueo: llamar el martes a Julián a ver si me manda el listado»*.
 - Tabla orientativa `task_comments` (`task_id`, `body`, `created_at`, `updated_at`, `user_id`).
 - Tras A3 (no bloquea columnas).
+
+### A6. Buscador de imágenes en la tarea
+
+- Ampliación de **A4**: buscar imágenes **desde el modal de crear/editar tarea** (sin pegar URL a mano).
+- Flujo orientativo:
+  1. Campo de búsqueda (p. ej. por título de la tarea o texto libre).
+  2. Resultados en **grid de thumbnails**; seleccionar una.
+  3. **Vista previa en grande** (lightbox) antes de confirmar.
+  4. Tras guardar: **quitar**, **cambiar** o volver a buscar otra.
+- Sigue guardándose solo la **URL externa** en `tasks.background` (sin storage propio).
+- API de imágenes vía **Edge Function** (Unsplash, Pexels u otro proveedor con API key en servidor).
+- UI en `TaskForm` / `TaskImageUrl`: mantener también la opción de pegar URL manual.
+- Prioridad media; tras **A5** o en paralelo si A5 se alarga.
 
 ---
 
@@ -186,11 +202,25 @@ Comandos:
 
 ---
 
+## Fase F — Integraciones (exploración)
+
+### F1. Google Calendar (bidireccional)
+
+- Posible sincronización **bidireccional** con Google Calendar.
+- Casos de uso orientativos:
+  - Tarea con fecha límite o recordatorio → evento en el calendario.
+  - Evento del calendario → tarea en Pendiente (o columna configurable).
+- Requiere OAuth con Google Calendar API, mapeo tarea↔evento y reglas de
+  resolución de conflictos (última modificación gana, o por origen).
+- Prioridad baja; evaluar tras **A5** y cuando Telegram/voz estén estables.
+
+---
+
 ## Fuera de alcance (por ahora)
 
 - Internacionalización.
 - Login por email + código (descartado; Google).
-- Storage propio de imágenes.
+- Storage propio de imágenes (A6 usa URLs de terceros; no subimos archivos).
 - Colaboración multi-usuario en el mismo tablero.
 - Sync de tema multi-dispositivo.
 
@@ -202,11 +232,15 @@ Comandos:
 1. **A5** Comentarios en tarea
 
 ### Media
-2. **D** Voz en Telegram (luego WhatsApp / Alexa)
-3. Docs: README + `docs/SETUP.md` al día
+2. **A6** Buscador de imágenes en la tarea (thumbnails + lightbox + quitar/cambiar)
+3. **D** Voz en Telegram (luego WhatsApp / Alexa)
+4. Docs: README + `docs/SETUP.md` al día
+
+### Baja / exploración
+5. **F1** Google Calendar bidireccional
 
 ### Al final
-4. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+6. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 
@@ -241,7 +275,9 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 - Tabla `task_comments` + UI en modal de tarea
 
 ### Después
+- **A6** Buscador de imágenes (grid thumbnails, vista grande, quitar/cambiar)
 - Voz / WhatsApp / Alexa
+- **F1** Google Calendar bidireccional (exploración)
 - **Al final:** redirect `juanmacano.eu/tablero`
 
 ---
