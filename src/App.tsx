@@ -7,6 +7,7 @@ import { AuthGate } from './components/auth/AuthGate';
 import { ApprovalResult } from './components/auth/ApprovalResult';
 import { useTasksRealtime } from './hooks/useTasksRealtime';
 import { useTagStore } from './stores/tag.store';
+import { supabase } from './services/supabase';
 
 const AppContent = () => {
   const error = useBoardStore((state) => state.error);
@@ -15,17 +16,41 @@ const AppContent = () => {
   const fetchTags = useTagStore((state) => state.fetchTags);
 
   useEffect(() => {
-    fetchBoards();
-    fetchTags();
+    const init = async () => {
+      // Esperar a que Supabase resuelva la sesión (refresh de JWT incluido)
+      // antes de hacer queries que dependen de RLS/user_id.
+      await supabase.auth.getSession();
+      fetchBoards();
+      fetchTags();
+    };
+    void init();
   }, [fetchBoards, fetchTags]);
 
   useTasksRealtime();
-  // Solo pantalla completa si falló la carga inicial (sin tableros).
-  // Los fallos de escritura se muestran en ErrorBanner dentro del Layout.
+
   if (error && boards.length === 0) {
+    const handleRetry = () => {
+      useBoardStore.setState({ error: null });
+      const reload = async () => {
+        await supabase.auth.getSession();
+        fetchBoards();
+        fetchTags();
+      };
+      void reload();
+    };
+
     return (
       <div className="auth-shell">
-        <p className="text-xl text-red-500">Error: {error}</p>
+        <div className="max-w-md text-center space-y-4">
+          <h2 className="text-2xl font-bold text-light dark:text-dark">No se pudo cargar</h2>
+          <p className="text-sm text-[var(--text-muted)]">
+            Error del servidor ({error}). Prueba a recargar; si sigue, cierra sesión y vuelve a
+            entrar.
+          </p>
+          <button type="button" onClick={handleRetry} className="btn-primary">
+            Reintentar
+          </button>
+        </div>
       </div>
     );
   }
