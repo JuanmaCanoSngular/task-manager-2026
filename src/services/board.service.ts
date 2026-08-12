@@ -1,14 +1,16 @@
 import { supabase } from './supabase';
 import { Board } from '../interfaces/board.interface';
-import { Task, TaskStatus } from '../interfaces/task.interface';
+import { BoardColumn, sortColumns } from '../interfaces/column.interface';
+import { Task } from '../interfaces/task.interface';
+import { columnService } from './column.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-// Fila tal cual vive en la tabla `tasks` de Supabase.
 interface TaskRow {
   id: number;
   board_id: number;
   title: string;
   status: string;
+  column_id: number | null;
   background: string | null;
   tags: string[];
   position: number;
@@ -23,14 +25,29 @@ interface BoardRow {
   is_default?: boolean | null;
 }
 
+interface ColumnRow {
+  id: number;
+  board_id: number;
+  name: string;
+  color: string;
+  position: number;
+  slug: string | null;
+  is_inbox: boolean;
+}
+
 export const rowToTask = (row: TaskRow): Task => ({
   id: row.id,
   title: row.title,
-  status: row.status as TaskStatus,
+  columnId: row.column_id ?? 0,
   tags: row.tags ?? [],
   background: row.background ?? undefined,
   createdAt: row.created_at ?? undefined,
 });
+
+const slugForColumn = (columns: BoardColumn[], columnId: number): string | null => {
+  const col = columns.find((c) => c.id === columnId);
+  return col?.slug ?? null;
+};
 
 /** UID de la sesión actual (null si auth off / sin login). Necesario para RLS por user_id. */
 const getSessionUserId = async (): Promise<string | null> => {
@@ -45,7 +62,6 @@ export type TaskRealtimeHandlers = {
 };
 
 export const boardService = {
-  // Carga todos los tableros con sus tareas ya anidadas y ordenadas.
   async getBoards(): Promise<Board[]> {
     const [{ data: boards, error: boardsError }, { data: tasks, error: tasksError }] =
       await Promise.all([
@@ -56,6 +72,22 @@ export const boardService = {
     if (boardsError) throw boardsError;
     if (tasksError) throw tasksError;
 
+    const boardRows = (boards ?? []) as BoardRow[];
+    const boardIds = boardRows.map((b) => b.id);
+
+    const columnsByBoard = await columnService.fetchColumnsForBoards(boardIds);
+
+    for (const boardId of boardIds) {
+      if (!columnsByBoard.has(boardId) || columnsByBoard.get(boardId)!.length === 0) {
+        try {
+          const seeded = await columnService.seedDefaultColumns(boardId);
+          columnsByBoard.set(boardId, seeded);
+        } catch {
+          /* tabla aún no migrada; el front mostrará tablero vacío de columnas */
+        }
+      }
+    }
+
     const tasksByBoard = new Map<number, Task[]>();
     for (const row of (tasks ?? []) as TaskRow[]) {
       const list = tasksByBoard.get(row.board_id) ?? [];
@@ -63,13 +95,14 @@ export const boardService = {
       tasksByBoard.set(row.board_id, list);
     }
 
-    return ((boards ?? []) as BoardRow[]).map((board) => ({
+    return boardRows.map((board) => ({
       id: board.id,
       name: board.name,
       emoji: board.emoji,
       color: board.color,
       link: '',
       isDefault: Boolean(board.is_default),
+      columns: sortColumns(columnsByBoard.get(board.id) ?? []),
       tasks: tasksByBoard.get(board.id) ?? [],
     }));
   },
@@ -86,17 +119,20 @@ export const boardService = {
     };
     if (userId) row.user_id = userId;
 
-    // El id lo asigna la secuencia de Postgres (evita colisiones con RLS).
     const { data, error } = await supabase.from('boards').insert(row).select('*').single();
     if (error) throw error;
 
+    const boardId = data.id as number;
+    const columns = await columnService.seedDefaultColumns(boardId);
+
     return {
-      id: data.id as number,
+      id: boardId,
       name: data.name as string,
       emoji: data.emoji as string,
       color: data.color as string,
       link: '',
       isDefault: Boolean(data.is_default),
+      columns,
       tasks: [],
     };
   },
@@ -114,7 +150,6 @@ export const boardService = {
     if (error) throw error;
   },
 
-  /** Marca un tablero como default y quita el flag al resto (del mismo usuario vía RLS). */
   async setDefaultBoard(id: number): Promise<void> {
     const { error: clearError } = await supabase
       .from('boards')
@@ -129,13 +164,16 @@ export const boardService = {
   async insertTask(
     boardId: number,
     task: Omit<Task, 'id' | 'createdAt'>,
-    position: number
+    position: number,
+    columns: BoardColumn[]
   ): Promise<Task> {
     const userId = await getSessionUserId();
+    const slug = slugForColumn(columns, task.columnId);
     const row: Record<string, unknown> = {
       board_id: boardId,
       title: task.title,
-      status: task.status,
+      column_id: task.columnId,
+      status: slug ?? 'backlog',
       background: task.background?.trim() || null,
       tags: task.tags,
       position,
@@ -148,12 +186,18 @@ export const boardService = {
     return rowToTask(data as TaskRow);
   },
 
-  async updateTask(taskId: number, task: Omit<Task, 'id' | 'createdAt'>): Promise<void> {
+  async updateTask(
+    taskId: number,
+    task: Omit<Task, 'id' | 'createdAt'>,
+    columns: BoardColumn[]
+  ): Promise<void> {
+    const slug = slugForColumn(columns, task.columnId);
     const { error } = await supabase
       .from('tasks')
       .update({
         title: task.title,
-        status: task.status,
+        column_id: task.columnId,
+        status: slug ?? 'backlog',
         background: task.background?.trim() || null,
         tags: task.tags,
       })
@@ -166,24 +210,32 @@ export const boardService = {
     if (error) throw error;
   },
 
-  // Persiste el nuevo orden y estado tras un drag & drop.
-  // Update por fila: upsert fallaría por columnas NOT NULL (title) no incluidas.
-  async saveTaskOrder(
-    rows: { id: number; status: TaskStatus; position: number }[]
+  async moveTasksToColumn(
+    fromColumnId: number,
+    toColumnId: number,
+    columns: BoardColumn[]
   ): Promise<void> {
+    const slug = slugForColumn(columns, toColumnId);
+    const { error } = await supabase
+      .from('tasks')
+      .update({ column_id: toColumnId, status: slug ?? 'backlog' })
+      .eq('column_id', fromColumnId);
+    if (error) throw error;
+  },
+
+  async saveTaskOrder(rows: { id: number; columnId: number; position: number }[]): Promise<void> {
     const results = await Promise.all(
       rows.map((row) =>
-        supabase.from('tasks').update({ status: row.status, position: row.position }).eq('id', row.id)
+        supabase
+          .from('tasks')
+          .update({ column_id: row.columnId, position: row.position })
+          .eq('id', row.id)
       )
     );
     const failed = results.find((r) => r.error);
     if (failed?.error) throw failed.error;
   },
 
-  /**
-   * Suscripción Realtime a cambios en `tasks` (Telegram, otras pestañas, etc.).
-   * Requiere `supabase/realtime-tasks.sql` en el proyecto.
-   */
   subscribeTasks(handlers: TaskRealtimeHandlers): () => void {
     const channel: RealtimeChannel = supabase
       .channel('tasks-realtime')
@@ -221,3 +273,5 @@ export const boardService = {
     };
   },
 };
+
+export type { ColumnRow };

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { TaskForm } from '../../../../src/components/tasks/task-modal/TaskForm';
-import { TASK_STATUS } from '../../../../src/interfaces/task.interface';
+import { MOCK_COLUMNS } from '../../../utils/mock-columns';
 
 const MOCK_TAGS = [
   { tag: 'tag-urgente', label: 'Urgente' },
@@ -9,6 +9,10 @@ const MOCK_TAGS = [
   { tag: 'tag-importante', label: 'Importante' },
   { tag: 'tag-extra', label: 'Extra' },
 ];
+
+vi.mock('../../../../src/stores/board.store', () => ({
+  useCurrentBoardColumns: () => MOCK_COLUMNS,
+}));
 
 vi.mock('../../../../src/components/tasks/task-modal/TaskTitle', () => ({
   TaskTitle: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => (
@@ -29,11 +33,18 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskTitle', () => ({
   ),
 }));
 
-vi.mock('../../../../src/components/tasks/task-modal/TaskStatus', () => ({
-  TaskStatus: ({ value }: { value: string; onChange: (value: string) => void }) => (
+vi.mock('../../../../src/components/tasks/task-modal/TaskColumnSelect', () => ({
+  TaskColumnSelect: ({
+    columns,
+    value,
+  }: {
+    columns: { id: number; name: string }[];
+    value: number;
+    onChange: (value: number) => void;
+  }) => (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
-      <span>{TASK_STATUS.find((s) => s.status === value)?.label || 'Backlog'}</span>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Columna</label>
+      <span>{columns.find((c) => c.id === value)?.name ?? 'Pendiente'}</span>
     </div>
   ),
 }));
@@ -86,7 +97,7 @@ describe('TaskForm', () => {
     render(<TaskForm {...defaultProps} />);
 
     expect(screen.getByLabelText('Task Title')).toBeInTheDocument();
-    expect(screen.getByText('Status')).toBeInTheDocument();
+    expect(screen.getByText('Columna')).toBeInTheDocument();
     expect(screen.getByLabelText('Available tags for the task')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Añadir tarea' })).toBeInTheDocument();
@@ -146,7 +157,7 @@ describe('TaskForm', () => {
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith({
       title: 'Test Task',
-      status: TASK_STATUS[0].status,
+      columnId: 1,
       tags: [],
       background: undefined,
     });
@@ -163,7 +174,7 @@ describe('TaskForm', () => {
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith({
       title: 'Con foto',
-      status: TASK_STATUS[0].status,
+      columnId: 1,
       tags: [],
       background: 'https://cdn.example.com/a.jpg',
     });
@@ -192,7 +203,7 @@ describe('TaskForm', () => {
 
     const initialData = {
       title: 'Updated Task',
-      status: 'completed' as const,
+      columnId: 4,
       tags: ['tag-urgente'],
     };
 

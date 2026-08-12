@@ -7,6 +7,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { approvedEmail, deniedEmail } from '../_shared/emails.js';
+import { columnIdBySlug, seedDefaultColumns } from '../_shared/columns.js';
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -115,6 +116,14 @@ async function provisionExampleBoard(
     return;
   }
 
+  let columnRows;
+  try {
+    columnRows = await seedDefaultColumns(supabase, board.id, userId);
+  } catch (e) {
+    console.error('Error creando columnas por defecto:', e);
+    columnRows = [];
+  }
+
   const { data: seededTags, error: tagsError } = await supabase
     .from('tags')
     .insert([
@@ -133,21 +142,22 @@ async function provisionExampleBoard(
   const tasks = [
     {
       title: 'Explora tu primer tablero',
-      status: 'backlog',
+      slug: 'backlog',
       tags: ideaId ? [ideaId] : [],
     },
-    { title: 'Crea una tarea nueva', status: 'in-progress', tags: [] as string[] },
+    { title: 'Crea una tarea nueva', slug: 'in-progress', tags: [] as string[] },
     {
       title: 'Ejemplo de bloqueo: falta acceso a un recurso',
-      status: 'in-review',
+      slug: 'in-review',
       tags: [] as string[],
     },
-    { title: '¡Listo para empezar!', status: 'completed', tags: [] as string[] },
+    { title: '¡Listo para empezar!', slug: 'completed', tags: [] as string[] },
   ].map((task, index) => ({
     board_id: board.id,
     user_id: userId,
     title: task.title,
-    status: task.status,
+    status: task.slug,
+    column_id: columnIdBySlug(columnRows, task.slug),
     tags: task.tags,
     position: index,
   }));

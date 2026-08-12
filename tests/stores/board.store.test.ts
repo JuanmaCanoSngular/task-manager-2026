@@ -1,7 +1,8 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { boardService } from '../../src/services/board.service';
 import { Board } from '../../src/interfaces/board.interface';
-import { Task, TaskStatus } from '../../src/interfaces/task.interface';
+import { Task } from '../../src/interfaces/task.interface';
+import { MOCK_COLUMNS } from '../utils/mock-columns';
 
 // Mock the board service
 vi.mock('../../src/services/board.service', () => ({
@@ -40,7 +41,6 @@ vi.mock('zustand/react/shallow', () => ({
 }));
 
 describe('BoardStore', () => {
-  // Test data
   const mockBoards: Board[] = [
     {
       id: 1,
@@ -48,9 +48,10 @@ describe('BoardStore', () => {
       emoji: '🚀',
       color: '#ff0000',
       link: 'https://example.com/board1',
+      columns: MOCK_COLUMNS,
       tasks: [],
       isDefault: false,
-    isLocal: false,
+      isLocal: false,
     },
     {
       id: 2,
@@ -58,9 +59,10 @@ describe('BoardStore', () => {
       emoji: '🎯',
       color: '#00ff00',
       link: 'https://example.com/board2',
+      columns: MOCK_COLUMNS.map((c) => ({ ...c, boardId: 2 })),
       tasks: [],
       isDefault: false,
-    isLocal: false,
+      isLocal: false,
     },
   ];
 
@@ -70,17 +72,18 @@ describe('BoardStore', () => {
     emoji: '📋',
     color: '#0000ff',
     link: 'https://example.com/board1',
+    columns: MOCK_COLUMNS,
     tasks: [
       {
         id: 1,
         title: 'Test Task 1',
-        status: 'backlog' as TaskStatus,
+        columnId: 1,
         tags: ['id-1'],
       },
       {
         id: 2,
         title: 'Test Task 2',
-        status: 'in-progress' as TaskStatus,
+        columnId: 2,
         tags: ['id-2'],
       },
     ],
@@ -90,12 +93,11 @@ describe('BoardStore', () => {
 
   const mockTask: Omit<Task, 'id'> = {
     title: 'New Test Task',
-    status: 'backlog' as TaskStatus,
+    columnId: 1,
     tags: ['id-6'],
   };
 
   beforeEach(() => {
-    // Clear all mocks before each test
     vi.clearAllMocks();
   });
 
@@ -120,9 +122,10 @@ describe('BoardStore', () => {
         emoji: '🚀',
         color: '#ff0000',
         link: 'https://example.com',
+        columns: MOCK_COLUMNS,
         tasks: [],
         isDefault: false,
-    isLocal: false,
+        isLocal: false,
       };
 
       expect(board.id).toBe(1);
@@ -131,6 +134,7 @@ describe('BoardStore', () => {
       expect(board.color).toBe('#ff0000');
       expect(board.link).toBe('https://example.com');
       expect(board.tasks).toEqual([]);
+      expect(board.columns).toHaveLength(4);
       expect(board.isLocal).toBe(false);
     });
 
@@ -138,13 +142,13 @@ describe('BoardStore', () => {
       const task: Task = {
         id: 1,
         title: 'Test Task',
-        status: 'backlog',
+        columnId: 1,
         tags: ['id-1'],
       };
 
       expect(task.id).toBe(1);
       expect(task.title).toBe('Test Task');
-      expect(task.status).toBe('backlog');
+      expect(task.columnId).toBe(1);
       expect(task.tags).toEqual(['id-1']);
     });
   });
@@ -167,7 +171,7 @@ describe('BoardStore', () => {
 
     test('should have valid mockTask', () => {
       expect(mockTask.title).toBe('New Test Task');
-      expect(mockTask.status).toBe('backlog');
+      expect(mockTask.columnId).toBe(1);
       expect(mockTask.tags).toEqual(['id-6']);
     });
   });
@@ -185,7 +189,6 @@ describe('BoardStore', () => {
 
     test('should generate unique IDs for tasks', () => {
       const getNextTaskId = (): number => {
-        // Simple simulation - in practice this would be more complex
         return Date.now();
       };
 
@@ -200,12 +203,11 @@ describe('BoardStore', () => {
   });
 
   describe('Type validations', () => {
-    test('should validate TaskStatus', () => {
-      const validStatuses: TaskStatus[] = ['backlog', 'in-progress', 'in-review', 'completed'];
+    test('should validate column ids as numbers', () => {
+      const validColumnIds = [1, 2, 3, 4];
 
-      validStatuses.forEach((status) => {
-        expect(typeof status).toBe('string');
-        expect(['backlog', 'in-progress', 'in-review', 'completed']).toContain(status);
+      validColumnIds.forEach((columnId) => {
+        expect(typeof columnId).toBe('number');
       });
     });
 
@@ -252,11 +254,9 @@ describe('BoardStore', () => {
   });
 
   describe('Task operations', () => {
-    test('should filter tasks by status', () => {
-      const backlogTasks = mockBoardWithTasks.tasks.filter((task) => task.status === 'backlog');
-      const inProgressTasks = mockBoardWithTasks.tasks.filter(
-        (task) => task.status === 'in-progress'
-      );
+    test('should filter tasks by columnId', () => {
+      const backlogTasks = mockBoardWithTasks.tasks.filter((task) => task.columnId === 1);
+      const inProgressTasks = mockBoardWithTasks.tasks.filter((task) => task.columnId === 2);
 
       expect(backlogTasks).toHaveLength(1);
       expect(inProgressTasks).toHaveLength(1);

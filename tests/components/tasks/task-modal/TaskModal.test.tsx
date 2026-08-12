@@ -19,7 +19,7 @@ vi.mock('../../../../src/components/tasks/task-modal/TaskForm', () => ({
     <div>
       <div>{mode}</div>
       {initialData && <div>{JSON.stringify(initialData)}</div>}
-      <button onClick={() => onSubmit({ title: 'Test Task', status: 'backlog', tags: [] })}>
+      <button onClick={() => onSubmit({ title: 'Test Task', columnId: 1, tags: [] })}>
         Submit
       </button>
       <button onClick={onCancel}>Cancel</button>
@@ -38,7 +38,7 @@ describe('TaskModal', () => {
   const mockTask: Task = {
     id: 1,
     title: 'Test Task',
-    status: 'in-progress',
+    columnId: 2,
     tags: ['technical'],
   };
 
@@ -79,7 +79,7 @@ describe('TaskModal', () => {
     fireEvent.click(submitButton);
     expect(onSubmit).toHaveBeenCalledWith({
       title: 'Test Task',
-      status: 'backlog',
+      columnId: 1,
       tags: [],
     });
   });
@@ -158,7 +158,7 @@ describe('TaskModal', () => {
     fireEvent.click(submitButton);
     expect(onSubmit).toHaveBeenCalledWith({
       title: 'Test Task',
-      status: 'backlog',
+      columnId: 1,
       tags: [],
     });
   });
@@ -174,7 +174,7 @@ describe('TaskModal', () => {
     const differentTask: Task = {
       id: 2,
       title: 'Different Task',
-      status: 'completed',
+      columnId: 4,
       tags: ['front-end', 'design'],
     };
     render(<TaskModal {...defaultProps} mode="edit" task={differentTask} />);

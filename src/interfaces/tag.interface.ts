@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { APP_COLOR_PRESETS } from '../constants/color-presets';
 
 /** Etiqueta del usuario (tabla `tags`). */
 export interface Tag {
@@ -15,16 +16,7 @@ export const DEFAULT_TAGS: ReadonlyArray<Pick<Tag, 'name' | 'color'>> = [
   { name: 'Idea', color: '#06b6d4' },
 ] as const;
 
-export const TAG_COLOR_PRESETS = [
-  '#ef4444',
-  '#f59e0b',
-  '#06b6d4',
-  '#0d9488',
-  '#8b5cf6',
-  '#ec4899',
-  '#64748b',
-  '#0ea5e9',
-] as const;
+export const TAG_COLOR_PRESETS = APP_COLOR_PRESETS;
 
 export const MAX_TAGS_PER_TASK = 4;
 

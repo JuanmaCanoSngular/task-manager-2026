@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { MOCK_COLUMNS } from '../utils/mock-columns';
 
-// Mock encadenable del cliente Supabase. Definido con vi.hoisted porque la
-// factory de vi.mock se eleva por encima de las declaraciones del módulo.
 const mocks = vi.hoisted(() => {
   const orderMock = vi.fn();
   const eqMock = vi.fn(() => Promise.resolve({ error: null as Error | null }));
@@ -31,6 +30,12 @@ const mocks = vi.hoisted(() => {
   const getSessionMock = vi.fn(() =>
     Promise.resolve({ data: { session: null as { user: { id: string } } | null } })
   );
+  const fetchColumnsForBoardsMock = vi.fn(() =>
+    Promise.resolve(new Map([[1, MOCK_COLUMNS.map((c) => ({ ...c, boardId: 1 }))]]))
+  );
+  const seedDefaultColumnsMock = vi.fn(() =>
+    Promise.resolve(MOCK_COLUMNS.map((c) => ({ ...c, boardId: 1 })))
+  );
   return {
     orderMock,
     eqMock,
@@ -42,6 +47,8 @@ const mocks = vi.hoisted(() => {
     getSessionMock,
     singleMock,
     selectAfterInsertMock,
+    fetchColumnsForBoardsMock,
+    seedDefaultColumnsMock,
   };
 });
 
@@ -55,6 +62,8 @@ const {
   getSessionMock,
   singleMock,
   selectAfterInsertMock,
+  fetchColumnsForBoardsMock,
+  seedDefaultColumnsMock,
 } = mocks;
 
 vi.mock('../../src/services/supabase', () => ({
@@ -66,6 +75,13 @@ vi.mock('../../src/services/supabase', () => ({
       subscribe: vi.fn().mockReturnThis(),
     })),
     removeChannel: vi.fn(),
+  },
+}));
+
+vi.mock('../../src/services/column.service', () => ({
+  columnService: {
+    fetchColumnsForBoards: mocks.fetchColumnsForBoardsMock,
+    seedDefaultColumns: mocks.seedDefaultColumnsMock,
   },
 }));
 
@@ -89,6 +105,7 @@ describe('Board Service (Supabase)', () => {
               id: 101,
               board_id: 1,
               title: 'Tarea 1',
+              column_id: 1,
               status: 'backlog',
               tags: ['technical'],
               position: 0,
@@ -103,11 +120,12 @@ describe('Board Service (Supabase)', () => {
       expect(fromMock).toHaveBeenCalledWith('tasks');
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({ id: 1, name: 'Productividad' });
+      expect(result[0].columns).toHaveLength(4);
       expect(result[0].tasks).toHaveLength(1);
       expect(result[0].tasks[0]).toMatchObject({
         id: 101,
         title: 'Tarea 1',
-        status: 'backlog',
+        columnId: 1,
         tags: ['technical'],
       });
     });
@@ -119,6 +137,10 @@ describe('Board Service (Supabase)', () => {
           error: null,
         })
         .mockResolvedValueOnce({ data: [], error: null });
+      fetchColumnsForBoardsMock.mockResolvedValueOnce(new Map([[2, []]]));
+      seedDefaultColumnsMock.mockResolvedValueOnce(
+        MOCK_COLUMNS.map((c) => ({ ...c, boardId: 2 }))
+      );
 
       const result = await boardService.getBoards();
       expect(result[0].tasks).toEqual([]);
@@ -153,6 +175,7 @@ describe('Board Service (Supabase)', () => {
       });
       expect(selectAfterInsertMock).toHaveBeenCalled();
       expect(created.id).toBe(42);
+      expect(created.columns).toHaveLength(4);
     });
 
     test('setDefaultBoard limpia el resto y marca el elegido', async () => {
@@ -175,27 +198,32 @@ describe('Board Service (Supabase)', () => {
           id: 10,
           board_id: 1,
           title: 'T',
+          column_id: 1,
           status: 'backlog',
           tags: ['design'],
           position: 3,
         } as Record<string, unknown>,
         error: null,
       });
+      const columns = MOCK_COLUMNS.map((c) => ({ ...c, boardId: 1 }));
       const created = await boardService.insertTask(
         1,
-        { title: 'T', status: 'backlog', tags: ['design'] },
-        3
+        { title: 'T', columnId: 1, tags: ['design'] },
+        3,
+        columns
       );
       expect(fromMock).toHaveBeenCalledWith('tasks');
       expect(insertMock).toHaveBeenCalledWith({
         board_id: 1,
         title: 'T',
+        column_id: 1,
         status: 'backlog',
         background: null,
         tags: ['design'],
         position: 3,
       });
       expect(created.id).toBe(10);
+      expect(created.columnId).toBe(1);
     });
 
     test('deleteTask borra por id', async () => {
@@ -206,13 +234,19 @@ describe('Board Service (Supabase)', () => {
     });
 
     test('updateTask actualiza los campos de la tarea', async () => {
-      await boardService.updateTask(10, {
-        title: 'Editada',
-        status: 'completed',
-        tags: [],
-      });
+      const columns = MOCK_COLUMNS.map((c) => ({ ...c, boardId: 1 }));
+      await boardService.updateTask(
+        10,
+        {
+          title: 'Editada',
+          columnId: 4,
+          tags: [],
+        },
+        columns
+      );
       expect(updateMock).toHaveBeenCalledWith({
         title: 'Editada',
+        column_id: 4,
         status: 'completed',
         background: null,
         tags: [],
@@ -220,13 +254,13 @@ describe('Board Service (Supabase)', () => {
       expect(eqMock).toHaveBeenCalledWith('id', 10);
     });
 
-    test('saveTaskOrder actualiza estado y posición de cada fila', async () => {
+    test('saveTaskOrder actualiza columnId y posición de cada fila', async () => {
       await boardService.saveTaskOrder([
-        { id: 1, status: 'backlog', position: 0 },
-        { id: 2, status: 'in-progress', position: 1 },
+        { id: 1, columnId: 1, position: 0 },
+        { id: 2, columnId: 2, position: 1 },
       ]);
-      expect(updateMock).toHaveBeenCalledWith({ status: 'backlog', position: 0 });
-      expect(updateMock).toHaveBeenCalledWith({ status: 'in-progress', position: 1 });
+      expect(updateMock).toHaveBeenCalledWith({ column_id: 1, position: 0 });
+      expect(updateMock).toHaveBeenCalledWith({ column_id: 2, position: 1 });
       expect(eqMock).toHaveBeenCalledWith('id', 1);
       expect(eqMock).toHaveBeenCalledWith('id', 2);
     });

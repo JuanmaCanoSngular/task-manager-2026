@@ -13,9 +13,10 @@ import { TagsManagerDialog } from '../tags/TagsManagerDialog';
 interface TaskCardProps {
   task: Task;
   index: number;
+  dragType?: string;
 }
 
-export const TaskCard = ({ task, index }: TaskCardProps) => {
+export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const updateTask = useBoardStore((state) => state.updateTask);
@@ -55,7 +56,11 @@ export const TaskCard = ({ task, index }: TaskCardProps) => {
 
   return (
     <>
-      <Draggable draggableId={task.id.toString()} index={index}>
+      <Draggable
+        draggableId={task.id.toString()}
+        index={index}
+        {...(dragType ? ({ type: dragType } as object) : {})}
+      >
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}

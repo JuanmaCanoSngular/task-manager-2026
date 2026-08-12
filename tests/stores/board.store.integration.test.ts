@@ -1,33 +1,38 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { act } from 'react-dom/test-utils';
 import { renderHook } from '@testing-library/react';
-import { Task, TaskStatus } from '../../src/interfaces/task.interface';
+import { Task } from '../../src/interfaces/task.interface';
+import { MOCK_COLUMNS } from '../utils/mock-columns';
 
-// Import the real store without mocking Zustand
 import * as boardStoreModule from '../../src/stores/board.store';
 import { boardService } from '../../src/services/board.service';
 
-// Mock only the board service. Las escrituras (write-through) devuelven promesas
-// resueltas para que el `.catch` del store no falle.
+const mockColumnsForBoard = (boardId: number) =>
+  MOCK_COLUMNS.map((c) => ({ ...c, boardId }));
+
 vi.mock('../../src/services/board.service', () => ({
   boardService: {
     getBoards: vi.fn(),
-    insertBoard: vi.fn(async (board: { name: string; emoji: string; color: string; isDefault: boolean }) => ({
-      id: Math.floor(Math.random() * 100000) + 1,
-      name: board.name,
-      emoji: board.emoji,
-      color: board.color,
-      link: '',
-      isDefault: board.isDefault,
-      tasks: [],
-    })),
+    insertBoard: vi.fn(async (board: { name: string; emoji: string; color: string; isDefault: boolean }) => {
+      const id = Math.floor(Math.random() * 100000) + 1;
+      return {
+        id,
+        name: board.name,
+        emoji: board.emoji,
+        color: board.color,
+        link: '',
+        isDefault: board.isDefault,
+        columns: mockColumnsForBoard(id),
+        tasks: [],
+      };
+    }),
     deleteBoard: vi.fn(() => Promise.resolve()),
     updateBoard: vi.fn(() => Promise.resolve()),
     setDefaultBoard: vi.fn(() => Promise.resolve()),
-    insertTask: vi.fn(async (_boardId: number, task: { title: string; status: string; tags: string[] }) => ({
+    insertTask: vi.fn(async (_boardId: number, task: { title: string; columnId: number; tags: string[] }) => ({
       id: Math.floor(Math.random() * 100000) + 1,
       title: task.title,
-      status: task.status,
+      columnId: task.columnId,
       tags: task.tags,
     })),
     updateTask: vi.fn(() => Promise.resolve()),
@@ -40,10 +45,8 @@ describe('BoardStore Integration Tests', () => {
   let useBoardStore: typeof boardStoreModule.useBoardStore;
 
   beforeEach(() => {
-    // Use the real store for these tests
     useBoardStore = boardStoreModule.useBoardStore;
     vi.clearAllMocks();
-    // Reset state before each test
     act(() => {
       useBoardStore.setState({
         currentBoardId: null,
@@ -62,6 +65,7 @@ describe('BoardStore Integration Tests', () => {
     expect(boards[0].name).toBe('Board Test');
     expect(boards[0].emoji).toBe('');
     expect(boards[0].color).toBe('bg-blue-500');
+    expect(boards[0].columns).toHaveLength(4);
     expect(useBoardStore.getState().currentBoardId).toBe(boards[0].id);
   });
 
@@ -113,7 +117,7 @@ describe('BoardStore Integration Tests', () => {
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
       title: 'Task 1',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['technical' as Task['tags'][number]],
     };
     await act(async () => {
@@ -122,6 +126,7 @@ describe('BoardStore Integration Tests', () => {
     const board = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
     expect(board.tasks).toHaveLength(1);
     expect(board.tasks[0].title).toBe('Task 1');
+    expect(board.tasks[0].columnId).toBe(1);
   });
 
   test('should update a task', async () => {
@@ -131,7 +136,7 @@ describe('BoardStore Integration Tests', () => {
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
       title: 'Task 1',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['technical' as Task['tags'][number]],
     };
     await act(async () => {
@@ -142,13 +147,13 @@ describe('BoardStore Integration Tests', () => {
     act(() => {
       useBoardStore.getState().updateTask(taskId, {
         title: 'Updated Task',
-        status: 'completed',
+        columnId: 4,
         tags: ['design' as Task['tags'][number]],
       });
     });
     const updatedTask = useBoardStore.getState().boards.find((b) => b.id === boardId)!.tasks[0];
     expect(updatedTask.title).toBe('Updated Task');
-    expect(updatedTask.status).toBe('completed');
+    expect(updatedTask.columnId).toBe(4);
     expect(updatedTask.tags).toEqual(['design']);
   });
 
@@ -159,7 +164,7 @@ describe('BoardStore Integration Tests', () => {
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
       title: 'Task 1',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['technical' as Task['tags'][number]],
     };
     await act(async () => {
@@ -174,14 +179,14 @@ describe('BoardStore Integration Tests', () => {
     expect(updatedBoard.tasks).toHaveLength(0);
   });
 
-  test('should move a task to a new status', async () => {
+  test('should move a task to a new column', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const taskData = {
       title: 'Task 1',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['technical' as Task['tags'][number]],
     };
     await act(async () => {
@@ -190,25 +195,25 @@ describe('BoardStore Integration Tests', () => {
     const board = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
     const taskId = board.tasks[0].id;
     act(() => {
-      useBoardStore.getState().moveTask(taskId, 'completed');
+      useBoardStore.getState().moveTask(taskId, 4);
     });
     const updatedTask = useBoardStore.getState().boards.find((b) => b.id === boardId)!.tasks[0];
-    expect(updatedTask.status).toBe('completed');
+    expect(updatedTask.columnId).toBe(4);
   });
 
-  test('should update task order within a status', async () => {
+  test('should update task order within a column', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
     const task1 = {
       title: 'Task 1',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['technical' as Task['tags'][number]],
     };
     const task2 = {
       title: 'Task 2',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['design' as Task['tags'][number]],
     };
     await act(async () => {
@@ -218,7 +223,7 @@ describe('BoardStore Integration Tests', () => {
     const board = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
     const [firstTask, secondTask] = board.tasks;
     act(() => {
-      useBoardStore.getState().updateTaskOrder('backlog', 0, 1);
+      useBoardStore.getState().updateTaskOrder(1, 0, 1);
     });
     const reorderedTasks = useBoardStore.getState().boards.find((b) => b.id === boardId)!.tasks;
     expect(reorderedTasks[0].id).toBe(secondTask.id);
@@ -230,11 +235,10 @@ describe('BoardStore Integration Tests', () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
-    // Try to update a task that doesn't exist
     act(() => {
       useBoardStore.getState().updateTask(999, {
         title: 'Should not exist',
-        status: 'completed',
+        columnId: 4,
         tags: ['design' as Task['tags'][number]],
       });
     });
@@ -247,7 +251,6 @@ describe('BoardStore Integration Tests', () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
-    // Try to remove a task that doesn't exist
     act(() => {
       useBoardStore.getState().removeTask(999);
     });
@@ -260,9 +263,8 @@ describe('BoardStore Integration Tests', () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
     const boardId = useBoardStore.getState().currentBoardId!;
-    // Try to move a task that doesn't exist
     act(() => {
-      useBoardStore.getState().moveTask(999, 'completed');
+      useBoardStore.getState().moveTask(999, 4);
     });
     const board = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
     expect(board.tasks).toHaveLength(0);
@@ -275,7 +277,7 @@ describe('BoardStore Integration Tests', () => {
     const boardId = useBoardStore.getState().currentBoardId!;
     const task1 = {
       title: 'Task 1',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['technical' as Task['tags'][number]],
     };
     await act(async () => {
@@ -283,9 +285,8 @@ describe('BoardStore Integration Tests', () => {
     });
     const board = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
     const originalTask = board.tasks[0];
-    // Try to update order with invalid indices
     act(() => {
-      useBoardStore.getState().updateTaskOrder('backlog', 0, 5); // Invalid destination index
+      useBoardStore.getState().updateTaskOrder(1, 0, 5);
     });
     const updatedBoard = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
     expect(updatedBoard.tasks[0].id).toBe(originalTask.id);
@@ -294,7 +295,7 @@ describe('BoardStore Integration Tests', () => {
   test('should not add task when no board is selected', async () => {
     const taskData = {
       title: 'Task 1',
-      status: 'backlog' as TaskStatus,
+      columnId: 1,
       tags: ['technical' as Task['tags'][number]],
     };
     await act(async () => {
@@ -308,7 +309,7 @@ describe('BoardStore Integration Tests', () => {
     act(() => {
       useBoardStore.getState().updateTask(1, {
         title: 'Updated Task',
-        status: 'completed',
+        columnId: 4,
         tags: ['design' as Task['tags'][number]],
       });
     });
@@ -326,7 +327,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should not move task when no board is selected', async () => {
     act(() => {
-      useBoardStore.getState().moveTask(1, 'completed');
+      useBoardStore.getState().moveTask(1, 4);
     });
     const boards = useBoardStore.getState().boards;
     expect(boards).toHaveLength(0);
@@ -334,7 +335,7 @@ describe('BoardStore Integration Tests', () => {
 
   test('should not update task order when no board is selected', async () => {
     act(() => {
-      useBoardStore.getState().updateTaskOrder('backlog', 0, 1);
+      useBoardStore.getState().updateTaskOrder(1, 0, 1);
     });
     const boards = useBoardStore.getState().boards;
     expect(boards).toHaveLength(0);
@@ -363,7 +364,7 @@ describe('BoardStore Selectors', () => {
   test('useCurrentBoardTasks returns tasks of current board', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
-      await useBoardStore.getState().addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 1', columnId: 1, tags: ['technical'] });
     });
     const { result } = renderHook(() => boardStoreModule.useCurrentBoardTasks());
     expect(result.current).toHaveLength(1);
@@ -384,23 +385,19 @@ describe('BoardStore Selectors', () => {
     expect(result.current?.name).toBe('Board 1');
   });
 
-  test('useTasksByStatus returns empty array if no board selected', async () => {
-    const { result } = renderHook(() => boardStoreModule.useTasksByStatus('backlog'));
+  test('useTasksByColumn returns empty array if no board selected', async () => {
+    const { result } = renderHook(() => boardStoreModule.useTasksByColumn(1));
     expect(result.current).toEqual([]);
   });
 
-  test('useTasksByStatus returns tasks with given status', async () => {
+  test('useTasksByColumn returns tasks in the given column', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
-      await useBoardStore.getState().addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
-      await useBoardStore.getState().addNewTask({ title: 'Task 2', status: 'completed', tags: ['design'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 1', columnId: 1, tags: ['technical'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 2', columnId: 4, tags: ['design'] });
     });
-    const { result: backlogResult } = renderHook(() =>
-      boardStoreModule.useTasksByStatus('backlog')
-    );
-    const { result: completedResult } = renderHook(() =>
-      boardStoreModule.useTasksByStatus('completed')
-    );
+    const { result: backlogResult } = renderHook(() => boardStoreModule.useTasksByColumn(1));
+    const { result: completedResult } = renderHook(() => boardStoreModule.useTasksByColumn(4));
     expect(backlogResult.current).toHaveLength(1);
     expect(backlogResult.current[0].title).toBe('Task 1');
     expect(completedResult.current).toHaveLength(1);
@@ -424,17 +421,14 @@ describe('BoardStore API Integration Tests', () => {
   });
 
   test('fetchBoards should not call API if boards already exist', async () => {
-    // Add a board first
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
     });
 
-    // Try to fetch boards again
     await act(async () => {
       await useBoardStore.getState().fetchBoards();
     });
 
-    // Should not call the API
     expect(boardService.getBoards).not.toHaveBeenCalled();
   });
 
@@ -446,6 +440,7 @@ describe('BoardStore API Integration Tests', () => {
         emoji: '🚀',
         color: '#ff0000',
         link: 'https://example.com/1',
+        columns: mockColumnsForBoard(1),
         tasks: [],
         isDefault: true,
         isLocal: false,
@@ -456,6 +451,7 @@ describe('BoardStore API Integration Tests', () => {
         emoji: '🎯',
         color: '#00ff00',
         link: 'https://example.com/2',
+        columns: mockColumnsForBoard(2),
         tasks: [],
         isDefault: false,
         isLocal: false,
@@ -489,17 +485,14 @@ describe('BoardStore API Integration Tests', () => {
     expect(useBoardStore.getState().boards).toEqual([]);
   });
 
-  // Con Supabase los datos se cargan completos en fetchBoards; fetchBoardDetails
-  // ya no llama al servicio, solo selecciona el tablero activo.
   test('fetchBoardDetails should set currentBoardId without calling the service', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
-      await useBoardStore.getState().addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 1', columnId: 1, tags: ['technical'] });
     });
 
     const boardId = useBoardStore.getState().currentBoardId!;
 
-    // Cambiar la selección a null y volver a seleccionar mediante fetchBoardDetails
     act(() => {
       useBoardStore.setState({ currentBoardId: null });
     });
@@ -524,9 +517,10 @@ describe('BoardStore API Integration Tests', () => {
             color: 'bg-blue-500',
             link: '',
             isDefault: true,
+            columns: mockColumnsForBoard(1),
             tasks: [
-              { id: 1, title: 'Task 1', status: 'backlog', tags: ['technical'] },
-              { id: 2, title: 'Task 2', status: 'completed', tags: ['design'] },
+              { id: 1, title: 'Task 1', columnId: 1, tags: ['technical'] },
+              { id: 2, title: 'Task 2', columnId: 4, tags: ['design'] },
             ],
           },
         ],
@@ -561,9 +555,9 @@ describe('BoardStore Edge Cases', () => {
   test('moveTask with destinationIndex should reorder tasks correctly', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
-      await useBoardStore.getState().addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
-      await useBoardStore.getState().addNewTask({ title: 'Task 2', status: 'completed', tags: ['design'] });
-      await useBoardStore.getState().addNewTask({ title: 'Task 3', status: 'backlog', tags: ['front-end'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 1', columnId: 1, tags: ['technical'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 2', columnId: 4, tags: ['design'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 3', columnId: 1, tags: ['front-end'] });
     });
 
     const boardId = useBoardStore.getState().currentBoardId!;
@@ -571,29 +565,27 @@ describe('BoardStore Edge Cases', () => {
     const taskToMove = board.tasks.find((t) => t.title === 'Task 1')!;
 
     act(() => {
-      useBoardStore.getState().moveTask(taskToMove.id, 'completed', 1);
+      useBoardStore.getState().moveTask(taskToMove.id, 4, 1);
     });
 
     const updatedBoard = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
-    const completedTasks = updatedBoard.tasks.filter((t) => t.status === 'completed');
+    const completedTasks = updatedBoard.tasks.filter((t) => t.columnId === 4);
     expect(completedTasks).toHaveLength(2);
     expect(completedTasks[1].title).toBe('Task 1');
   });
 
-  test('updateTaskOrder should handle edge cases with empty status', async () => {
+  test('updateTaskOrder should handle edge cases with empty column', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
-      await useBoardStore.getState().addNewTask({ title: 'Task 1', status: 'backlog', tags: ['technical'] });
+      await useBoardStore.getState().addNewTask({ title: 'Task 1', columnId: 1, tags: ['technical'] });
     });
 
-    // Try to reorder tasks in a status that doesn't exist
     act(() => {
-      useBoardStore.getState().updateTaskOrder('completed', 0, 1);
+      useBoardStore.getState().updateTaskOrder(4, 0, 1);
     });
 
     const boardId = useBoardStore.getState().currentBoardId!;
     const board = useBoardStore.getState().boards.find((b) => b.id === boardId)!;
-    // Should not change anything
     expect(board.tasks).toHaveLength(1);
     expect(board.tasks[0].title).toBe('Task 1');
   });

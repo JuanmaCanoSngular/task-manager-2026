@@ -277,6 +277,16 @@
     @apply rotate-2 scale-105 shadow-2xl z-50 bg-white dark:bg-gray-800;
   }
 
+  /* Columna mientras se reordena */
+  .column-dragging {
+    @apply scale-[1.02] shadow-2xl z-50 ring-2 ring-teal-400/60 dark:ring-teal-500/50 bg-[var(--surface)];
+  }
+
+  /* Columnas que cederán sitio al soltar */
+  .column-shift-preview {
+    @apply bg-teal-50/40 dark:bg-teal-900/15 opacity-80;
+  }
+
   /* Animación sutil para las cards cuando se mueven */
   .card-move-transition {
     @apply transition-all duration-300 ease-out;

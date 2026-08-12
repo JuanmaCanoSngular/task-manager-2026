@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { describe, test, expect, vi, beforeAll, afterEach, beforeEach } from 'vitest';
 import { render, cleanup, screen } from '@testing-library/react';
 import { setupWindowMocks, cleanupTest } from '../../utils/component-test-utils';
+import { MOCK_COLUMNS } from '../../utils/mock-columns';
 
 beforeAll(() => {
   setupWindowMocks();
@@ -16,22 +17,26 @@ afterEach(() => {
   cleanupTest();
 });
 
+const mockBoardStore = () => ({
+  useBoardStore: () => ({
+    currentBoardId: 1,
+    moveTask: vi.fn(),
+    setDefaultBoard: vi.fn(),
+    applyRemoteTaskInsert: vi.fn(),
+    applyRemoteTaskUpdate: vi.fn(),
+    applyRemoteTaskDelete: vi.fn(),
+    updateTaskOrder: vi.fn(),
+    reorderColumns: vi.fn(),
+  }),
+  useTasksByColumn: () => [],
+  useCurrentBoard: () => ({ id: 1, name: 'Test Board', columns: MOCK_COLUMNS, tasks: [] }),
+  useCurrentBoardColumns: () => MOCK_COLUMNS,
+  useCurrentBoardTasks: () => [],
+});
+
 describe('BoardContent', () => {
   test('should render all status columns when a board is selected', async () => {
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => ({
-        currentBoardId: 1,
-        moveTask: vi.fn(),
-        setDefaultBoard: vi.fn(),
-        applyRemoteTaskInsert: vi.fn(),
-        applyRemoteTaskUpdate: vi.fn(),
-        applyRemoteTaskDelete: vi.fn(),
-        updateTaskOrder: vi.fn(),
-      }),
-      useTasksByStatus: () => [],
-      useCurrentBoard: () => ({ id: 1, name: 'Test Board', tasks: [] }),
-      useCurrentBoardTasks: () => [],
-    }));
+    vi.doMock('../../../src/stores/board.store', mockBoardStore);
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
     expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
@@ -40,50 +45,16 @@ describe('BoardContent', () => {
     expect(screen.getByText(/completada/i)).toBeInTheDocument();
   });
 
-  test('should have the correct grid structure', async () => {
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => ({
-        currentBoardId: 1,
-        moveTask: vi.fn(),
-        setDefaultBoard: vi.fn(),
-        applyRemoteTaskInsert: vi.fn(),
-        applyRemoteTaskUpdate: vi.fn(),
-        applyRemoteTaskDelete: vi.fn(),
-        updateTaskOrder: vi.fn(),
-      }),
-      useTasksByStatus: () => [],
-      useCurrentBoard: () => ({ id: 1, name: 'Test Board', tasks: [] }),
-      useCurrentBoardTasks: () => [],
-    }));
+  test('should have the correct flex structure', async () => {
+    vi.doMock('../../../src/stores/board.store', mockBoardStore);
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
-    const mainContainer = screen.getByText(/pendiente/i).closest('div[class*="grid"]');
-    expect(mainContainer).toHaveClass(
-      'grid',
-      'grid-cols-1',
-      'md:grid-cols-2',
-      'lg:grid-cols-4',
-      'gap-4',
-      'md:gap-5',
-      'h-full'
-    );
+    const columnsContainer = screen.getByTestId('board-columns-scroll');
+    expect(columnsContainer).toHaveClass('flex', 'gap-4', 'overflow-x-auto', 'min-w-0');
   });
 
   test('should have the main container with the correct classes', async () => {
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => ({
-        currentBoardId: 1,
-        moveTask: vi.fn(),
-        setDefaultBoard: vi.fn(),
-        applyRemoteTaskInsert: vi.fn(),
-        applyRemoteTaskUpdate: vi.fn(),
-        applyRemoteTaskDelete: vi.fn(),
-        updateTaskOrder: vi.fn(),
-      }),
-      useTasksByStatus: () => [],
-      useCurrentBoard: () => ({ id: 1, name: 'Test Board', tasks: [] }),
-      useCurrentBoardTasks: () => [],
-    }));
+    vi.doMock('../../../src/stores/board.store', mockBoardStore);
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
     const container = screen.getByText(/pendiente/i).closest('div[class*="rounded-2xl"]');
@@ -91,20 +62,7 @@ describe('BoardContent', () => {
   });
 
   test('should render exactly 4 status columns', async () => {
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => ({
-        currentBoardId: 1,
-        moveTask: vi.fn(),
-        setDefaultBoard: vi.fn(),
-        applyRemoteTaskInsert: vi.fn(),
-        applyRemoteTaskUpdate: vi.fn(),
-        applyRemoteTaskDelete: vi.fn(),
-        updateTaskOrder: vi.fn(),
-      }),
-      useTasksByStatus: () => [],
-      useCurrentBoard: () => ({ id: 1, name: 'Test Board', tasks: [] }),
-      useCurrentBoardTasks: () => [],
-    }));
+    vi.doMock('../../../src/stores/board.store', mockBoardStore);
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
     const columns = [
@@ -117,20 +75,7 @@ describe('BoardContent', () => {
   });
 
   test('should render the drag and drop context', async () => {
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => ({
-        currentBoardId: 1,
-        moveTask: vi.fn(),
-        setDefaultBoard: vi.fn(),
-        applyRemoteTaskInsert: vi.fn(),
-        applyRemoteTaskUpdate: vi.fn(),
-        applyRemoteTaskDelete: vi.fn(),
-        updateTaskOrder: vi.fn(),
-      }),
-      useTasksByStatus: () => [],
-      useCurrentBoard: () => ({ id: 1, name: 'Test Board', tasks: [] }),
-      useCurrentBoardTasks: () => [],
-    }));
+    vi.doMock('../../../src/stores/board.store', mockBoardStore);
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
     expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
@@ -140,20 +85,7 @@ describe('BoardContent', () => {
   });
 
   test('should have correct semantic structure for columns', async () => {
-    vi.doMock('../../../src/stores/board.store', () => ({
-      useBoardStore: () => ({
-        currentBoardId: 1,
-        moveTask: vi.fn(),
-        setDefaultBoard: vi.fn(),
-        applyRemoteTaskInsert: vi.fn(),
-        applyRemoteTaskUpdate: vi.fn(),
-        applyRemoteTaskDelete: vi.fn(),
-        updateTaskOrder: vi.fn(),
-      }),
-      useTasksByStatus: () => [],
-      useCurrentBoard: () => ({ id: 1, name: 'Test Board', tasks: [] }),
-      useCurrentBoardTasks: () => [],
-    }));
+    vi.doMock('../../../src/stores/board.store', mockBoardStore);
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
     const backlogColumn = screen.getByText(/pendiente/i);

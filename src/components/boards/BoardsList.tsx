@@ -3,6 +3,7 @@ import { BoardCard } from './BoardCard';
 import { AddNewBoardButton } from './AddNewBoardButton';
 import { BoardSelectMobile } from './BoardSelectMobile';
 import { RemoveBoardMobileButton } from './RemoveBoardMobileButton';
+import { CreateTaskButton } from '../tasks/CreateTaskButton';
 
 export const BoardsList = () => {
   const boards = useBoardStore((state) => state.boards);
@@ -22,6 +23,7 @@ export const BoardsList = () => {
               <BoardCard key={board.id} board={board} />
             ))}
             <AddNewBoardButton />
+            <CreateTaskButton />
           </div>
         </nav>
       </div>
@@ -29,6 +31,7 @@ export const BoardsList = () => {
       {/* Action buttons for mobile */}
       <div className="md:hidden flex flex-col gap-4">
         <AddNewBoardButton />
+        <CreateTaskButton />
         <RemoveBoardMobileButton />
       </div>
     </div>

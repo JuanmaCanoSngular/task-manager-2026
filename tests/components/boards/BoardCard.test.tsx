@@ -3,6 +3,7 @@ import { describe, test, expect, vi, beforeAll, afterEach, beforeEach } from 'vi
 import { render, cleanup, screen, fireEvent } from '@testing-library/react';
 import { setupWindowMocks, cleanupTest, getByRole } from '../../utils/component-test-utils';
 import { Board } from '../../../src/interfaces/board.interface';
+import { MOCK_COLUMNS } from '../../utils/mock-columns';
 
 const board: Board = {
   id: 1,
@@ -10,6 +11,7 @@ const board: Board = {
   emoji: '📝',
   color: '#ffcc00',
   link: 'test-board',
+  columns: MOCK_COLUMNS,
   tasks: [],
   isDefault: false,
 };
@@ -20,6 +22,7 @@ const otherBoard: Board = {
   emoji: '',
   color: '#000',
   link: '',
+  columns: MOCK_COLUMNS.map((c) => ({ ...c, boardId: 2 })),
   tasks: [],
   isDefault: true,
 };

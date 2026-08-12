@@ -41,6 +41,7 @@ describe('App', () => {
     vi.doMock('../src/stores/board.store', () => ({
       useBoardStore: mockUseBoardStore,
       useCurrentBoard: () => null,
+      useCurrentBoardColumns: () => [],
     }));
 
     const { default: App } = await import('../src/App');
@@ -81,6 +82,7 @@ describe('App', () => {
     vi.doMock('../src/stores/board.store', () => ({
       useBoardStore: mockUseBoardStore,
       useCurrentBoard: () => null,
+      useCurrentBoardColumns: () => [],
     }));
 
     const { default: App } = await import('../src/App');
@@ -111,6 +113,7 @@ describe('App', () => {
     vi.doMock('../src/stores/board.store', () => ({
       useBoardStore: mockUseBoardStore,
       useCurrentBoard: () => null,
+      useCurrentBoardColumns: () => [],
     }));
 
     const { default: App } = await import('../src/App');

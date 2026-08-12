@@ -39,11 +39,11 @@ tablero por defecto del usuario.
 
 ### Pendiente relevante
 
-- **A3** Columnas 100 % personalizables por tablero (mayor reto abierto).
 - **A5** Comentarios en tareas (añadir / editar; contexto de bloqueos, etc.).
 - Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
 - Dominio corto `juanmacano.eu/tablero` → producción (**E1**, al final).
 - Alinear README / DEVELOPERS con el estado real (menor).
+- Ejecutar `supabase/columns-schema.sql` en Supabase si el tablero aún no carga columnas.
 
 ---
 
@@ -62,13 +62,13 @@ tablero por defecto del usuario.
 - En la provisión de usuarios nuevos hay una tarea de ejemplo en Bloqueos.
 - Queda pendiente en A3 que sea una columna editable por tablero (no solo label global).
 
-### A3. Columnas personalizables por tablero ← **siguiente**
+### A3. Columnas personalizables por tablero — ✅ (MVP)
 
-- Crear / renombrar / color / eliminar (con confirmación y cascade de tasks).
-- Modelo `columns` por `board_id`; dejar de hardcodear `TASK_STATUS`.
-- Migrar tareas existentes (`status` → `column_id`).
-- **Pendiente** sigue siendo el inbox por defecto de tareas nuevas (y del bot).
-- Impacta UI (DnD, formularios), Realtime y agente Telegram (`/pendientes`, `/bloqueos`).
+- Tabla `board_columns` por tablero (`supabase/columns-schema.sql`).
+- CRUD en UI: botón **Columnas** en el tablero (renombrar, color, añadir, eliminar con cascade de tareas).
+- Reordenar columnas arrastrando la cabecera; scroll horizontal solo en el área del tablero si hay >4 columnas.
+- Kanban, DnD, formularios y Telegram usan `column_id`; inbox (`is_inbox`) = Pendiente.
+- SQL pendiente en Supabase si aún no se ejecutó: `supabase/columns-schema.sql`.
 
 ### A4. Imagen de fondo de tarjeta (URL) — ✅
 
@@ -200,15 +200,14 @@ Comandos:
 ## Prioridad recomendada
 
 ### Alta
-1. **A3** Columnas personalizables (Pendiente = inbox; Bloqueos editable)
+1. **A5** Comentarios en tarea
 
 ### Media
-2. **A5** Comentarios en tarea
-3. **D** Voz en Telegram (luego WhatsApp / Alexa)
-4. Docs: README / DEVELOPERS al día
+2. **D** Voz en Telegram (luego WhatsApp / Alexa)
+3. Docs: README / DEVELOPERS al día
 
 ### Al final
-5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+4. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 
@@ -223,8 +222,8 @@ Comandos:
 ```
 profiles          — auth + status de acceso
 boards            — user_id, name, color, is_default, …
-columns           — board_id, name, color, position   ← A3 (pendiente)
-tasks             — board_id, status|column_id, title, tags, background (URL), …
+columns           — board_id, name, color, position, slug, is_inbox   ← A3 ✅
+tasks             — board_id, column_id, title, tags, background (URL), …
 task_comments     — task_id, body, timestamps   ← A5 (pendiente)
 tags              — C2 ✅
 channel_links     — user_id, provider, external_id    ← D Telegram ✅
@@ -239,13 +238,10 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 - Imagen por URL (sin Unsplash)
 - Etiquetas, Telegram MVP, keep-alive, borrado de cuenta
 
-### Siguiente — **A3 Tablero flexible**
-- Tabla `columns` + migración desde `TASK_STATUS`
-- CRUD columnas (UI + cascade)
-- Adaptar DnD, formularios, Realtime y bot Telegram
+### Siguiente — **A5 Comentarios en tarea**
+- Tabla `task_comments` + UI en modal de tarea
 
 ### Después
-- **A5** Comentarios en tarea (contexto de bloqueos, etc.)
 - Voz / WhatsApp / Alexa
 - **Al final:** redirect `juanmacano.eu/tablero`
 

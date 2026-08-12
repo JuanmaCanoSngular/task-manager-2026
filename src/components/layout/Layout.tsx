@@ -24,7 +24,7 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="h-screen flex flex-col text-light dark:text-dark">
+    <div className="h-screen flex flex-col text-light dark:text-dark overflow-hidden">
       <header className="relative flex-shrink-0 flex items-center justify-center p-4">
         <div className="absolute left-4 top-1/2 -translate-y-1/2">
           <ToggleTheme />
@@ -49,7 +49,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
       <ErrorBanner />
 
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 min-h-0 min-w-0 overflow-hidden">{children}</main>
     </div>
   );
 };

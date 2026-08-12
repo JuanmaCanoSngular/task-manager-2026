@@ -4,6 +4,7 @@ import { TrashIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import { TAG_COLOR_PRESETS } from '../../interfaces/tag.interface';
 import { useTagStore } from '../../stores/tag.store';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { ColorPicker } from '../common/ColorPicker';
 
 interface TagsManagerDialogProps {
   open: boolean;
@@ -78,54 +79,49 @@ export const TagsManagerDialog = ({ open, onClose }: TagsManagerDialogProps) => 
                     </p>
                   )}
 
-                  <ul className="space-y-2 mb-6 max-h-56 overflow-y-auto">
+                  <ul className="space-y-3 mb-6 max-h-56 overflow-y-auto">
                     {tags.map((tag) => (
                       <li
                         key={tag.id}
-                        className="flex items-center gap-2 rounded-xl border px-3 py-2"
+                        className="flex flex-col gap-2 rounded-xl border px-3 py-2.5"
                         style={{ borderColor: 'var(--border)' }}
                       >
-                        <span
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: tag.color }}
-                          aria-hidden
-                        />
-                        <input
-                          className="input-base flex-1 py-1.5 text-sm"
-                          defaultValue={tag.name}
-                          key={`${tag.id}-${tag.name}`}
-                          onBlur={(e) => {
-                            const next = e.target.value.trim();
-                            if (next && next !== tag.name) {
-                              void updateTag(tag.id, { name: next });
-                            } else {
-                              e.target.value = tag.name;
-                            }
-                          }}
-                          aria-label={`Nombre de ${tag.name}`}
-                        />
-                        <div className="flex gap-1" role="group" aria-label={`Color de ${tag.name}`}>
-                          {TAG_COLOR_PRESETS.slice(0, 4).map((c) => (
-                            <button
-                              key={c}
-                              type="button"
-                              className={`w-5 h-5 rounded-full border-2 ${
-                                tag.color === c ? 'border-gray-800 dark:border-white' : 'border-transparent'
-                              }`}
-                              style={{ backgroundColor: c }}
-                              aria-label={`Color ${c}`}
-                              onClick={() => void updateTag(tag.id, { color: c })}
-                            />
-                          ))}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: tag.color }}
+                            aria-hidden
+                          />
+                          <input
+                            className="input-base flex-1 min-w-0 py-1.5 text-sm"
+                            defaultValue={tag.name}
+                            key={`${tag.id}-${tag.name}`}
+                            onBlur={(e) => {
+                              const next = e.target.value.trim();
+                              if (next && next !== tag.name) {
+                                void updateTag(tag.id, { name: next });
+                              } else {
+                                e.target.value = tag.name;
+                              }
+                            }}
+                            aria-label={`Nombre de ${tag.name}`}
+                          />
+                          <button
+                            type="button"
+                            className="btn-remove p-1.5 flex-shrink-0"
+                            aria-label={`Eliminar ${tag.name}`}
+                            onClick={() => setDeleteId(tag.id)}
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          className="btn-remove p-1.5"
-                          aria-label={`Eliminar ${tag.name}`}
-                          onClick={() => setDeleteId(tag.id)}
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
+                        <ColorPicker
+                          value={tag.color}
+                          onChange={(c) => void updateTag(tag.id, { color: c })}
+                          presets={TAG_COLOR_PRESETS}
+                          size="xs"
+                          ariaLabel={`Color de ${tag.name}`}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -139,21 +135,13 @@ export const TagsManagerDialog = ({ open, onClose }: TagsManagerDialogProps) => 
                       onChange={(e) => setName(e.target.value)}
                       maxLength={32}
                     />
-                    <div className="flex flex-wrap gap-2">
-                      {TAG_COLOR_PRESETS.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          className={`w-7 h-7 rounded-full border-2 ${
-                            color === c ? 'border-gray-900 dark:border-white scale-110' : 'border-transparent'
-                          }`}
-                          style={{ backgroundColor: c }}
-                          aria-label={`Elegir color ${c}`}
-                          aria-pressed={color === c}
-                          onClick={() => setColor(c)}
-                        />
-                      ))}
-                    </div>
+                    <ColorPicker
+                      value={color}
+                      onChange={setColor}
+                      presets={TAG_COLOR_PRESETS}
+                      size="sm"
+                      ariaLabel="Color de la nueva etiqueta"
+                    />
                     <button
                       type="button"
                       className="btn-primary text-sm w-full justify-center"

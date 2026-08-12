@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { describe, test, expect, vi, beforeAll, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { setupWindowMocks, cleanupTest } from '../../utils/component-test-utils';
-import type { Task } from '../../../src/interfaces/task.interface';
+import { MOCK_COLUMNS, mockTask } from '../../utils/mock-columns';
 
 beforeAll(() => {
   setupWindowMocks();
@@ -55,7 +55,7 @@ vi.mock('@hello-pangea/dnd', () => ({
 
 // Mock board store
 vi.mock('../../../src/stores/board.store', () => ({
-  useTasksByStatus: vi.fn(),
+  useTasksByColumn: vi.fn(),
   useBoardStore: vi.fn((selector) => {
     const state = {
       updateTask: vi.fn(),
@@ -70,121 +70,89 @@ vi.mock('../../../src/stores/tag.store', () => ({
   useTagStore: (selector: (s: { tags: unknown[] }) => unknown) => selector({ tags: [] }),
 }));
 
+const backlogColumn = MOCK_COLUMNS[0];
+const inProgressColumn = MOCK_COLUMNS[1];
+const inReviewColumn = MOCK_COLUMNS[2];
+const completedColumn = MOCK_COLUMNS[3];
+
 describe('StatusColumn', () => {
   test('renders correctly with tasks', async () => {
     const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'backlog' as const, tags: ['tag-1'] as Task['tags'] },
-      { id: 2, title: 'Task 2', status: 'backlog' as const, tags: ['tag-fe'] as Task['tags'] },
+      mockTask({ id: 1, title: 'Task 1', columnId: 1, tags: ['tag-1'] }),
+      mockTask({ id: 2, title: 'Task 2', columnId: 1, tags: ['tag-fe'] }),
     ];
 
-    const { useTasksByStatus } = await import('../../../src/stores/board.store');
-    vi.mocked(useTasksByStatus).mockReturnValue(mockTasks);
+    const { useTasksByColumn } = await import('../../../src/stores/board.store');
+    vi.mocked(useTasksByColumn).mockReturnValue(mockTasks);
 
     const { StatusColumn } = await import('../../../src/components/boards/StatusColumn');
-    render(<StatusColumn status="backlog" label="Backlog" color="bg-gray-500" />);
+    render(<StatusColumn column={backlogColumn} />);
 
-    // Should render the column header with task count
-    expect(screen.getByText('Backlog (2)')).toBeInTheDocument();
-
-    // Should render task cards
+    const heading = screen.getByRole('heading', { name: /pendiente \(2\)/i });
+    expect(heading).toBeInTheDocument();
     expect(screen.getByText('Task 1')).toBeInTheDocument();
     expect(screen.getByText('Task 2')).toBeInTheDocument();
 
-    // Should render the color indicator using a more specific selector
-    const colorIndicator = screen
-      .getByText('Backlog (2)')
-      .querySelector('span[aria-hidden="true"]');
-    expect(colorIndicator).toHaveClass('bg-gray-500');
+    const colorIndicator = heading.querySelector('span.rounded-full');
+    expect(colorIndicator).toHaveStyle({ backgroundColor: backlogColumn.color });
   });
 
   test('renders correctly without tasks', async () => {
-    const { useTasksByStatus } = await import('../../../src/stores/board.store');
-    vi.mocked(useTasksByStatus).mockReturnValue([]);
+    const { useTasksByColumn } = await import('../../../src/stores/board.store');
+    vi.mocked(useTasksByColumn).mockReturnValue([]);
 
     const { StatusColumn } = await import('../../../src/components/boards/StatusColumn');
-    render(<StatusColumn status="in-progress" label="In Progress" color="bg-yellow-300" />);
+    render(<StatusColumn column={inProgressColumn} />);
 
-    // Should render the column header with zero count
-    expect(screen.getByText('In Progress (0)')).toBeInTheDocument();
-
-    // Should not render any task cards
+    const heading = screen.getByRole('heading', { name: /en progreso \(0\)/i });
+    expect(heading).toBeInTheDocument();
     expect(screen.queryByText('Task 1')).not.toBeInTheDocument();
 
-    // Should render the color indicator using a more specific selector
-    const colorIndicator = screen
-      .getByText('In Progress (0)')
-      .querySelector('span[aria-hidden="true"]');
-    expect(colorIndicator).toHaveClass('bg-yellow-300');
+    const colorIndicator = heading.querySelector('span.rounded-full');
+    expect(colorIndicator).toHaveStyle({ backgroundColor: inProgressColumn.color });
   });
 
-  test('renders CreateTaskButton only for backlog status', async () => {
-    const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'backlog' as const, tags: ['tag-1'] as Task['tags'] },
-    ];
+  test('does not render add task button inside the column', async () => {
+    const mockTasks = [mockTask({ id: 1, title: 'Task 1', columnId: 1, tags: ['tag-1'] })];
 
-    const { useTasksByStatus } = await import('../../../src/stores/board.store');
-    vi.mocked(useTasksByStatus).mockReturnValue(mockTasks);
+    const { useTasksByColumn } = await import('../../../src/stores/board.store');
+    vi.mocked(useTasksByColumn).mockReturnValue(mockTasks);
 
     const { StatusColumn } = await import('../../../src/components/boards/StatusColumn');
 
-    // Render with backlog status (should show CreateTaskButton)
-    const { rerender } = render(
-      <StatusColumn status="backlog" label="Backlog" color="bg-gray-500" />
-    );
-
-    // Should render CreateTaskButton for backlog
-    expect(screen.getByRole('button', { name: /añadir nueva tarea/i })).toBeInTheDocument();
-
-    // Render with in-progress status (should not show CreateTaskButton)
-    rerender(<StatusColumn status="in-progress" label="In Progress" color="bg-yellow-300" />);
-
-    // Should not render CreateTaskButton for non-backlog status
+    render(<StatusColumn column={backlogColumn} />);
     expect(screen.queryByRole('button', { name: /añadir nueva tarea/i })).not.toBeInTheDocument();
   });
 
-  test('renders with different status types', async () => {
-    const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'in-review' as const, tags: ['tag-design'] as Task['tags'] },
-    ];
+  test('renders with different column types', async () => {
+    const mockTasks = [mockTask({ id: 1, title: 'Task 1', columnId: 3, tags: ['tag-design'] })];
 
-    const { useTasksByStatus } = await import('../../../src/stores/board.store');
-    vi.mocked(useTasksByStatus).mockReturnValue(mockTasks);
+    const { useTasksByColumn } = await import('../../../src/stores/board.store');
+    vi.mocked(useTasksByColumn).mockReturnValue(mockTasks);
 
     const { StatusColumn } = await import('../../../src/components/boards/StatusColumn');
-    render(<StatusColumn status="in-review" label="Bloqueos" color="bg-red-500" />);
+    render(<StatusColumn column={inReviewColumn} />);
 
-    // Should render the correct label and count
-    expect(screen.getByText('Bloqueos (1)')).toBeInTheDocument();
-
-    // Should render the task
+    const heading = screen.getByRole('heading', { name: /bloqueos \(1\)/i });
+    expect(heading).toBeInTheDocument();
     expect(screen.getByText('Task 1')).toBeInTheDocument();
 
-    // Should render the correct color indicator
-    const colorIndicator = screen
-      .getByText('Bloqueos (1)')
-      .querySelector('span[aria-hidden="true"]');
-    expect(colorIndicator).toHaveClass('bg-red-500');
+    const colorIndicator = heading.querySelector('span.rounded-full');
+    expect(colorIndicator).toHaveStyle({ backgroundColor: inReviewColumn.color });
   });
 
   test('has correct accessibility structure', async () => {
-    const mockTasks = [
-      { id: 1, title: 'Task 1', status: 'completed' as const, tags: ['tag-1'] as Task['tags'] },
-    ];
+    const mockTasks = [mockTask({ id: 1, title: 'Task 1', columnId: 4, tags: ['tag-1'] })];
 
-    const { useTasksByStatus } = await import('../../../src/stores/board.store');
-    vi.mocked(useTasksByStatus).mockReturnValue(mockTasks);
+    const { useTasksByColumn } = await import('../../../src/stores/board.store');
+    vi.mocked(useTasksByColumn).mockReturnValue(mockTasks);
 
     const { StatusColumn } = await import('../../../src/components/boards/StatusColumn');
-    render(<StatusColumn status="completed" label="Completed" color="bg-green-400" />);
+    render(<StatusColumn column={completedColumn} />);
 
-    // Should have proper heading structure
     const heading = screen.getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Completed (1)');
-
-    // Should have droppable area with role list
+    expect(heading).toHaveTextContent('Completada (1)');
     expect(screen.getByRole('list')).toBeInTheDocument();
-
-    // Should have placeholder for drag and drop
     expect(screen.getByTestId('placeholder')).toBeInTheDocument();
   });
 });

@@ -1,13 +1,13 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Task, TaskDraft, TASK_STATUS } from '../../../interfaces/task.interface';
+import { Task, TaskDraft } from '../../../interfaces/task.interface';
 import { MAX_TAGS_PER_TASK } from '../../../interfaces/tag.interface';
+import { getInboxColumn } from '../../../interfaces/column.interface';
+import { useCurrentBoardColumns } from '../../../stores/board.store';
 import { TaskTitle } from './TaskTitle';
 import { TaskImageUrl } from './TaskImageUrl';
 import { isValidImageUrl } from '../../../utils/imageUrl';
-import { TaskStatus } from './TaskStatus';
+import { TaskColumnSelect } from './TaskColumnSelect';
 import { TaskTags } from './TaskTags';
-
-type Status = (typeof TASK_STATUS)[number]['status'];
 
 interface TaskFormProps {
   mode: 'create' | 'edit';
@@ -24,8 +24,12 @@ export const TaskForm = ({
   onCancel,
   onManageTags,
 }: TaskFormProps) => {
+  const columns = useCurrentBoardColumns();
+  const inboxColumn = getInboxColumn(columns);
+  const defaultColumnId = inboxColumn?.id ?? columns[0]?.id ?? 0;
+
   const [title, setTitle] = useState(initialData?.title || '');
-  const [status, setStatus] = useState<Status>(initialData?.status || TASK_STATUS[0].status);
+  const [columnId, setColumnId] = useState(initialData?.columnId ?? defaultColumnId);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
   const [showTagWarning, setShowTagWarning] = useState(false);
   const [backgroundUrl, setBackgroundUrl] = useState(initialData?.background || '');
@@ -33,21 +37,21 @@ export const TaskForm = ({
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || '');
-      setStatus(initialData.status || TASK_STATUS[0].status);
+      setColumnId(initialData.columnId ?? defaultColumnId);
       setSelectedTags(initialData.tags || []);
       setBackgroundUrl(initialData.background || '');
     }
-  }, [initialData]);
+  }, [initialData, defaultColumnId]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !columnId) return;
     if (!isValidImageUrl(backgroundUrl)) return;
 
     const background = backgroundUrl.trim();
     onSubmit({
       title,
-      status,
+      columnId,
       tags: selectedTags,
       background: background || undefined,
     });
@@ -72,7 +76,9 @@ export const TaskForm = ({
 
       <TaskImageUrl value={backgroundUrl} onChange={setBackgroundUrl} />
 
-      <TaskStatus value={status} onChange={setStatus} />
+      {columns.length > 0 && (
+        <TaskColumnSelect columns={columns} value={columnId} onChange={setColumnId} />
+      )}
 
       <TaskTags
         selectedTags={selectedTags}
@@ -85,7 +91,11 @@ export const TaskForm = ({
         <button type="button" onClick={onCancel} className="btn-secondary">
           Cancelar
         </button>
-        <button type="submit" className="btn-primary" disabled={!isValidImageUrl(backgroundUrl)}>
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={!isValidImageUrl(backgroundUrl) || !columnId}
+        >
           {mode === 'create' ? 'Añadir tarea' : 'Guardar cambios'}
         </button>
       </div>

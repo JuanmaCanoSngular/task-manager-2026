@@ -1,6 +1,12 @@
 // Lógica compartida del agente (Gemini + tablero default).
 // Importable desde Edge Functions Deno.
 
+import {
+  getBlockersColumnId,
+  getInboxColumnId,
+  seedDefaultColumns,
+} from './columns.js';
+
 // 3.1 flash-lite: barato y sin “thinking” ruidoso. Override con secret GEMINI_MODEL.
 const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-3.1-flash-lite';
 
@@ -158,12 +164,25 @@ export async function createTaskOnDefault(supabase, userId, text) {
     return { error: 'No pude entender la tarea. Prueba a reformular.' };
   }
 
-  // Coloca la nueva tarea arriba de su columna (position mínima entre hermanas).
+  let inboxColumnId = await getInboxColumnId(supabase, board.id);
+  if (!inboxColumnId) {
+    try {
+      const cols = await seedDefaultColumns(supabase, board.id, userId);
+      inboxColumnId = cols.find((c) => c.is_inbox)?.id ?? cols[0]?.id ?? null;
+    } catch {
+      inboxColumnId = null;
+    }
+  }
+
+  const siblingFilter = inboxColumnId
+    ? { column: 'column_id', value: inboxColumnId }
+    : { column: 'status', value: 'backlog' };
+
   const { data: siblings } = await supabase
     .from('tasks')
     .select('id, position')
     .eq('board_id', board.id)
-    .eq('status', 'backlog')
+    .eq(siblingFilter.column, siblingFilter.value)
     .order('position', { ascending: true });
 
   const insertAt =
@@ -188,17 +207,20 @@ export async function createTaskOnDefault(supabase, userId, text) {
     );
   }
 
+  const insertRow = {
+    board_id: board.id,
+    user_id: userId,
+    title,
+    status: 'backlog',
+    tags: [],
+    position: insertAt,
+  };
+  if (inboxColumnId) insertRow.column_id = inboxColumnId;
+
   const { data: task, error: insertError } = await supabase
     .from('tasks')
-    .insert({
-      board_id: board.id,
-      user_id: userId,
-      title,
-      status: 'backlog',
-      tags: [],
-      position: insertAt,
-    })
-    .select('id, title, status')
+    .insert(insertRow)
+    .select('id, title, status, column_id')
     .single();
 
   if (insertError) return { error: insertError.message };
@@ -212,11 +234,23 @@ export async function listPendingTasks(supabase, userId) {
     return { error: 'No tienes un tablero por defecto.' };
   }
 
+  let inboxColumnId = await getInboxColumnId(supabase, board.id);
+  if (!inboxColumnId) {
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select('id, title')
+      .eq('board_id', board.id)
+      .eq('status', 'backlog')
+      .order('position', { ascending: true });
+    if (error) return { error: error.message };
+    return { board, tasks: tasks ?? [] };
+  }
+
   const { data: tasks, error } = await supabase
     .from('tasks')
     .select('id, title')
     .eq('board_id', board.id)
-    .eq('status', 'backlog')
+    .eq('column_id', inboxColumnId)
     .order('position', { ascending: true });
 
   if (error) return { error: error.message };
@@ -230,11 +264,23 @@ export async function listBlockedTasks(supabase, userId) {
     return { error: 'No tienes un tablero por defecto.' };
   }
 
+  let blockersColumnId = await getBlockersColumnId(supabase, board.id);
+  if (!blockersColumnId) {
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select('id, title')
+      .eq('board_id', board.id)
+      .eq('status', 'in-review')
+      .order('position', { ascending: true });
+    if (error) return { error: error.message };
+    return { board, tasks: tasks ?? [] };
+  }
+
   const { data: tasks, error } = await supabase
     .from('tasks')
     .select('id, title')
     .eq('board_id', board.id)
-    .eq('status', 'in-review')
+    .eq('column_id', blockersColumnId)
     .order('position', { ascending: true });
 
   if (error) return { error: error.message };

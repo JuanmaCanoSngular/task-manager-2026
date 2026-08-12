@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { describe, test, expect, vi, beforeAll, afterEach, beforeEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import { setupWindowMocks, cleanupTest } from '../../utils/component-test-utils';
+import { mockBoardStoreExtras } from '../../utils/mock-columns';
 
 beforeAll(() => {
   setupWindowMocks();
@@ -37,6 +38,7 @@ vi.mock('../../../src/stores/board.store', () => ({
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
     };
     return selector(state);
   }),
@@ -66,6 +68,7 @@ describe('RemoveBoardMobileButton', () => {
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
       };
       return selector(state);
     });
@@ -104,6 +107,7 @@ describe('RemoveBoardMobileButton', () => {
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
       };
       return selector(state);
     });
@@ -140,6 +144,7 @@ describe('RemoveBoardMobileButton', () => {
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
       };
       return selector(state);
     });
@@ -194,6 +199,7 @@ describe('RemoveBoardMobileButton', () => {
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
       };
       return selector(state);
     });
@@ -245,6 +251,7 @@ describe('RemoveBoardMobileButton', () => {
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
       };
       return selector(state);
     });
@@ -293,6 +300,7 @@ describe('RemoveBoardMobileButton', () => {
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
       };
       return selector(state);
     });
@@ -343,6 +351,7 @@ describe('RemoveBoardMobileButton', () => {
         applyRemoteTaskUpdate: vi.fn(),
         applyRemoteTaskDelete: vi.fn(),
         updateTaskOrder: vi.fn(),
+        ...mockBoardStoreExtras,
       };
       return selector(state);
     });
