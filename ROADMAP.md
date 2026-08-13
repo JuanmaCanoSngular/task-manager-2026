@@ -31,7 +31,7 @@ tablero por defecto del usuario.
 | Marca / UI | Tinta + teal; logo columnas; Source Sans 3 self-hosted |
 | Tema | Claro/oscuro: View Transitions + `clip-path`; toggle sol/luna en header |
 | Etiquetas | CRUD por usuario; estándar Urgente / Importante / Idea |
-| Imagen tarjeta | URL externa opcional (`tasks.background`); sin hosting |
+| Imagen tarjeta | URL externa + buscador Unsplash (A6) en modal |
 | Telegram | Bot + Gemini: vincular, crear, `/pendientes`, `/bloqueos` |
 | Keep-alive | Cron GitHub Actions cada 3 días (Supabase free) |
 | Idioma | Solo español |
@@ -40,7 +40,6 @@ tablero por defecto del usuario.
 
 ### Pendiente relevante
 
-- **A6** Buscador de imágenes en creación/edición de tarea (thumbnails, vista grande, quitar/cambiar).
 - Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
 - **F1** Posible integración bidireccional con Google Calendar (exploración).
 - Dominio corto `juanmacano.eu/tablero` → producción (**E1**, al final).
@@ -84,18 +83,12 @@ tablero por defecto del usuario.
 - Tabla `task_comments` (`supabase/comments-schema.sql`): `task_id`, `body`, `created_at`, `updated_at`, `user_id`.
 - UI en modal de edición de tarea (`TaskComments`).
 
-### A6. Buscador de imágenes en la tarea
+### A6. Buscador de imágenes en la tarea — ✅ (MVP)
 
-- Ampliación de **A4**: buscar imágenes **desde el modal de crear/editar tarea** (sin pegar URL a mano).
-- Flujo orientativo:
-  1. Campo de búsqueda (p. ej. por título de la tarea o texto libre).
-  2. Resultados en **grid de thumbnails**; seleccionar una.
-  3. **Vista previa en grande** (lightbox) antes de confirmar.
-  4. Tras guardar: **quitar**, **cambiar** o volver a buscar otra.
-- Sigue guardándose solo la **URL externa** en `tasks.background` (sin storage propio).
-- API de imágenes vía **Edge Function** (Unsplash, Pexels u otro proveedor con API key en servidor).
-- UI en `TaskForm` / `TaskImageUrl`: mantener también la opción de pegar URL manual.
-- Prioridad media; tras **A5** o en paralelo si A5 se alarga.
+- Ampliación de **A4**: buscar imágenes **desde el modal de crear/editar tarea**.
+- Flujo: búsqueda → grid de thumbnails → lightbox → confirmar; quitar / cambiar / URL manual.
+- Edge Function `search-images` + secret `UNSPLASH_ACCESS_KEY`.
+- UI en `TaskImageUrl`; se guarda solo la URL en `tasks.background`.
 
 ---
 
@@ -229,17 +222,16 @@ Comandos:
 ## Prioridad recomendada
 
 ### Alta
-1. **A6** Buscador de imágenes en la tarea (thumbnails + lightbox + quitar/cambiar)
+1. **D** Voz en Telegram (luego WhatsApp / Alexa)
 
 ### Media
-2. **D** Voz en Telegram (luego WhatsApp / Alexa)
-3. Docs: README + `docs/SETUP.md` al día
+2. Docs: README + `docs/SETUP.md` al día
 
 ### Baja / exploración
-4. **F1** Google Calendar bidireccional
+3. **F1** Google Calendar bidireccional
 
 ### Al final
-5. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
+4. **E1** Redirect `juanmacano.eu/tablero` → URL de producción
 
 ---
 
@@ -267,14 +259,15 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 
 ### Hecho recientemente
 - Tema (View Transitions) + toggle minimal
-- Imagen por URL (sin Unsplash)
+- Imagen por URL + buscador Unsplash (A6)
+- Comentarios en tarea (A5)
 - Etiquetas, Telegram MVP, keep-alive, borrado de cuenta
 
-### Siguiente — **A6 Buscador de imágenes**
-- Edge Function + grid thumbnails en modal de tarea
+### Siguiente — **D Voz en Telegram**
+- Mensajes de audio → Gemini → tarea
 
 ### Después
-- Voz / WhatsApp / Alexa
+- WhatsApp / Alexa
 - **F1** Google Calendar bidireccional (exploración)
 - **Al final:** redirect `juanmacano.eu/tablero`
 

@@ -167,7 +167,8 @@ describe('TaskForm', () => {
     render(<TaskForm {...defaultProps} />);
 
     fireEvent.change(screen.getByLabelText('Task Title'), { target: { value: 'Con foto' } });
-    fireEvent.change(screen.getByLabelText(/imagen/i), {
+    fireEvent.click(screen.getByRole('button', { name: /pegar url manualmente/i }));
+    fireEvent.change(screen.getByLabelText(/url de imagen/i), {
       target: { value: 'https://cdn.example.com/a.jpg' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Añadir tarea' }));

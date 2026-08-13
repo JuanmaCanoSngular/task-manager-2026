@@ -76,6 +76,7 @@ Se configuran en **Supabase Dashboard → Edge Functions → Secrets** o con `su
 | `TELEGRAM_BOT_TOKEN` | Telegram | Token del bot desde [@BotFather](https://t.me/BotFather) |
 | `TELEGRAM_BOT_USERNAME` | Telegram | Username del bot (sin `@`) para deep links desde la web |
 | `TELEGRAM_WEBHOOK_SECRET` | Telegram | String aleatorio; protege el webhook (`X-Telegram-Bot-Api-Secret-Token`) |
+| `UNSPLASH_ACCESS_KEY` | Buscador de imágenes (A6) | Access Key de [Unsplash Developers](https://unsplash.com/oauth/applications) |
 
 Supabase inyecta automáticamente `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` al desplegar functions.
 
@@ -172,6 +173,15 @@ Funcionalidad **opcional** pero diferenciadora: crear y consultar tareas desde T
 
 > Sin `GEMINI_API_KEY` el agente no puede interpretar mensajes. Sin secrets de Telegram el botón de vincular en la web no tendrá efecto útil.
 
+### Buscador de imágenes (Unsplash)
+
+1. Crea una app en [Unsplash Developers](https://unsplash.com/oauth/applications) y copia la **Access Key**.
+2. Secret: `supabase secrets set UNSPLASH_ACCESS_KEY=...`
+3. Despliega la función: `supabase functions deploy search-images --project-ref TU-PROJECT-REF`
+4. En el modal de tarea: busca → elige thumbnail → vista previa → **Usar esta imagen**.
+
+Sin la Access Key, la UI sigue permitiendo pegar URL manual; la búsqueda devolverá un error claro.
+
 ---
 
 ## Edge Functions
@@ -184,8 +194,9 @@ Funcionalidad **opcional** pero diferenciadora: crear y consultar tareas desde T
 | `telegram-link` | Sí | Generar / consultar / eliminar vínculo Telegram |
 | `telegram-webhook` | No | Recibir updates de Telegram (protegido por secret) |
 | `agent-create-task` | Sí | Crear tarea vía agente Gemini (HTTP) |
+| `search-images` | Sí* | Buscar imágenes en Unsplash (`UNSPLASH_ACCESS_KEY`) |
 
-\*El cliente envía el JWT del usuario en `Authorization`.
+\*El cliente envía el JWT del usuario en `Authorization` cuando hay sesión. `search-images` solo necesita la anon key de invocación.
 
 Despliegue de todas:
 

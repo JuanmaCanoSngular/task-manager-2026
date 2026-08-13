@@ -76,7 +76,11 @@ export const TaskForm = ({
       <form id="task-form" onSubmit={handleSubmit} className="space-y-6">
         <TaskTitle value={title} onChange={setTitle} />
 
-        <TaskImageUrl value={backgroundUrl} onChange={setBackgroundUrl} />
+        <TaskImageUrl
+          value={backgroundUrl}
+          onChange={setBackgroundUrl}
+          suggestedQuery={title}
+        />
 
         {columns.length > 0 && (
           <TaskColumnSelect columns={columns} value={columnId} onChange={setColumnId} />
