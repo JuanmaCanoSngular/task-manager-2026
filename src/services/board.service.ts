@@ -38,7 +38,7 @@ interface ColumnRow {
 
 export const rowToTask = (row: TaskRow): Task => ({
   id: row.id,
-  title: row.title,
+  title: row.title ?? '',
   columnId: row.column_id ?? 0,
   tags: row.tags ?? [],
   background: row.background ?? undefined,
@@ -219,7 +219,15 @@ export const boardService = {
         tags: task.tags,
       })
       .eq('id', taskId);
-    if (error) throw error;
+    if (error) {
+      const msg = error.message || '';
+      if (/background/i.test(msg) || error.code === 'PGRST204') {
+        throw new Error(
+          'No se pudo guardar la imagen: falta la columna background. Ejecuta supabase/add-task-background.sql en Supabase.'
+        );
+      }
+      throw error;
+    }
   },
 
   async deleteTask(taskId: number): Promise<void> {

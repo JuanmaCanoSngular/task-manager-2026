@@ -19,7 +19,9 @@ export const TaskTags = ({ selectedTags, showWarning, onToggleTag, onManage }: T
         </label>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {`${selectedTags.length}/${MAX_TAGS_PER_TASK} seleccionadas`}
+            {selectedTags.length === 0
+              ? `Máx. ${MAX_TAGS_PER_TASK}`
+              : `${selectedTags.length}/${MAX_TAGS_PER_TASK}`}
           </span>
           {onManage && (
             <button

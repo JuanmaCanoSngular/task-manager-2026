@@ -30,10 +30,17 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
     .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
   const hasTags = tagItems.length > 0;
   const hasComments = (task.commentCount ?? 0) > 0;
+  const title = (task.title ?? '').trim() || 'Sin título';
+  const titleIsFallback = !(task.title ?? '').trim();
+  const hasCover = Boolean(task.background?.trim());
 
   const handleSubmit = (data: TaskDraft) => {
     updateTask(task.id, data);
     setIsOpen(false);
+  };
+
+  const handlePersistDraft = (data: TaskDraft) => {
+    updateTask(task.id, data);
   };
 
   const handleDelete = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -75,61 +82,93 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
             onKeyDown={handleKeyDown}
             tabIndex={0}
             role="listitem"
-            aria-label={`Editar tarea: ${task.title}${hasComments ? `, ${task.commentCount} comentarios` : ''}`}
-            className={`card-base flex-col relative items-start cursor-pointer hover:-translate-y-0.5 hover:shadow-md group focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition drag-handle p-3 md:p-4 rounded-xl md:rounded-2xl ${
+            aria-label={`Editar tarea: ${title}${hasComments ? `, ${task.commentCount} comentarios` : ''}`}
+            className={`group relative cursor-grab active:cursor-grabbing rounded-xl md:rounded-2xl border text-left focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition ${
               snapshot.isDragging ? 'card-dragging' : ''
-            } ${recent ? 'card-recent' : ''} ${task.background ? 'overflow-hidden' : ''} ${
+            } ${recent ? 'card-recent' : ''} ${hasCover ? 'overflow-hidden' : 'p-3 md:p-4'} ${
               hasComments ? 'border-l-[3px] border-l-teal-500/60 dark:border-l-teal-400/50' : ''
             }`}
             style={{
               ...provided.draggableProps.style,
+              height: 'auto',
               backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+              boxShadow: 'var(--shadow-card)',
+              color: 'var(--text)',
             }}
           >
             <button
               onClick={handleDelete}
               onKeyDown={handleDeleteKeyDown}
               tabIndex={0}
-              className="absolute top-2 right-2 z-20 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:opacity-100"
-              aria-label={`Eliminar tarea: ${task.title}`}
+              className="absolute top-2 right-2 z-30 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:opacity-100"
+              aria-label={`Eliminar tarea: ${title}`}
             >
               <TrashIcon className="w-4 h-4 text-white" />
             </button>
 
-            {task.background && (
-              <img
-                src={task.background}
-                alt=""
-                className="absolute top-0 left-0 w-full h-28 object-cover rounded-t-xl"
-                style={{ zIndex: 0 }}
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            )}
-            <div className={`relative z-10 w-full min-w-0 ${task.background ? 'mt-24 md:mt-28' : ''}`}>
-              <div className={`flex items-start gap-2 min-w-0 ${recent ? 'pl-3' : ''}`}>
-                <p className="text-sm leading-snug text-left flex-1 min-w-0">{task.title}</p>
-              </div>
-
-              {hasTags && (
-                <div className="mt-1.5 flex flex-wrap gap-1 min-w-0">
-                  {tagItems.map((tagInfo) => (
-                    <span
-                      key={tagInfo.id}
-                      className="tag-base !px-2 !py-0.5 !text-[11px]"
-                      style={tagChipStyle(tagInfo.color, true)}
-                    >
-                      {tagInfo.name}
-                    </span>
-                  ))}
+            {hasCover ? (
+              <div className="relative w-full" style={{ height: 152 }}>
+                <img
+                  src={task.background}
+                  alt=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                {/* Título siempre visible sobre la portada */}
+                <div
+                  className="absolute inset-x-0 bottom-0 z-10"
+                  style={{
+                    padding: '2.25rem 0.75rem 0.7rem',
+                    background:
+                      'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)',
+                  }}
+                >
+                  <p
+                    className={`text-sm font-semibold leading-snug text-white drop-shadow ${
+                      recent ? 'pl-3' : ''
+                    } ${titleIsFallback ? 'italic opacity-90' : ''}`}
+                  >
+                    {title}
+                  </p>
                 </div>
-              )}
+              </div>
+            ) : (
+              <p className={`text-sm leading-snug ${recent ? 'pl-3' : ''}`}>{title}</p>
+            )}
 
-              <TaskCardMeta task={task} recent={recent} />
-            </div>
+            {(hasTags || hasComments || task.createdAt) && (
+              <div
+                className={hasCover ? 'px-3 pb-3 pt-2 md:px-4 md:pb-4' : 'mt-1.5'}
+                style={hasCover ? { backgroundColor: 'var(--surface)' } : undefined}
+              >
+                {hasTags && (
+                  <div className="flex flex-wrap gap-1 min-w-0">
+                    {tagItems.map((tagInfo) => (
+                      <span
+                        key={tagInfo.id}
+                        className="tag-base !px-2 !py-0.5 !text-[11px]"
+                        style={tagChipStyle(tagInfo.color, true)}
+                      >
+                        {tagInfo.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <TaskCardMeta task={task} recent={recent} />
+              </div>
+            )}
           </div>
         )}
       </Draggable>
@@ -140,6 +179,7 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
         mode="edit"
         task={task}
         onSubmit={handleSubmit}
+        onPersistDraft={handlePersistDraft}
         onManageTags={() => setManageTagsOpen(true)}
       />
 

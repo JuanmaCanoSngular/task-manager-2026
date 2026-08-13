@@ -91,15 +91,4 @@ describe('TaskImageUrl', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/no configurado/i);
   });
-
-  test('permite pegar URL manual', () => {
-    const onChange = vi.fn();
-    render(<TaskImageUrl value="" onChange={onChange} />);
-
-    fireEvent.click(screen.getByRole('button', { name: /pegar url manualmente/i }));
-    fireEvent.change(screen.getByLabelText(/url de imagen/i), {
-      target: { value: 'https://x.test/a.jpg' },
-    });
-    expect(onChange).toHaveBeenCalledWith('https://x.test/a.jpg');
-  });
 });

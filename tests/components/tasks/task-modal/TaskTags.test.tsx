@@ -29,9 +29,7 @@ describe('TaskTags', () => {
     render(<TaskTags {...defaultProps} />);
 
     expect(screen.getByText('Etiquetas')).toBeInTheDocument();
-    expect(
-      screen.getByText(`0/${MAX_TAGS_PER_TASK} seleccionadas`)
-    ).toBeInTheDocument();
+    expect(screen.getByText(`Máx. ${MAX_TAGS_PER_TASK}`)).toBeInTheDocument();
     expect(screen.getByText('Urgente')).toBeInTheDocument();
     expect(screen.getByText('Importante')).toBeInTheDocument();
     expect(screen.getByText('Idea')).toBeInTheDocument();
@@ -41,6 +39,8 @@ describe('TaskTags', () => {
     render(
       <TaskTags {...defaultProps} selectedTags={['id-urgente']} onToggleTag={defaultProps.onToggleTag} />
     );
+
+    expect(screen.getByText(`1/${MAX_TAGS_PER_TASK}`)).toBeInTheDocument();
 
     const selected = screen.getByLabelText('Deseleccionar etiqueta Urgente');
     expect(selected).toHaveAttribute('aria-pressed', 'true');

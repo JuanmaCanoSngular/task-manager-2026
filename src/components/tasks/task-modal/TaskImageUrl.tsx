@@ -28,7 +28,6 @@ export const TaskImageUrl = ({ value, onChange, suggestedQuery = '' }: TaskImage
   const [results, setResults] = useState<ImageSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [showUrlInput, setShowUrlInput] = useState(false);
   const [lightbox, setLightbox] = useState<ImageSearchResult | 'current' | null>(null);
 
   useEffect(() => {
@@ -112,7 +111,7 @@ export const TaskImageUrl = ({ value, onChange, suggestedQuery = '' }: TaskImage
           <img
             src={trimmed}
             alt="Vista previa de la imagen"
-            className="h-28 w-full object-cover"
+            className="aspect-[16/10] h-auto w-full object-cover"
             loading="lazy"
             referrerPolicy="no-referrer"
             onError={(e) => {
@@ -200,44 +199,6 @@ export const TaskImageUrl = ({ value, onChange, suggestedQuery = '' }: TaskImage
           </ul>
         </div>
       )}
-
-      <div>
-        <button
-          type="button"
-          className="text-xs font-medium text-[var(--text-muted)] hover:text-teal-700 dark:hover:text-teal-400 hover:underline"
-          onClick={() => setShowUrlInput((v) => !v)}
-          aria-expanded={showUrlInput}
-        >
-          {showUrlInput ? 'Ocultar URL manual' : 'Pegar URL manualmente'}
-        </button>
-        {showUrlInput && (
-          <div className="mt-2 space-y-1">
-            <label htmlFor="background-url" className="sr-only">
-              URL de imagen
-            </label>
-            <input
-              type="url"
-              id="background-url"
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              className="input-base"
-              placeholder="https://ejemplo.com/imagen.jpg"
-              inputMode="url"
-              autoComplete="off"
-              aria-invalid={trimmed ? !valid : undefined}
-              aria-describedby="background-url-hint"
-            />
-            <p id="background-url-hint" className="text-xs text-[var(--text-muted)]">
-              Enlace externo; no subimos archivos.
-            </p>
-            {trimmed && !valid && (
-              <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-                Usa una URL que empiece por http:// o https://
-              </p>
-            )}
-          </div>
-        )}
-      </div>
 
       <ImageLightbox
         open={lightbox !== null}
@@ -343,6 +304,11 @@ function ImageLightbox({ open, result, currentUrl, onClose, onSelect, onClear }:
                     </button>
                   )}
                 </div>
+                {result && (
+                  <p className="mt-2 text-[11px] text-[var(--text-muted)] text-right">
+                    Se guardará en la tarea al confirmar.
+                  </p>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

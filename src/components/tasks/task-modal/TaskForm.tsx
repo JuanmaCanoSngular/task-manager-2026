@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { Task, TaskDraft } from '../../../interfaces/task.interface';
 import { MAX_TAGS_PER_TASK } from '../../../interfaces/tag.interface';
 import { getInboxColumn } from '../../../interfaces/column.interface';
@@ -14,6 +14,8 @@ interface TaskFormProps {
   mode: 'create' | 'edit';
   initialData?: Partial<Task>;
   onSubmit: (data: TaskDraft) => void;
+  /** Guarda sin cerrar el modal (p. ej. al elegir imagen en edición). */
+  onPersistDraft?: (data: TaskDraft) => void;
   onCancel: () => void;
   onManageTags?: () => void;
 }
@@ -22,6 +24,7 @@ export const TaskForm = ({
   mode,
   initialData,
   onSubmit,
+  onPersistDraft,
   onCancel,
   onManageTags,
 }: TaskFormProps) => {
@@ -35,27 +38,29 @@ export const TaskForm = ({
   const [showTagWarning, setShowTagWarning] = useState(false);
   const [backgroundUrl, setBackgroundUrl] = useState(initialData?.background || '');
 
-  useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title || '');
-      setColumnId(initialData.columnId ?? defaultColumnId);
-      setSelectedTags(initialData.tags || []);
-      setBackgroundUrl(initialData.background || '');
+  const resolvedTitle = () => title.trim() || initialData?.title?.trim() || '';
+
+  const buildDraft = (background: string): TaskDraft => ({
+    title: resolvedTitle(),
+    columnId,
+    tags: selectedTags,
+    background: background.trim() || undefined,
+  });
+
+  const handleBackgroundChange = (url: string) => {
+    setBackgroundUrl(url);
+    // En edición, persistir al elegir/quitar imagen (no esperar a "Guardar").
+    if (mode === 'edit' && onPersistDraft && resolvedTitle()) {
+      onPersistDraft(buildDraft(url));
     }
-  }, [initialData, defaultColumnId]);
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !columnId) return;
     if (!isValidImageUrl(backgroundUrl)) return;
 
-    const background = backgroundUrl.trim();
-    onSubmit({
-      title,
-      columnId,
-      tags: selectedTags,
-      background: background || undefined,
-    });
+    onSubmit(buildDraft(backgroundUrl));
   };
 
   const toggleTag = (tagId: string) => {
@@ -78,7 +83,7 @@ export const TaskForm = ({
 
         <TaskImageUrl
           value={backgroundUrl}
-          onChange={setBackgroundUrl}
+          onChange={handleBackgroundChange}
           suggestedQuery={title}
         />
 

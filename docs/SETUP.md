@@ -180,7 +180,7 @@ Funcionalidad **opcional** pero diferenciadora: crear y consultar tareas desde T
 3. Despliega la función: `supabase functions deploy search-images --project-ref TU-PROJECT-REF`
 4. En el modal de tarea: busca → elige thumbnail → vista previa → **Usar esta imagen**.
 
-Sin la Access Key, la UI sigue permitiendo pegar URL manual; la búsqueda devolverá un error claro.
+Sin la Access Key, la búsqueda devolverá un error claro.
 
 ---
 

@@ -86,7 +86,7 @@ tablero por defecto del usuario.
 ### A6. Buscador de imágenes en la tarea — ✅ (MVP)
 
 - Ampliación de **A4**: buscar imágenes **desde el modal de crear/editar tarea**.
-- Flujo: búsqueda → grid de thumbnails → lightbox → confirmar; quitar / cambiar / URL manual.
+- Flujo: búsqueda → grid de thumbnails → lightbox → confirmar; quitar / cambiar.
 - Edge Function `search-images` + secret `UNSPLASH_ACCESS_KEY`.
 - UI en `TaskImageUrl`; se guarda solo la URL en `tasks.background`.
 

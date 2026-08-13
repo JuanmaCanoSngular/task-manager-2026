@@ -1,7 +1,15 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { TaskForm } from '../../../../src/components/tasks/task-modal/TaskForm';
 import { MOCK_COLUMNS } from '../../../utils/mock-columns';
+
+const search = vi.fn();
+
+vi.mock('../../../../src/services/imageSearch.service', () => ({
+  imageSearchService: {
+    search: (...args: unknown[]) => search(...args),
+  },
+}));
 
 const MOCK_TAGS = [
   { tag: 'tag-urgente', label: 'Urgente' },
@@ -91,6 +99,7 @@ describe('TaskForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    search.mockReset();
   });
 
   test('should render form with all components', () => {
@@ -163,21 +172,42 @@ describe('TaskForm', () => {
     });
   });
 
-  test('incluye la URL de imagen al enviar', () => {
+  test('incluye la URL de imagen al enviar', async () => {
+    search.mockResolvedValue({
+      provider: 'unsplash',
+      total: 1,
+      page: 1,
+      results: [
+        {
+          id: 'p1',
+          thumbUrl: 'https://cdn.example.com/thumb.jpg',
+          fullUrl: 'https://cdn.example.com/a.jpg',
+          alt: 'Foto',
+          photographer: 'Ada',
+          photographerUrl: 'https://unsplash.com/@ada',
+        },
+      ],
+    });
+
     render(<TaskForm {...defaultProps} />);
 
     fireEvent.change(screen.getByLabelText('Task Title'), { target: { value: 'Con foto' } });
-    fireEvent.click(screen.getByRole('button', { name: /pegar url manualmente/i }));
-    fireEvent.change(screen.getByLabelText(/url de imagen/i), {
-      target: { value: 'https://cdn.example.com/a.jpg' },
+    fireEvent.change(screen.getByLabelText(/buscar imagen/i), {
+      target: { value: 'oficina' },
     });
+    fireEvent.click(screen.getByRole('button', { name: /^buscar$/i }));
+
+    fireEvent.click(await screen.findByRole('button', { name: /ver foto/i }));
+    fireEvent.click(screen.getByRole('button', { name: /usar esta imagen/i }));
     fireEvent.click(screen.getByRole('button', { name: 'Añadir tarea' }));
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith({
-      title: 'Con foto',
-      columnId: 1,
-      tags: [],
-      background: 'https://cdn.example.com/a.jpg',
+    await waitFor(() => {
+      expect(defaultProps.onSubmit).toHaveBeenCalledWith({
+        title: 'Con foto',
+        columnId: 1,
+        tags: [],
+        background: 'https://cdn.example.com/a.jpg',
+      });
     });
   });
 
@@ -199,20 +229,65 @@ describe('TaskForm', () => {
     expect(defaultProps.onCancel).toHaveBeenCalled();
   });
 
-  test('should update form when initialData changes', () => {
-    const { rerender } = render(<TaskForm {...defaultProps} />);
-
-    const initialData = {
-      title: 'Updated Task',
-      columnId: 4,
-      tags: ['tag-urgente'],
-    };
-
-    rerender(<TaskForm {...defaultProps} initialData={initialData} />);
+  test('inicializa el formulario desde initialData al montar', () => {
+    render(
+      <TaskForm
+        {...defaultProps}
+        initialData={{
+          title: 'Updated Task',
+          columnId: 4,
+          tags: ['tag-urgente'],
+        }}
+      />
+    );
 
     const titleInput = screen.getByLabelText('Task Title') as HTMLInputElement;
     expect(titleInput.value).toBe('Updated Task');
     expect(screen.getByRole('button', { name: 'Deselect tag tag-urgente' })).toBeInTheDocument();
+  });
+
+  test('persiste la imagen al elegirla en modo edición', async () => {
+    const onPersistDraft = vi.fn();
+    search.mockResolvedValue({
+      provider: 'unsplash',
+      total: 1,
+      page: 1,
+      results: [
+        {
+          id: 'p1',
+          thumbUrl: 'https://cdn.example.com/thumb.jpg',
+          fullUrl: 'https://cdn.example.com/a.jpg',
+          alt: 'Foto',
+          photographer: 'Ada',
+          photographerUrl: 'https://unsplash.com/@ada',
+        },
+      ],
+    });
+
+    render(
+      <TaskForm
+        {...defaultProps}
+        mode="edit"
+        initialData={{ id: 9, title: 'Tarea', columnId: 1, tags: [] }}
+        onPersistDraft={onPersistDraft}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/buscar imagen/i), {
+      target: { value: 'oficina' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^buscar$/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /ver foto/i }));
+    fireEvent.click(screen.getByRole('button', { name: /usar esta imagen/i }));
+
+    await waitFor(() => {
+      expect(onPersistDraft).toHaveBeenCalledWith({
+        title: 'Tarea',
+        columnId: 1,
+        tags: [],
+        background: 'https://cdn.example.com/a.jpg',
+      });
+    });
   });
 
   test('should show correct button text for edit mode', () => {

@@ -43,20 +43,17 @@ interface BoardStore {
 }
 
 const reportWriteError = (error: unknown) => {
-  useBoardStore.setState((state) => {
-    if (error instanceof Error && error.message) {
-      state.error = error.message;
-      return;
-    }
+  const message = (() => {
+    if (error instanceof Error && error.message) return error.message;
     if (error && typeof error === 'object' && 'message' in error) {
       const msg = String((error as { message: unknown }).message);
-      if (msg) {
-        state.error = msg;
-        return;
-      }
+      if (msg) return msg;
     }
-    state.error = 'Error al guardar en Supabase';
-  });
+    return 'Error al guardar en Supabase';
+  })();
+
+  // setState plano: evita tocar drafts de Immer fuera de un producer.
+  useBoardStore.setState({ error: message });
 };
 
 const persistBoardOrder = (boardId: number) => {
@@ -81,6 +78,18 @@ const insertAtTopOfColumn = (tasks: Task[], task: Task) => {
   }
   tasks.splice(firstOfColumn, 0, task);
 };
+
+/** Copia plana: no escapar proxies de Immer fuera del `set()`. */
+const plainColumns = (columns: BoardColumn[]): BoardColumn[] =>
+  columns.map((c) => ({
+    id: c.id,
+    boardId: c.boardId,
+    name: c.name,
+    color: c.color,
+    position: c.position,
+    slug: c.slug,
+    isInbox: c.isInbox,
+  }));
 
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
   currentBoardId: null,
@@ -210,24 +219,35 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     }
   },
   updateTask: (taskId, taskData) => {
+    const currentBoardId = useBoardStore.getState().currentBoardId;
+    const board = useBoardStore.getState().boards.find((b) => b.id === currentBoardId);
+    if (!board) return;
+
+    const columns = plainColumns(board.columns);
     let affectedBoardId: number | null = null;
-    let columns: BoardColumn[] = [];
+
     set((state) => {
-      const boardIndex = state.boards.findIndex((board) => board.id === state.currentBoardId);
+      const boardIndex = state.boards.findIndex((b) => b.id === state.currentBoardId);
       if (boardIndex === -1) return;
 
-      columns = state.boards[boardIndex].columns;
       const taskIndex = state.boards[boardIndex].tasks.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) return;
 
       const prev = state.boards[boardIndex].tasks[taskIndex];
       const columnChanged = prev.columnId !== taskData.columnId;
+      const bg = taskData.background?.trim();
       const next: Task = {
-        ...prev,
-        title: taskData.title,
+        id: prev.id,
+        // Nunca borrar el título por un draft vacío (p. ej. al elegir imagen).
+        title: (taskData.title ?? '').trim() || prev.title,
         columnId: taskData.columnId,
-        tags: taskData.tags,
-        background: taskData.background,
+        tags: [...taskData.tags],
+        ...(bg ? { background: bg } : {}),
+        ...(prev.createdAt ? { createdAt: prev.createdAt } : {}),
+        ...(prev.commentCount ? { commentCount: prev.commentCount } : {}),
+        ...(prev.latestCommentPreview
+          ? { latestCommentPreview: prev.latestCommentPreview }
+          : {}),
       };
 
       if (columnChanged) {
@@ -238,6 +258,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         state.boards[boardIndex].tasks[taskIndex] = next;
       }
     });
+
     boardService.updateTask(taskId, taskData, columns).catch(reportWriteError);
     if (affectedBoardId !== null) {
       persistBoardOrder(affectedBoardId);
@@ -285,7 +306,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     const board = useBoardStore.getState().boards.find((b) => b.id === boardId);
     if (!board) return;
 
-    const columns = board.columns;
+    const columns = plainColumns(board.columns);
     const moveTo = options?.moveTasksToColumnId;
 
     set((state) => {

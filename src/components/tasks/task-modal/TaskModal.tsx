@@ -10,6 +10,7 @@ interface TaskModalProps {
   mode: 'create' | 'edit';
   task?: Task;
   onSubmit: (data: TaskDraft) => void;
+  onPersistDraft?: (data: TaskDraft) => void;
   onManageTags?: () => void;
 }
 
@@ -19,6 +20,7 @@ export const TaskModal = ({
   mode,
   task,
   onSubmit,
+  onPersistDraft,
   onManageTags,
 }: TaskModalProps) => {
   return (
@@ -57,13 +59,17 @@ export const TaskModal = ({
                   </button>
                 </div>
 
-                <TaskForm
-                  mode={mode}
-                  initialData={task}
-                  onSubmit={onSubmit}
-                  onCancel={onClose}
-                  onManageTags={onManageTags}
-                />
+                {isOpen && (
+                  <TaskForm
+                    key={`${mode}-${task?.id ?? 'new'}`}
+                    mode={mode}
+                    initialData={task}
+                    onSubmit={onSubmit}
+                    onPersistDraft={onPersistDraft}
+                    onCancel={onClose}
+                    onManageTags={onManageTags}
+                  />
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>
