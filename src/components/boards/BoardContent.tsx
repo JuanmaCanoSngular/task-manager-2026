@@ -8,13 +8,15 @@ import {
 } from '@hello-pangea/dnd';
 import type { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { StatusColumn } from './StatusColumn';
-import { useBoardStore, useCurrentBoard, useCurrentBoardColumns } from '../../stores/board.store';
+import { useBoardStore, useCurrentBoard, useCurrentBoardColumns, useCurrentBoardTasks } from '../../stores/board.store';
 import { NoBoardSelected } from './NoBoardSelected';
 import { ColumnsManagerButton } from '../columns/ColumnsManagerButton';
 import { TagsManagerButton } from '../tags/TagsManagerButton';
-import { tagChipStyle } from '../../interfaces/tag.interface';
+import { TagChip } from '../tags/TagChip';
 import { useTagStore } from '../../stores/tag.store';
+import { taskMatchesTagFilter } from '../../interfaces/tag.interface';
 import { useState } from 'react';
+import { XMarkIcon } from '@heroicons/react/20/solid';
 
 const COLUMN_DND_TYPE = 'COLUMN';
 
@@ -54,7 +56,11 @@ export const BoardContent = () => {
   const currentBoardId = useBoardStore((state) => state.currentBoardId);
   const board = useCurrentBoard();
   const columns = useCurrentBoardColumns();
+  const boardTasks = useCurrentBoardTasks();
   const tags = useTagStore((state) => state.tags);
+  const filterTagIds = useTagStore((state) => state.filterTagIds);
+  const toggleTagFilter = useTagStore((state) => state.toggleTagFilter);
+  const clearTagFilter = useTagStore((state) => state.clearTagFilter);
   const moveTask = useBoardStore((state) => state.moveTask);
   const updateTaskOrder = useBoardStore((state) => state.updateTaskOrder);
   const reorderColumns = useBoardStore((state) => state.reorderColumns);
@@ -63,6 +69,11 @@ export const BoardContent = () => {
     destinationIndex: number;
   } | null>(null);
   const [tagsOpen, setTagsOpen] = useState(false);
+  const filtering = filterTagIds.length > 0;
+  const totalTasks = boardTasks.length;
+  const visibleTasks = filtering
+    ? boardTasks.filter((task) => taskMatchesTagFilter(task.tags, filterTagIds)).length
+    : totalTasks;
 
   if (currentBoardId === null) {
     return <NoBoardSelected />;
@@ -147,28 +158,63 @@ export const BoardContent = () => {
           <div className="min-w-0 flex-1 flex items-center gap-2.5 flex-wrap">
             {board ? (
               <h2
-                className="min-w-0 max-w-full truncate text-lg md:text-xl font-semibold tracking-tight"
+                className="flex h-7 min-w-0 max-w-full items-center"
                 style={{ color: board.color }}
               >
-                {board.name}
+                <span className="truncate text-lg md:text-xl font-semibold tracking-tight leading-none">
+                  {board.name}
+                </span>
               </h2>
             ) : null}
             {tags.length > 0 ? (
-              <ul className="flex flex-wrap items-center gap-1.5 min-w-0" aria-label="Etiquetas vigentes">
-                {tags.map((tag) => (
-                  <li key={tag.id}>
-                    <button
-                      type="button"
-                      onClick={() => setTagsOpen(true)}
-                      className="tag-base !px-2 !py-0.5 !text-[11px]"
-                      style={tagChipStyle(tag.color, true)}
-                      title="Gestionar etiquetas"
-                    >
-                      {tag.name}
-                    </button>
-                  </li>
-                ))}
+              <ul className="flex flex-wrap items-center gap-1.5 min-w-0" aria-label="Filtrar por etiqueta">
+                {tags.map((tag) => {
+                  const selected = filterTagIds.includes(tag.id);
+                  const dimOthers = filtering && !selected;
+                  return (
+                    <li key={tag.id} className={dimOthers ? 'opacity-40' : undefined}>
+                      <button
+                        type="button"
+                        onClick={() => toggleTagFilter(tag.id)}
+                        className="inline-flex h-7 items-center rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+                        aria-pressed={selected}
+                        aria-label={
+                          selected ? `Quitar filtro ${tag.name}` : `Filtrar por ${tag.name}`
+                        }
+                        title={selected ? `Quitar filtro ${tag.name}` : `Filtrar por ${tag.name}`}
+                      >
+                        <TagChip
+                          name={tag.name}
+                          color={tag.color}
+                          active={!dimOthers}
+                          selected={selected}
+                          className="h-7"
+                        />
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
+            ) : null}
+            {filtering ? (
+              <p
+                className="m-0 flex h-7 items-center text-[11px] font-medium leading-none text-teal-700 dark:text-teal-400 whitespace-nowrap"
+                aria-live="polite"
+              >
+                Filtrando {visibleTasks} {visibleTasks === 1 ? 'tarea' : 'tareas'} de un total de{' '}
+                {totalTasks}
+              </p>
+            ) : null}
+            {filtering ? (
+              <button
+                type="button"
+                onClick={clearTagFilter}
+                className="inline-flex h-7 items-center gap-0.5 rounded-md px-1.5 text-[11px] font-semibold leading-none text-teal-700 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+                aria-label="Quitar filtros de etiqueta"
+              >
+                <XMarkIcon className="w-3.5 h-3.5" aria-hidden />
+                Quitar
+              </button>
             ) : null}
             <TagsManagerButton open={tagsOpen} onOpenChange={setTagsOpen} />
           </div>

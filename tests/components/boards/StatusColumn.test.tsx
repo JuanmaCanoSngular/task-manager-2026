@@ -68,7 +68,9 @@ vi.mock('../../../src/stores/board.store', () => ({
 }));
 
 vi.mock('../../../src/stores/tag.store', () => ({
-  useTagStore: (selector: (s: { tags: unknown[] }) => unknown) => selector({ tags: [] }),
+  useTagStore: (
+    selector: (s: { tags: unknown[]; filterTagIds: string[]; toggleTagFilter: () => void }) => unknown
+  ) => selector({ tags: [], filterTagIds: [], toggleTagFilter: vi.fn() }),
 }));
 
 const backlogColumn = MOCK_COLUMNS[0];
@@ -154,5 +156,32 @@ describe('StatusColumn', () => {
     const heading = screen.getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Completada (1)');
     expect(screen.getAllByRole('list')).toHaveLength(2);
+  });
+
+  test('filtra las tareas por etiqueta', async () => {
+    const mockTasks = [
+      mockTask({ id: 1, title: 'Con urgente', columnId: 1, tags: ['tag-urgente'] }),
+      mockTask({ id: 2, title: 'Sin etiqueta', columnId: 1, tags: [] }),
+    ];
+
+    vi.doMock('../../../src/stores/tag.store', () => ({
+      useTagStore: (
+        selector: (s: {
+          tags: unknown[];
+          filterTagIds: string[];
+          toggleTagFilter: () => void;
+        }) => unknown
+      ) => selector({ tags: [], filterTagIds: ['tag-urgente'], toggleTagFilter: vi.fn() }),
+    }));
+
+    const { useTasksByColumn } = await import('../../../src/stores/board.store');
+    vi.mocked(useTasksByColumn).mockReturnValue(mockTasks);
+
+    const { StatusColumn } = await import('../../../src/components/boards/StatusColumn');
+    render(<StatusColumn column={backlogColumn} />);
+
+    expect(screen.getByRole('heading', { name: /pendiente \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByText('Con urgente')).toBeInTheDocument();
+    expect(screen.queryByText('Sin etiqueta')).not.toBeInTheDocument();
   });
 });

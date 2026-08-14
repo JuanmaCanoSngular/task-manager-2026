@@ -35,7 +35,7 @@ describe('TagStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     act(() => {
-      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null });
+      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null, filterTagIds: [] });
       useBoardStore.setState({ currentBoardId: 3, boards: [], error: null });
     });
   });
@@ -88,5 +88,21 @@ describe('TagStore', () => {
 
     expect(createTag).toHaveBeenCalledWith(9, 'Nueva', '#22c55e');
     expect(useTagStore.getState().tags).toEqual([{ id: 'n', name: 'Nueva', color: '#22c55e' }]);
+  });
+
+  test('toggleTagFilter activa, combina y desactiva', () => {
+    act(() => {
+      useTagStore.getState().toggleTagFilter('a');
+      useTagStore.getState().toggleTagFilter('b');
+    });
+    expect(useTagStore.getState().filterTagIds).toEqual(['a', 'b']);
+    act(() => {
+      useTagStore.getState().toggleTagFilter('a');
+    });
+    expect(useTagStore.getState().filterTagIds).toEqual(['b']);
+    act(() => {
+      useTagStore.getState().clearTagFilter();
+    });
+    expect(useTagStore.getState().filterTagIds).toEqual([]);
   });
 });

@@ -57,7 +57,7 @@ export const UserMenu = () => {
     try {
       await authService.deleteAccount();
       useBoardStore.setState({ boards: [], currentBoardId: null, error: null });
-      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null });
+      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null, filterTagIds: [] });
       setConfirmDelete(false);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'No se pudo eliminar la cuenta');

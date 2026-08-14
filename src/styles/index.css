@@ -88,8 +88,23 @@
     @apply card-hover;
   }
 
-  .tag-base {
-    @apply px-2.5 py-1 text-xs rounded-full font-medium;
+  .tag-chip {
+    @apply inline-flex items-center min-w-0 max-w-full font-medium leading-none;
+    border-radius: 6px;
+  }
+
+  .tag-chip--sm {
+    @apply gap-1.5 px-2 py-1 text-[11px];
+  }
+
+  .tag-chip--md {
+    @apply gap-1.5 px-2.5 py-1.5 text-xs;
+  }
+
+  .tag-chip__dot {
+    @apply shrink-0 rounded-full;
+    width: 7px;
+    height: 7px;
   }
 
   /* Campo de formulario (input / select) */

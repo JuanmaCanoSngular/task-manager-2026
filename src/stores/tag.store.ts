@@ -9,10 +9,13 @@ interface TagStore {
   boardId: number | null;
   loaded: boolean;
   error: string | null;
+  filterTagIds: string[];
   fetchTags: (boardId: number) => Promise<void>;
   addTag: (name: string, color: string) => Promise<Tag | null>;
   updateTag: (id: string, patch: { name?: string; color?: string }) => Promise<void>;
   removeTag: (id: string) => Promise<void>;
+  toggleTagFilter: (id: string) => void;
+  clearTagFilter: () => void;
 }
 
 export const useTagStore = create<TagStore>()(
@@ -21,11 +24,15 @@ export const useTagStore = create<TagStore>()(
     boardId: null,
     loaded: false,
     error: null,
+    filterTagIds: [],
 
     fetchTags: async (boardId) => {
       if (get().boardId === boardId && get().loaded && !get().error) return;
       set((s) => {
-        if (s.boardId !== boardId) s.tags = [];
+        if (s.boardId !== boardId) {
+          s.tags = [];
+          s.filterTagIds = [];
+        }
         s.boardId = boardId;
         s.loaded = false;
         s.error = null;
@@ -85,8 +92,10 @@ export const useTagStore = create<TagStore>()(
 
     removeTag: async (id) => {
       const prev = get().tags;
+      const prevFilter = get().filterTagIds;
       set((s) => {
         s.tags = s.tags.filter((t) => t.id !== id);
+        s.filterTagIds = s.filterTagIds.filter((fid) => fid !== id);
       });
       try {
         await tagService.deleteTag(id);
@@ -100,9 +109,26 @@ export const useTagStore = create<TagStore>()(
       } catch (error) {
         set((s) => {
           s.tags = prev;
+          s.filterTagIds = prevFilter;
           s.error = error instanceof Error ? error.message : 'No se pudo eliminar';
         });
       }
+    },
+
+    toggleTagFilter: (id) => {
+      set((s) => {
+        if (s.filterTagIds.includes(id)) {
+          s.filterTagIds = s.filterTagIds.filter((fid) => fid !== id);
+        } else {
+          s.filterTagIds.push(id);
+        }
+      });
+    },
+
+    clearTagFilter: () => {
+      set((s) => {
+        s.filterTagIds = [];
+      });
     },
   }))
 );

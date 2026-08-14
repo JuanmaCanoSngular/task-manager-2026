@@ -4,7 +4,9 @@ import { TaskCard } from '../tasks/TaskCard';
 import { useTasksByColumn } from '../../stores/board.store';
 import { BoardColumn } from '../../interfaces/column.interface';
 import { Task } from '../../interfaces/task.interface';
+import { taskMatchesTagFilter } from '../../interfaces/tag.interface';
 import { Bars2Icon } from '@heroicons/react/20/solid';
+import { useTagStore } from '../../stores/tag.store';
 
 export const TASK_PINNED_TYPE = 'TASK-PINNED';
 export const TASK_UNPINNED_TYPE = 'TASK-UNPINNED';
@@ -23,7 +25,10 @@ export const StatusColumn = ({
   dragHandleProps,
   isColumnDragging = false,
 }: StatusColumnProps) => {
-  const tasks = useTasksByColumn(column.id);
+  const allTasks = useTasksByColumn(column.id);
+  const filterTagIds = useTagStore((s) => s.filterTagIds);
+  const tasks = allTasks.filter((task) => taskMatchesTagFilter(task.tags, filterTagIds));
+  const filtering = filterTagIds.length > 0;
   const pinned = tasks.filter((task) => task.pinned);
   const rest = tasks.filter((task) => !task.pinned);
 
@@ -56,6 +61,7 @@ export const StatusColumn = ({
           dndType={TASK_PINNED_TYPE}
           isColumnDragging={isColumnDragging}
           emptyUntilHover
+          dragDisabled={filtering}
         />
 
         {pinned.length > 0 && rest.length > 0 ? (
@@ -75,6 +81,7 @@ export const StatusColumn = ({
           dndType={TASK_UNPINNED_TYPE}
           isColumnDragging={isColumnDragging}
           fillRemaining
+          dragDisabled={filtering}
         />
       </div>
     </div>
@@ -91,6 +98,7 @@ interface TaskDropZoneProps {
   isColumnDragging: boolean;
   emptyUntilHover?: boolean;
   fillRemaining?: boolean;
+  dragDisabled?: boolean;
 }
 
 const TaskDropZone = ({
@@ -103,8 +111,9 @@ const TaskDropZone = ({
   isColumnDragging,
   emptyUntilHover = false,
   fillRemaining = false,
+  dragDisabled = false,
 }: TaskDropZoneProps) => (
-  <Droppable droppableId={taskDroppableId(columnId, zone)} type={dndType}>
+  <Droppable droppableId={taskDroppableId(columnId, zone)} type={dndType} isDropDisabled={dragDisabled}>
     {(provided, snapshot) => {
       const emptyPinnedIdle = emptyUntilHover && tasks.length === 0 && !snapshot.isDraggingOver;
       return (
@@ -132,6 +141,7 @@ const TaskDropZone = ({
               index={index}
               dragType={dndType}
               columnColor={columnColor}
+              dragDisabled={dragDisabled}
             />
           ))}
           {provided.placeholder}

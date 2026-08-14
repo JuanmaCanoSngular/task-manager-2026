@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { describe, test, expect, vi, beforeAll, afterEach, beforeEach } from 'vitest';
 import { render, cleanup, screen } from '@testing-library/react';
 import { setupWindowMocks, cleanupTest } from '../../utils/component-test-utils';
-import { MOCK_COLUMNS } from '../../utils/mock-columns';
+import { MOCK_COLUMNS, mockTask } from '../../utils/mock-columns';
 
 beforeAll(() => {
   setupWindowMocks();
@@ -103,5 +103,35 @@ describe('BoardContent', () => {
     expect(inProgressColumn).toBeInTheDocument();
     expect(inReviewColumn).toBeInTheDocument();
     expect(completedColumn).toBeInTheDocument();
+  });
+
+  test('muestra el recuento al filtrar por etiqueta', async () => {
+    const hogar = 'tag-hogar';
+    vi.doMock('../../../src/stores/board.store', () => ({
+      ...mockBoardStore(),
+      useCurrentBoardTasks: () => [
+        mockTask({ id: 1, title: 'Tarea hogar', tags: [hogar] }),
+        mockTask({ id: 2, title: 'Otra', tags: [] }),
+      ],
+    }));
+    vi.doMock('../../../src/stores/tag.store', () => ({
+      useTagStore: (
+        selector: (s: {
+          tags: { id: string; name: string; color: string }[];
+          filterTagIds: string[];
+          toggleTagFilter: () => void;
+          clearTagFilter: () => void;
+        }) => unknown
+      ) =>
+        selector({
+          tags: [{ id: hogar, name: 'Hogar', color: '#3b82f6' }],
+          filterTagIds: [hogar],
+          toggleTagFilter: vi.fn(),
+          clearTagFilter: vi.fn(),
+        }),
+    }));
+    const { BoardContent } = await import('../../../src/components/boards/BoardContent');
+    render(<BoardContent />);
+    expect(screen.getByText(/Filtrando 1 tarea de un total de 2/)).toBeInTheDocument();
   });
 });

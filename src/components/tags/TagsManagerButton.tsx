@@ -23,7 +23,7 @@ export const TagsManagerButton = ({ open: openProp, onOpenChange }: TagsManagerB
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="btn-secondary p-2 flex items-center justify-center flex-shrink-0"
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
           aria-label="Gestionar etiquetas"
           title="Gestionar etiquetas"
         >

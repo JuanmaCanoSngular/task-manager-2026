@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import { Task, TaskDraft } from '../../interfaces/task.interface';
-import { tagChipStyle } from '../../interfaces/tag.interface';
 import { TaskModal } from './task-modal/TaskModal';
 import { useBoardStore } from '../../stores/board.store';
 import { useTagStore } from '../../stores/tag.store';
@@ -10,22 +9,31 @@ import { ConfirmDialog } from '../common/ConfirmDialog';
 import { PushPinIcon } from '../common/PushPinIcon';
 import { isRecentlyCreated } from '../../utils/relativeTime';
 import { TagsManagerDialog } from '../tags/TagsManagerDialog';
-import { TaskCardMeta } from './TaskCardMeta';
+import { TagChip } from '../tags/TagChip';
+import { TaskCardMeta, TaskCommentBadge } from './TaskCardMeta';
 
 interface TaskCardProps {
   task: Task;
   index: number;
   dragType?: string;
   columnColor?: string;
+  dragDisabled?: boolean;
 }
 
-export const TaskCard = ({ task, index, dragType, columnColor = '#64748b' }: TaskCardProps) => {
+export const TaskCard = ({
+  task,
+  index,
+  dragType,
+  columnColor = '#64748b',
+  dragDisabled = false,
+}: TaskCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const updateTask = useBoardStore((state) => state.updateTask);
   const toggleTaskPinned = useBoardStore((state) => state.toggleTaskPinned);
   const removeTask = useBoardStore((state) => state.removeTask);
   const allTags = useTagStore((state) => state.tags);
+  const toggleTagFilter = useTagStore((state) => state.toggleTagFilter);
   const recent = isRecentlyCreated(task.createdAt);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const tagItems = task.tags
@@ -36,7 +44,7 @@ export const TaskCard = ({ task, index, dragType, columnColor = '#64748b' }: Tas
   const title = (task.title ?? '').trim() || 'Sin título';
   const titleIsFallback = !(task.title ?? '').trim();
   const isPinned = Boolean(task.pinned);
-  const hasExtra = hasTags || hasComments || Boolean(task.createdAt);
+  const hasExtra = hasTags || Boolean(task.createdAt);
 
   const handleSubmit = (data: TaskDraft) => {
     updateTask(task.id, data);
@@ -83,6 +91,7 @@ export const TaskCard = ({ task, index, dragType, columnColor = '#64748b' }: Tas
       <Draggable
         draggableId={task.id.toString()}
         index={index}
+        isDragDisabled={dragDisabled}
         {...(dragType ? ({ type: dragType } as object) : {})}
       >
         {(provided, snapshot) => (
@@ -95,9 +104,9 @@ export const TaskCard = ({ task, index, dragType, columnColor = '#64748b' }: Tas
             tabIndex={0}
             role="listitem"
             aria-label={`Editar tarea: ${title}${isPinned ? ', destacada' : ''}${hasComments ? `, ${task.commentCount} comentarios` : ''}`}
-            className={`task-card group relative cursor-grab active:cursor-grabbing rounded-xl text-left px-3 py-2.5 md:px-3.5 md:py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition ${
-              snapshot.isDragging ? 'card-dragging' : ''
-            } ${recent ? 'card-recent' : ''}`}
+            className={`task-card group relative rounded-xl text-left px-3 py-2.5 md:px-3.5 md:py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition ${
+              dragDisabled ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
+            } ${snapshot.isDragging ? 'card-dragging' : ''} ${recent ? 'card-recent' : ''}`}
             style={{
               ...provided.draggableProps.style,
               height: 'auto',
@@ -138,13 +147,16 @@ export const TaskCard = ({ task, index, dragType, columnColor = '#64748b' }: Tas
               <PushPinIcon className="w-3 h-3" />
             </button>
 
-            <p
-              className={`text-sm leading-snug pr-16 line-clamp-2 ${recent ? 'pl-3' : ''} ${
-                titleIsFallback ? 'italic text-[var(--text-muted)]' : ''
-              }`}
-            >
-              {title}
-            </p>
+            <div className={`flex items-start gap-1.5 min-w-0 pr-14 ${recent ? 'pl-3' : ''}`}>
+              {hasComments ? <TaskCommentBadge task={task} /> : null}
+              <p
+                className={`min-w-0 flex-1 text-sm leading-5 line-clamp-2 ${
+                  titleIsFallback ? 'italic text-[var(--text-muted)]' : ''
+                }`}
+              >
+                {title}
+              </p>
+            </div>
 
             {hasExtra ? (
               <div className="task-card__extra">
@@ -152,13 +164,18 @@ export const TaskCard = ({ task, index, dragType, columnColor = '#64748b' }: Tas
                   {hasTags && (
                     <div className="mt-1.5 flex flex-wrap gap-1 min-w-0">
                       {tagItems.map((tagInfo) => (
-                        <span
+                        <button
                           key={tagInfo.id}
-                          className="tag-base !px-2 !py-0.5 !text-[11px]"
-                          style={tagChipStyle(tagInfo.color, true)}
+                          type="button"
+                          className="inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTagFilter(tagInfo.id);
+                          }}
+                          aria-label={`Filtrar por ${tagInfo.name}`}
                         >
-                          {tagInfo.name}
-                        </span>
+                          <TagChip name={tagInfo.name} color={tagInfo.color} />
+                        </button>
                       ))}
                     </div>
                   )}

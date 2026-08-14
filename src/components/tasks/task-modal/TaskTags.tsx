@@ -1,5 +1,6 @@
-import { MAX_TAGS_PER_TASK, tagChipStyle } from '../../../interfaces/tag.interface';
+import { MAX_TAGS_PER_TASK } from '../../../interfaces/tag.interface';
 import { useTagStore } from '../../../stores/tag.store';
+import { TagChip } from '../../tags/TagChip';
 
 interface TaskTagsProps {
   selectedTags: string[];
@@ -61,21 +62,11 @@ export const TaskTags = ({ selectedTags, showWarning, onToggleTag, onManage }: T
                 key={tag.id}
                 type="button"
                 onClick={() => onToggleTag(tag.id)}
-                className={`tag-base ${
-                  selected
-                    ? ''
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-                style={tagChipStyle(tag.color, selected)}
+                className="inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500/40"
                 aria-label={`${selected ? 'Deseleccionar' : 'Seleccionar'} etiqueta ${tag.name}`}
                 aria-pressed={selected}
               >
-                <span
-                  className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle"
-                  style={{ backgroundColor: tag.color }}
-                  aria-hidden
-                />
-                {tag.name}
+                <TagChip name={tag.name} color={tag.color} size="md" active={selected} />
               </button>
             );
           })}

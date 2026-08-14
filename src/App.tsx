@@ -28,7 +28,7 @@ const AppContent = () => {
 
   useEffect(() => {
     if (currentBoardId == null) {
-      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null });
+      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null, filterTagIds: [] });
       return;
     }
     void fetchTags(currentBoardId);
