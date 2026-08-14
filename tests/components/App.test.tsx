@@ -7,8 +7,11 @@ vi.mock('../../src/hooks/useTasksRealtime', () => ({
 }));
 
 vi.mock('../../src/stores/tag.store', () => ({
-  useTagStore: (selector: (s: { fetchTags: () => void; tags: unknown[] }) => unknown) =>
-    selector({ fetchTags: vi.fn(), tags: [] }),
+  useTagStore: Object.assign(
+    (selector: (s: { fetchTags: (boardId: number) => void; tags: unknown[] }) => unknown) =>
+      selector({ fetchTags: vi.fn(), tags: [] }),
+    { setState: vi.fn() }
+  ),
 }));
 
 beforeAll(() => {

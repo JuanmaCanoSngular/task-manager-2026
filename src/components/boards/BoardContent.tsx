@@ -8,13 +8,37 @@ import {
 } from '@hello-pangea/dnd';
 import type { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { StatusColumn } from './StatusColumn';
-import { useBoardStore, useCurrentBoardColumns } from '../../stores/board.store';
+import { useBoardStore, useCurrentBoard, useCurrentBoardColumns } from '../../stores/board.store';
 import { NoBoardSelected } from './NoBoardSelected';
 import { ColumnsManagerButton } from '../columns/ColumnsManagerButton';
+import { TagsManagerButton } from '../tags/TagsManagerButton';
+import { tagChipStyle } from '../../interfaces/tag.interface';
+import { useTagStore } from '../../stores/tag.store';
 import { useState } from 'react';
 
 const COLUMN_DND_TYPE = 'COLUMN';
-const TASK_DND_TYPE = 'TASK';
+
+const parseTaskDroppable = (
+  id: string
+): { columnId: number; zone: 'pinned' | 'unpinned' } | null => {
+  const [col, zone] = id.split(':');
+  if (zone !== 'pinned' && zone !== 'unpinned') return null;
+  const columnId = Number.parseInt(col, 10);
+  if (Number.isNaN(columnId)) return null;
+  return { columnId, zone };
+};
+
+const columnIndexInZone = (
+  columnId: number,
+  zone: 'pinned' | 'unpinned',
+  zoneIndex: number
+): number => {
+  const boardId = useBoardStore.getState().currentBoardId;
+  const board = useBoardStore.getState().boards.find((b) => b.id === boardId);
+  const pinnedCount =
+    board?.tasks.filter((task) => task.columnId === columnId && task.pinned).length ?? 0;
+  return zone === 'pinned' ? zoneIndex : pinnedCount + zoneIndex;
+};
 
 const columnDraggableId = (columnId: number) => `column-${columnId}`;
 
@@ -28,7 +52,9 @@ const isColumnShiftPreview = (index: number, sourceIndex: number, destinationInd
 
 export const BoardContent = () => {
   const currentBoardId = useBoardStore((state) => state.currentBoardId);
+  const board = useCurrentBoard();
   const columns = useCurrentBoardColumns();
+  const tags = useTagStore((state) => state.tags);
   const moveTask = useBoardStore((state) => state.moveTask);
   const updateTaskOrder = useBoardStore((state) => state.updateTaskOrder);
   const reorderColumns = useBoardStore((state) => state.reorderColumns);
@@ -36,6 +62,7 @@ export const BoardContent = () => {
     sourceIndex: number;
     destinationIndex: number;
   } | null>(null);
+  const [tagsOpen, setTagsOpen] = useState(false);
 
   if (currentBoardId === null) {
     return <NoBoardSelected />;
@@ -88,13 +115,17 @@ export const BoardContent = () => {
     }
 
     const taskId = parseInt(draggableId, 10);
-    const sourceColumnId = parseInt(source.droppableId, 10);
-    const destinationColumnId = parseInt(destination.droppableId, 10);
+    const from = parseTaskDroppable(source.droppableId);
+    const to = parseTaskDroppable(destination.droppableId);
+    if (!from || !to) return;
 
-    if (sourceColumnId === destinationColumnId) {
-      updateTaskOrder(sourceColumnId, source.index, destination.index);
+    const sourceIndex = columnIndexInZone(from.columnId, from.zone, source.index);
+    const destinationIndex = columnIndexInZone(to.columnId, to.zone, destination.index);
+
+    if (from.columnId === to.columnId) {
+      updateTaskOrder(from.columnId, sourceIndex, destinationIndex);
     } else {
-      moveTask(taskId, destinationColumnId, destination.index);
+      moveTask(taskId, to.columnId, destinationIndex);
     }
   };
 
@@ -112,7 +143,35 @@ export const BoardContent = () => {
           boxShadow: 'var(--shadow-card)',
         }}
       >
-        <div className="flex justify-end flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 flex-shrink-0 min-w-0">
+          <div className="min-w-0 flex-1 flex items-center gap-2.5 flex-wrap">
+            {board ? (
+              <h2
+                className="min-w-0 max-w-full truncate text-lg md:text-xl font-semibold tracking-tight"
+                style={{ color: board.color }}
+              >
+                {board.name}
+              </h2>
+            ) : null}
+            {tags.length > 0 ? (
+              <ul className="flex flex-wrap items-center gap-1.5 min-w-0" aria-label="Etiquetas vigentes">
+                {tags.map((tag) => (
+                  <li key={tag.id}>
+                    <button
+                      type="button"
+                      onClick={() => setTagsOpen(true)}
+                      className="tag-base !px-2 !py-0.5 !text-[11px]"
+                      style={tagChipStyle(tag.color, true)}
+                      title="Gestionar etiquetas"
+                    >
+                      {tag.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <TagsManagerButton open={tagsOpen} onOpenChange={setTagsOpen} />
+          </div>
           <ColumnsManagerButton boardId={currentBoardId} />
         </div>
 
@@ -163,7 +222,6 @@ export const BoardContent = () => {
                           dragHandleProps={
                             colProvided.dragHandleProps as DraggableProvidedDragHandleProps | null
                           }
-                          taskDndType={TASK_DND_TYPE}
                           isColumnDragging={isColumnDragging}
                         />
                       </div>

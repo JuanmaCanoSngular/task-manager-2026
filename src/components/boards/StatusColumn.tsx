@@ -3,22 +3,29 @@ import type { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { TaskCard } from '../tasks/TaskCard';
 import { useTasksByColumn } from '../../stores/board.store';
 import { BoardColumn } from '../../interfaces/column.interface';
+import { Task } from '../../interfaces/task.interface';
 import { Bars2Icon } from '@heroicons/react/20/solid';
+
+export const TASK_PINNED_TYPE = 'TASK-PINNED';
+export const TASK_UNPINNED_TYPE = 'TASK-UNPINNED';
+
+export const taskDroppableId = (columnId: number, zone: 'pinned' | 'unpinned') =>
+  `${columnId}:${zone}`;
 
 interface StatusColumnProps {
   column: BoardColumn;
   dragHandleProps?: DraggableProvidedDragHandleProps | null;
-  taskDndType?: string;
   isColumnDragging?: boolean;
 }
 
 export const StatusColumn = ({
   column,
   dragHandleProps,
-  taskDndType,
   isColumnDragging = false,
 }: StatusColumnProps) => {
   const tasks = useTasksByColumn(column.id);
+  const pinned = tasks.filter((task) => task.pinned);
+  const rest = tasks.filter((task) => !task.pinned);
 
   return (
     <div className="h-full flex flex-col min-h-0">
@@ -38,28 +45,98 @@ export const StatusColumn = ({
           {column.name} ({tasks.length})
         </span>
       </h2>
-      <Droppable droppableId={String(column.id)} type={taskDndType}>
-        {(provided, snapshot) => (
+
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        <TaskDropZone
+          columnId={column.id}
+          columnColor={column.color}
+          zone="pinned"
+          label={`Tareas destacadas en ${column.name}`}
+          tasks={pinned}
+          dndType={TASK_PINNED_TYPE}
+          isColumnDragging={isColumnDragging}
+          emptyUntilHover
+        />
+
+        {pinned.length > 0 && rest.length > 0 ? (
           <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            role="list"
-            aria-label={`Tareas en ${column.name}`}
-            className={`flex flex-col gap-2 md:gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden transition-all duration-200 rounded-xl p-1.5 md:p-2 ${
-              snapshot.isDraggingOver && !isColumnDragging
-                ? 'drop-zone-active'
-                : isColumnDragging
-                  ? 'opacity-60'
-                  : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.03]'
-            }`}
-          >
-            {tasks.map((task, index) => (
-              <TaskCard key={task.id} task={task} index={index} dragType={taskDndType} />
-            ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+            className="mx-1 my-1.5 border-t border-dashed"
+            style={{ borderColor: 'var(--border)' }}
+            aria-hidden
+          />
+        ) : null}
+
+        <TaskDropZone
+          columnId={column.id}
+          columnColor={column.color}
+          zone="unpinned"
+          label={`Tareas en ${column.name}`}
+          tasks={rest}
+          dndType={TASK_UNPINNED_TYPE}
+          isColumnDragging={isColumnDragging}
+          fillRemaining
+        />
+      </div>
     </div>
   );
 };
+
+interface TaskDropZoneProps {
+  columnId: number;
+  columnColor: string;
+  zone: 'pinned' | 'unpinned';
+  label: string;
+  tasks: Task[];
+  dndType: string;
+  isColumnDragging: boolean;
+  emptyUntilHover?: boolean;
+  fillRemaining?: boolean;
+}
+
+const TaskDropZone = ({
+  columnId,
+  columnColor,
+  zone,
+  label,
+  tasks,
+  dndType,
+  isColumnDragging,
+  emptyUntilHover = false,
+  fillRemaining = false,
+}: TaskDropZoneProps) => (
+  <Droppable droppableId={taskDroppableId(columnId, zone)} type={dndType}>
+    {(provided, snapshot) => {
+      const emptyPinnedIdle = emptyUntilHover && tasks.length === 0 && !snapshot.isDraggingOver;
+      return (
+        <div
+          ref={provided.innerRef}
+          {...provided.droppableProps}
+          role="list"
+          aria-label={label}
+          className={`flex flex-col gap-1.5 md:gap-2 rounded-xl p-1.5 md:p-2 transition-all duration-200 ${
+            fillRemaining ? 'flex-1 min-h-0' : 'flex-shrink-0'
+          } ${emptyPinnedIdle ? '!p-0 min-h-0' : ''} ${
+            snapshot.isDraggingOver && !isColumnDragging
+              ? 'drop-zone-active'
+              : isColumnDragging
+                ? 'opacity-60'
+                : fillRemaining
+                  ? 'hover:bg-black/[0.02] dark:hover:bg-white/[0.03]'
+                  : ''
+          } ${emptyUntilHover && snapshot.isDraggingOver && tasks.length === 0 ? 'min-h-12' : ''}`}
+        >
+          {tasks.map((task, index) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              index={index}
+              dragType={dndType}
+              columnColor={columnColor}
+            />
+          ))}
+          {provided.placeholder}
+        </div>
+      );
+    }}
+  </Droppable>
+);

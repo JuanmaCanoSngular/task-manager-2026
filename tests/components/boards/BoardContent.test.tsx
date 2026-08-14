@@ -29,7 +29,13 @@ const mockBoardStore = () => ({
     reorderColumns: vi.fn(),
   }),
   useTasksByColumn: () => [],
-  useCurrentBoard: () => ({ id: 1, name: 'Test Board', columns: MOCK_COLUMNS, tasks: [] }),
+  useCurrentBoard: () => ({
+    id: 1,
+    name: 'Test Board',
+    color: '#0d9488',
+    columns: MOCK_COLUMNS,
+    tasks: [],
+  }),
   useCurrentBoardColumns: () => MOCK_COLUMNS,
   useCurrentBoardTasks: () => [],
 });
@@ -39,6 +45,7 @@ describe('BoardContent', () => {
     vi.doMock('../../../src/stores/board.store', mockBoardStore);
     const { BoardContent } = await import('../../../src/components/boards/BoardContent');
     render(<BoardContent />);
+    expect(screen.getByRole('heading', { name: 'Test Board' })).toBeInTheDocument();
     expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
     expect(screen.getByText(/en progreso/i)).toBeInTheDocument();
     expect(screen.getByText(/bloqueos/i)).toBeInTheDocument();

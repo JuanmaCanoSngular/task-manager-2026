@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { APP_COLOR_PRESETS } from '../constants/color-presets';
 
-/** Etiqueta del usuario (tabla `tags`). */
+/** Etiqueta de un tablero (tabla `tags`). */
 export interface Tag {
   id: string;
   name: string;

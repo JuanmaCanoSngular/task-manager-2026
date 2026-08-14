@@ -43,7 +43,7 @@ function loadEnv() {
 
 loadEnv();
 
-const APP_URL = process.env.APP_URL || 'https://task-manager-2026-beta.vercel.app';
+const APP_URL = process.env.APP_URL || 'https://taskblero.vercel.app';
 const PREVIEW_TO = process.env.PREVIEW_TO || 'juanmacano@gmail.com';
 const APPROVE_URL = 'https://ejemplo.supabase.co/functions/v1/approve-access?token=demo&action=approve';
 const DENY_URL = 'https://ejemplo.supabase.co/functions/v1/approve-access?token=demo&action=deny';

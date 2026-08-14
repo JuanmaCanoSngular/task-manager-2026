@@ -25,7 +25,9 @@ describe('TaskCardMeta', () => {
     );
 
     expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('Falta el listado de Julián')).toBeInTheDocument();
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
+      'Falta el listado de Julián'
+    );
     expect(screen.getByText(/hace 1 hora/i)).toBeInTheDocument();
   });
 

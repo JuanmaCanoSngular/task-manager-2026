@@ -22,12 +22,14 @@ export const TagsManagerDialog = ({ open, onClose }: TagsManagerDialogProps) => 
   const [color, setColor] = useState<string>(TAG_COLOR_PRESETS[0]);
   const [busy, setBusy] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [colorOpenId, setColorOpenId] = useState<string | 'new' | null>(null);
 
   const handleCreate = async () => {
     if (!name.trim()) return;
     setBusy(true);
     await addTag(name.trim(), color);
     setName('');
+    setColorOpenId(null);
     setBusy(false);
   };
 
@@ -58,8 +60,8 @@ export const TagsManagerDialog = ({ open, onClose }: TagsManagerDialogProps) => 
                 leaveFrom="modal-transition-leave-from"
                 leaveTo="modal-transition-leave-to"
               >
-                <Dialog.Panel className="modal-panel max-w-md w-full">
-                  <div className="flex items-center justify-between mb-6">
+                <Dialog.Panel className="modal-panel max-w-sm w-full">
+                  <div className="flex items-center justify-between mb-2">
                     <Dialog.Title as="h3" className="modal-title">
                       Etiquetas
                     </Dialog.Title>
@@ -73,27 +75,33 @@ export const TagsManagerDialog = ({ open, onClose }: TagsManagerDialogProps) => 
                     </button>
                   </div>
 
+                  <p className="mb-4 text-xs leading-relaxed text-[var(--text-muted)]">
+                    Solo este tablero. Pulsa el nombre para editarlo y el color para
+                    cambiar el diseño.
+                  </p>
+
                   {error && (
                     <p className="mb-3 text-sm text-red-600 dark:text-red-400" role="alert">
                       {error}
                     </p>
                   )}
 
-                  <ul className="space-y-3 mb-6 max-h-56 overflow-y-auto">
+                  <ul className="mb-3 max-h-64 overflow-y-auto divide-y divide-[var(--border)]">
                     {tags.map((tag) => (
-                      <li
-                        key={tag.id}
-                        className="flex flex-col gap-2 rounded-xl border px-3 py-2.5"
-                        style={{ borderColor: 'var(--border)' }}
-                      >
+                      <li key={tag.id} className="py-1.5">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className="w-3 h-3 rounded-full flex-shrink-0"
+                          <button
+                            type="button"
+                            className="w-3.5 h-3.5 rounded-full flex-shrink-0 ring-1 ring-black/10 dark:ring-white/15"
                             style={{ backgroundColor: tag.color }}
-                            aria-hidden
+                            aria-label={`Color de ${tag.name}`}
+                            aria-expanded={colorOpenId === tag.id}
+                            onClick={() =>
+                              setColorOpenId((id) => (id === tag.id ? null : tag.id))
+                            }
                           />
                           <input
-                            className="input-base flex-1 min-w-0 py-1.5 text-sm"
+                            className="flex-1 min-w-0 bg-transparent border-0 py-1 px-0 text-sm focus:ring-0 focus:outline-none"
                             defaultValue={tag.name}
                             key={`${tag.id}-${tag.name}`}
                             onBlur={(e) => {
@@ -108,54 +116,71 @@ export const TagsManagerDialog = ({ open, onClose }: TagsManagerDialogProps) => 
                           />
                           <button
                             type="button"
-                            className="btn-remove p-1.5 flex-shrink-0"
+                            className="p-1 flex-shrink-0 text-[var(--text-muted)] hover:text-red-500 transition-colors"
                             aria-label={`Eliminar ${tag.name}`}
                             onClick={() => setDeleteId(tag.id)}
                           >
-                            <TrashIcon className="w-4 h-4" />
+                            <TrashIcon className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        <ColorPicker
-                          value={tag.color}
-                          onChange={(c) => void updateTag(tag.id, { color: c })}
-                          presets={TAG_COLOR_PRESETS}
-                          size="xs"
-                          ariaLabel={`Color de ${tag.name}`}
-                        />
+                        {colorOpenId === tag.id ? (
+                          <div className="pt-2 pl-6">
+                            <ColorPicker
+                              value={tag.color}
+                              onChange={(c) => void updateTag(tag.id, { color: c })}
+                              presets={TAG_COLOR_PRESETS}
+                              size="xs"
+                              ariaLabel={`Color de ${tag.name}`}
+                            />
+                          </div>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
 
-                  <div className="space-y-3 rounded-xl p-3" style={{ backgroundColor: 'var(--surface-2)' }}>
-                    <p className="text-sm font-medium">Nueva etiqueta</p>
-                    <input
-                      className="input-base"
-                      placeholder="Nombre"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={32}
-                    />
-                    <ColorPicker
-                      value={color}
-                      onChange={setColor}
-                      presets={TAG_COLOR_PRESETS}
-                      size="sm"
-                      ariaLabel="Color de la nueva etiqueta"
-                    />
-                    <button
-                      type="button"
-                      className="btn-primary text-sm w-full justify-center"
-                      disabled={busy || !name.trim()}
-                      onClick={() => void handleCreate()}
-                    >
-                      Crear etiqueta
-                    </button>
-                  </div>
-
-                  <div className="mt-4 flex justify-end">
-                    <button type="button" className="btn-secondary text-sm" onClick={onClose}>
-                      Listo
-                    </button>
+                  <div className="pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="w-3.5 h-3.5 rounded-full flex-shrink-0 ring-1 ring-black/10 dark:ring-white/15"
+                        style={{ backgroundColor: color }}
+                        aria-label="Color de la nueva etiqueta"
+                        aria-expanded={colorOpenId === 'new'}
+                        onClick={() => setColorOpenId((id) => (id === 'new' ? null : 'new'))}
+                      />
+                      <input
+                        className="flex-1 min-w-0 bg-transparent border-0 py-1 px-0 text-sm focus:ring-0 focus:outline-none"
+                        placeholder="Nueva etiqueta"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            void handleCreate();
+                          }
+                        }}
+                        maxLength={32}
+                      />
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-teal-700 dark:text-teal-400 disabled:opacity-40"
+                        disabled={busy || !name.trim()}
+                        onClick={() => void handleCreate()}
+                      >
+                        Añadir
+                      </button>
+                    </div>
+                    {colorOpenId === 'new' ? (
+                      <div className="pt-2 pl-6">
+                        <ColorPicker
+                          value={color}
+                          onChange={setColor}
+                          presets={TAG_COLOR_PRESETS}
+                          size="xs"
+                          ariaLabel="Color de la nueva etiqueta"
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

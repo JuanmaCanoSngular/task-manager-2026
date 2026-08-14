@@ -5,11 +5,18 @@ import { setupWindowMocks } from '../../utils/component-test-utils';
 
 const signOut = vi.fn();
 const deleteAccount = vi.fn();
+const getSession = vi.fn();
+const onAuthChange = vi.fn();
 
 vi.mock('../../../src/services/auth.service', () => ({
   authService: {
     signOut: () => signOut(),
     deleteAccount: () => deleteAccount(),
+    getSession: () => getSession(),
+    onAuthChange: (cb: (session: unknown) => void) => {
+      onAuthChange(cb);
+      return () => undefined;
+    },
   },
 }));
 
@@ -40,6 +47,9 @@ beforeEach(() => {
   signOut.mockClear();
   deleteAccount.mockReset();
   deleteAccount.mockResolvedValue(undefined);
+  getSession.mockReset();
+  getSession.mockResolvedValue(null);
+  onAuthChange.mockReset();
   getStatus.mockReset();
   generateCode.mockReset();
   getStatus.mockResolvedValue({
@@ -121,5 +131,23 @@ describe('UserMenu', () => {
     fireEvent.click(screen.getByRole('button', { name: /menú de cuenta/i }));
 
     expect(await screen.findByRole('menuitem', { name: /telegram vinculado/i })).toBeInTheDocument();
+  });
+
+  test('muestra la foto de Google si la sesión la trae', async () => {
+    vi.stubEnv('VITE_AUTH_ENABLED', 'true');
+    getSession.mockResolvedValue({
+      user: { user_metadata: { avatar_url: 'https://lh3.googleusercontent.com/a/foto' } },
+    });
+    vi.resetModules();
+    const { UserMenu } = await import('../../../src/components/auth/UserMenu');
+    render(<UserMenu />);
+
+    const button = await screen.findByRole('button', { name: /menú de cuenta/i });
+    await waitFor(() => {
+      expect(button.querySelector('img')).toHaveAttribute(
+        'src',
+        'https://lh3.googleusercontent.com/a/foto'
+      );
+    });
   });
 });

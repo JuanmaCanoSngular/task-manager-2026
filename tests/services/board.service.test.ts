@@ -218,7 +218,6 @@ describe('Board Service (Supabase)', () => {
         title: 'T',
         column_id: 1,
         status: 'backlog',
-        background: null,
         tags: ['design'],
         position: 3,
       });
@@ -248,10 +247,44 @@ describe('Board Service (Supabase)', () => {
         title: 'Editada',
         column_id: 4,
         status: 'completed',
-        background: null,
         tags: [],
       });
       expect(eqMock).toHaveBeenCalledWith('id', 10);
+    });
+
+    test('setTaskPinned actualiza el flag pinned', async () => {
+      await boardService.setTaskPinned(10, true);
+      expect(fromMock).toHaveBeenCalledWith('tasks');
+      expect(updateMock).toHaveBeenCalledWith({ pinned: true });
+      expect(eqMock).toHaveBeenCalledWith('id', 10);
+    });
+
+    test('rowToTask incluye pinned solo si es true', async () => {
+      const { rowToTask } = await import('../../src/services/board.service');
+      expect(
+        rowToTask({
+          id: 1,
+          board_id: 1,
+          title: 'X',
+          status: 'backlog',
+          column_id: 1,
+          pinned: true,
+          tags: [],
+          position: 0,
+        }).pinned
+      ).toBe(true);
+      expect(
+        rowToTask({
+          id: 2,
+          board_id: 1,
+          title: 'Y',
+          status: 'backlog',
+          column_id: 1,
+          pinned: false,
+          tags: [],
+          position: 1,
+        }).pinned
+      ).toBeUndefined();
     });
 
     test('saveTaskOrder actualiza columnId y posición de cada fila', async () => {

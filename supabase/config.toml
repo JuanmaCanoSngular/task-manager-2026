@@ -20,7 +20,3 @@ verify_jwt = true
 # delete-account: el usuario borra su propia cuenta (JWT).
 [functions.delete-account]
 verify_jwt = true
-
-# search-images: Unsplash; API key en secret; anon key basta para invocar.
-[functions.search-images]
-verify_jwt = true

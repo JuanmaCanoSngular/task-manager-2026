@@ -25,6 +25,7 @@ interface BoardStore {
   removeBoard: () => void;
   addNewTask: (task: TaskDraft) => Promise<void>;
   updateTask: (taskId: number, taskData: TaskDraft) => void;
+  toggleTaskPinned: (taskId: number) => void;
   removeTask: (taskId: number) => void;
   moveTask: (taskId: number, newColumnId: number, destinationIndex?: number) => void;
   updateTaskOrder: (columnId: number, sourceIndex: number, destinationIndex: number) => void;
@@ -71,12 +72,57 @@ const defaultsDiffer = (a: Board[], b: Board[]) =>
   a.length !== b.length || a.some((board, i) => board.isDefault !== b[i]?.isDefault);
 
 const insertAtTopOfColumn = (tasks: Task[], task: Task) => {
-  const firstOfColumn = tasks.findIndex((t) => t.columnId === task.columnId);
-  if (firstOfColumn === -1) {
+  const indices: number[] = [];
+  for (let i = 0; i < tasks.length; i++) {
+    if (tasks[i].columnId === task.columnId) indices.push(i);
+  }
+  if (indices.length === 0) {
     tasks.push(task);
     return;
   }
-  tasks.splice(firstOfColumn, 0, task);
+  if (task.pinned) {
+    tasks.splice(indices[0], 0, task);
+    return;
+  }
+  // Tras la última anclada (o al inicio de la columna si no hay ancladas).
+  let insertAt = indices[0];
+  for (const i of indices) {
+    if (tasks[i].pinned) insertAt = i + 1;
+    else break;
+  }
+  tasks.splice(insertAt, 0, task);
+};
+
+/** Dentro de cada columna: ancladas primero, sin mezclar slots de otras columnas. */
+const normalizePinnedOrder = (tasks: Task[]) => {
+  const columnIds = [...new Set(tasks.map((t) => t.columnId))];
+  for (const columnId of columnIds) {
+    const idxs: number[] = [];
+    for (let i = 0; i < tasks.length; i++) {
+      if (tasks[i].columnId === columnId) idxs.push(i);
+    }
+    if (idxs.length <= 1) continue;
+    const items = idxs.map((i) => tasks[i]);
+    const sorted = [...items.filter((t) => t.pinned), ...items.filter((t) => !t.pinned)];
+    idxs.forEach((idx, j) => {
+      tasks[idx] = sorted[j];
+    });
+  }
+};
+
+/** Índice de destino válido: ancladas solo entre ancladas; el resto, debajo. */
+const clampColumnDestination = (
+  tasksInColumn: Task[],
+  sourceIndex: number,
+  destinationIndex: number
+): number => {
+  const moving = tasksInColumn[sourceIndex];
+  if (!moving) return destinationIndex;
+  const pinnedCount = tasksInColumn.filter((task) => task.pinned).length;
+  if (moving.pinned) {
+    return Math.min(destinationIndex, Math.max(0, pinnedCount - 1));
+  }
+  return Math.max(destinationIndex, pinnedCount);
 };
 
 /** Copia plana: no escapar proxies de Immer fuera del `set()`. */
@@ -235,14 +281,12 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
 
       const prev = state.boards[boardIndex].tasks[taskIndex];
       const columnChanged = prev.columnId !== taskData.columnId;
-      const bg = taskData.background?.trim();
       const next: Task = {
         id: prev.id,
-        // Nunca borrar el título por un draft vacío (p. ej. al elegir imagen).
         title: (taskData.title ?? '').trim() || prev.title,
         columnId: taskData.columnId,
         tags: [...taskData.tags],
-        ...(bg ? { background: bg } : {}),
+        ...(prev.pinned ? { pinned: true } : {}),
         ...(prev.createdAt ? { createdAt: prev.createdAt } : {}),
         ...(prev.commentCount ? { commentCount: prev.commentCount } : {}),
         ...(prev.latestCommentPreview
@@ -253,6 +297,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       if (columnChanged) {
         state.boards[boardIndex].tasks.splice(taskIndex, 1);
         insertAtTopOfColumn(state.boards[boardIndex].tasks, next);
+        normalizePinnedOrder(state.boards[boardIndex].tasks);
         affectedBoardId = state.boards[boardIndex].id;
       } else {
         state.boards[boardIndex].tasks[taskIndex] = next;
@@ -263,6 +308,36 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
     if (affectedBoardId !== null) {
       persistBoardOrder(affectedBoardId);
     }
+  },
+  toggleTaskPinned: (taskId) => {
+    let affectedBoardId: number | null = null;
+    let nextPinned = false;
+
+    set((state) => {
+      const boardIndex = state.boards.findIndex((b) => b.id === state.currentBoardId);
+      if (boardIndex === -1) return;
+
+      const taskIndex = state.boards[boardIndex].tasks.findIndex((task) => task.id === taskId);
+      if (taskIndex === -1) return;
+
+      const prev = state.boards[boardIndex].tasks[taskIndex];
+      nextPinned = !prev.pinned;
+      const next: Task = nextPinned
+        ? { ...prev, pinned: true }
+        : (() => {
+            const { pinned: _p, ...rest } = prev;
+            return rest;
+          })();
+
+      state.boards[boardIndex].tasks.splice(taskIndex, 1);
+      insertAtTopOfColumn(state.boards[boardIndex].tasks, next);
+      normalizePinnedOrder(state.boards[boardIndex].tasks);
+      affectedBoardId = state.boards[boardIndex].id;
+    });
+
+    if (affectedBoardId === null) return;
+    boardService.setTaskPinned(taskId, nextPinned).catch(reportWriteError);
+    persistBoardOrder(affectedBoardId);
   },
   removeTask: (taskId) => {
     set((state) => {
@@ -371,6 +446,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       if (!board) return;
       if (board.tasks.some((t) => t.id === task.id)) return;
       insertAtTopOfColumn(board.tasks, task);
+      normalizePinnedOrder(board.tasks);
     });
   },
   applyRemoteTaskUpdate: (boardId, task) => {
@@ -390,10 +466,12 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         const prevColumnId = fromBoard.tasks[fromIndex].columnId;
         if (prevColumnId === task.columnId) {
           fromBoard.tasks[fromIndex] = task;
+          normalizePinnedOrder(fromBoard.tasks);
           return;
         }
         fromBoard.tasks.splice(fromIndex, 1);
         insertAtTopOfColumn(fromBoard.tasks, task);
+        normalizePinnedOrder(fromBoard.tasks);
         return;
       }
 
@@ -401,7 +479,10 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         fromBoard.tasks.splice(fromIndex, 1);
       }
       const board = state.boards.find((b) => b.id === boardId);
-      if (board) insertAtTopOfColumn(board.tasks, task);
+      if (board) {
+        insertAtTopOfColumn(board.tasks, task);
+        normalizePinnedOrder(board.tasks);
+      }
     });
   },
   applyRemoteTaskDelete: (taskId) => {
@@ -446,12 +527,24 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         if (destinationIndex !== undefined) {
           state.boards[boardIndex].tasks.splice(taskIndex, 1);
 
+          const destColumnTasks = state.boards[boardIndex].tasks.filter(
+            (t) => t.columnId === newColumnId
+          );
+          const pinnedCount = destColumnTasks.filter((t) => t.pinned).length;
+          const clampedIndex = task.pinned
+            ? Math.min(destinationIndex, pinnedCount)
+            : Math.max(destinationIndex, pinnedCount);
+
+          const firstOfDest = state.boards[boardIndex].tasks.findIndex(
+            (t) => t.columnId === newColumnId
+          );
           const actualDestinationIndex =
-            state.boards[boardIndex].tasks.findIndex((t) => t.columnId === newColumnId) +
-            destinationIndex;
+            (firstOfDest === -1 ? state.boards[boardIndex].tasks.length : firstOfDest) +
+            clampedIndex;
 
           state.boards[boardIndex].tasks.splice(actualDestinationIndex, 0, task);
         }
+        normalizePinnedOrder(state.boards[boardIndex].tasks);
         affectedBoardId = state.boards[boardIndex].id;
       }
     });
@@ -471,6 +564,9 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
 
       if (sourceIndex >= tasksInColumn.length || destinationIndex >= tasksInColumn.length) return;
 
+      const clampedDest = clampColumnDestination(tasksInColumn, sourceIndex, destinationIndex);
+      if (clampedDest === sourceIndex) return;
+
       const taskToMove = tasksInColumn[sourceIndex];
 
       const realSourceIndex = state.boards[boardIndex].tasks.findIndex(
@@ -481,9 +577,10 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
 
       const realDestinationIndex =
         state.boards[boardIndex].tasks.findIndex((task) => task.columnId === columnId) +
-        destinationIndex;
+        clampedDest;
 
       state.boards[boardIndex].tasks.splice(realDestinationIndex, 0, taskToMove);
+      normalizePinnedOrder(state.boards[boardIndex].tasks);
       affectedBoardId = state.boards[boardIndex].id;
     });
     if (affectedBoardId !== null) {

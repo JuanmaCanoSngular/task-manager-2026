@@ -7,6 +7,7 @@ import { useBoardStore } from '../../stores/board.store';
 import { useTagStore } from '../../stores/tag.store';
 import { TrashIcon } from '@heroicons/react/20/solid';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { PushPinIcon } from '../common/PushPinIcon';
 import { isRecentlyCreated } from '../../utils/relativeTime';
 import { TagsManagerDialog } from '../tags/TagsManagerDialog';
 import { TaskCardMeta } from './TaskCardMeta';
@@ -15,12 +16,14 @@ interface TaskCardProps {
   task: Task;
   index: number;
   dragType?: string;
+  columnColor?: string;
 }
 
-export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
+export const TaskCard = ({ task, index, dragType, columnColor = '#64748b' }: TaskCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const updateTask = useBoardStore((state) => state.updateTask);
+  const toggleTaskPinned = useBoardStore((state) => state.toggleTaskPinned);
   const removeTask = useBoardStore((state) => state.removeTask);
   const allTags = useTagStore((state) => state.tags);
   const recent = isRecentlyCreated(task.createdAt);
@@ -32,20 +35,22 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
   const hasComments = (task.commentCount ?? 0) > 0;
   const title = (task.title ?? '').trim() || 'Sin título';
   const titleIsFallback = !(task.title ?? '').trim();
-  const hasCover = Boolean(task.background?.trim());
+  const isPinned = Boolean(task.pinned);
+  const hasExtra = hasTags || hasComments || Boolean(task.createdAt);
 
   const handleSubmit = (data: TaskDraft) => {
     updateTask(task.id, data);
     setIsOpen(false);
   };
 
-  const handlePersistDraft = (data: TaskDraft) => {
-    updateTask(task.id, data);
-  };
-
   const handleDelete = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleTogglePin = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    toggleTaskPinned(task.id);
   };
 
   const handleClick = () => {
@@ -66,6 +71,13 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
     }
   };
 
+  const handlePinKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleTogglePin(e);
+    }
+  };
+
   return (
     <>
       <Draggable
@@ -82,93 +94,78 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
             onKeyDown={handleKeyDown}
             tabIndex={0}
             role="listitem"
-            aria-label={`Editar tarea: ${title}${hasComments ? `, ${task.commentCount} comentarios` : ''}`}
-            className={`group relative cursor-grab active:cursor-grabbing rounded-xl md:rounded-2xl border text-left focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition ${
+            aria-label={`Editar tarea: ${title}${isPinned ? ', destacada' : ''}${hasComments ? `, ${task.commentCount} comentarios` : ''}`}
+            className={`task-card group relative cursor-grab active:cursor-grabbing rounded-xl text-left px-3 py-2.5 md:px-3.5 md:py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset card-move-transition ${
               snapshot.isDragging ? 'card-dragging' : ''
-            } ${recent ? 'card-recent' : ''} ${hasCover ? 'overflow-hidden' : 'p-3 md:p-4'} ${
-              hasComments ? 'border-l-[3px] border-l-teal-500/60 dark:border-l-teal-400/50' : ''
-            }`}
+            } ${recent ? 'card-recent' : ''}`}
             style={{
               ...provided.draggableProps.style,
               height: 'auto',
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
+              backgroundColor: isPinned
+                ? `color-mix(in srgb, ${columnColor} 12%, var(--surface))`
+                : 'var(--surface)',
+              border: isPinned ? `2px solid ${columnColor}` : '1px solid var(--border)',
               boxShadow: 'var(--shadow-card)',
               color: 'var(--text)',
             }}
           >
             <button
+              type="button"
               onClick={handleDelete}
               onKeyDown={handleDeleteKeyDown}
               tabIndex={0}
-              className="absolute top-2 right-2 z-30 btn-remove opacity-0 group-hover:opacity-100 bg-black/50 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:opacity-100"
+              className="task-card__action task-card__action--danger top-1.5 right-7 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
               aria-label={`Eliminar tarea: ${title}`}
             >
-              <TrashIcon className="w-4 h-4 text-white" />
+              <TrashIcon className="w-3.5 h-3.5" />
             </button>
 
-            {hasCover ? (
-              <div className="relative w-full" style={{ height: 152 }}>
-                <img
-                  src={task.background}
-                  alt=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: 'block',
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                {/* Título siempre visible sobre la portada */}
-                <div
-                  className="absolute inset-x-0 bottom-0 z-10"
-                  style={{
-                    padding: '2.25rem 0.75rem 0.7rem',
-                    background:
-                      'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)',
-                  }}
-                >
-                  <p
-                    className={`text-sm font-semibold leading-snug text-white drop-shadow ${
-                      recent ? 'pl-3' : ''
-                    } ${titleIsFallback ? 'italic opacity-90' : ''}`}
-                  >
-                    {title}
-                  </p>
+            <button
+              type="button"
+              onClick={handleTogglePin}
+              onKeyDown={handlePinKeyDown}
+              tabIndex={0}
+              className={`absolute z-30 top-1.5 right-1 flex h-6 w-6 items-center justify-center rounded-md bg-transparent shadow-none focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:opacity-100 ${
+                isPinned
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+              }`}
+              style={{ color: columnColor }}
+              aria-label={isPinned ? `Desanclar tarea: ${title}` : `Anclar tarea: ${title}`}
+              aria-pressed={isPinned}
+              title={isPinned ? 'Desanclar' : 'Anclar arriba'}
+            >
+              <PushPinIcon className="w-3 h-3" />
+            </button>
+
+            <p
+              className={`text-sm leading-snug pr-16 line-clamp-2 ${recent ? 'pl-3' : ''} ${
+                titleIsFallback ? 'italic text-[var(--text-muted)]' : ''
+              }`}
+            >
+              {title}
+            </p>
+
+            {hasExtra ? (
+              <div className="task-card__extra">
+                <div className="task-card__extra-inner">
+                  {hasTags && (
+                    <div className="mt-1.5 flex flex-wrap gap-1 min-w-0">
+                      {tagItems.map((tagInfo) => (
+                        <span
+                          key={tagInfo.id}
+                          className="tag-base !px-2 !py-0.5 !text-[11px]"
+                          style={tagChipStyle(tagInfo.color, true)}
+                        >
+                          {tagInfo.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <TaskCardMeta task={task} recent={recent} />
                 </div>
               </div>
-            ) : (
-              <p className={`text-sm leading-snug ${recent ? 'pl-3' : ''}`}>{title}</p>
-            )}
-
-            {(hasTags || hasComments || task.createdAt) && (
-              <div
-                className={hasCover ? 'px-3 pb-3 pt-2 md:px-4 md:pb-4' : 'mt-1.5'}
-                style={hasCover ? { backgroundColor: 'var(--surface)' } : undefined}
-              >
-                {hasTags && (
-                  <div className="flex flex-wrap gap-1 min-w-0">
-                    {tagItems.map((tagInfo) => (
-                      <span
-                        key={tagInfo.id}
-                        className="tag-base !px-2 !py-0.5 !text-[11px]"
-                        style={tagChipStyle(tagInfo.color, true)}
-                      >
-                        {tagInfo.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <TaskCardMeta task={task} recent={recent} />
-              </div>
-            )}
+            ) : null}
           </div>
         )}
       </Draggable>
@@ -179,7 +176,6 @@ export const TaskCard = ({ task, index, dragType }: TaskCardProps) => {
         mode="edit"
         task={task}
         onSubmit={handleSubmit}
-        onPersistDraft={handlePersistDraft}
         onManageTags={() => setManageTagsOpen(true)}
       />
 

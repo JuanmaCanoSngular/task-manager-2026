@@ -30,8 +30,7 @@ tablero por defecto del usuario.
 | Columna Bloqueos | Label **Bloqueos** + rojo (status interno `in-review`) |
 | Marca / UI | Tinta + teal; logo columnas; Source Sans 3 self-hosted |
 | Tema | Claro/oscuro: View Transitions + `clip-path`; toggle sol/luna en header |
-| Etiquetas | CRUD por usuario; estándar Urgente / Importante / Idea |
-| Imagen tarjeta | URL externa + buscador Unsplash (A6) en modal |
+| Etiquetas | CRUD por tablero; estándar Urgente / Importante / Idea |
 | Telegram | Bot + Gemini: vincular, crear, `/pendientes`, `/bloqueos` |
 | Keep-alive | Cron GitHub Actions cada 3 días (Supabase free) |
 | Idioma | Solo español |
@@ -42,16 +41,17 @@ tablero por defecto del usuario.
 
 - Voz en Telegram / canales extra (WhatsApp, Alexa) — Fase D ampliación.
 - **F1** Posible integración bidireccional con Google Calendar (exploración).
-- Dominio corto `juanmacano.eu/tablero` → producción (**E1**, al final).
+- Dominio corto `juanmacano.eu/tablero` → [taskblero.vercel.app](https://taskblero.vercel.app/) (**E1**, al final).
 - Ejecutar `supabase/columns-schema.sql` en Supabase si el tablero aún no carga columnas.
 
 ---
 
 ## Fase A — Producto e identidad
 
-### A1. Nombre y header — ✅ decidido
+### A1. Nombre y header — ✅
 
-- Nombre oficial: **Task Manager App** (se mantiene; no se busca otro).
+- Nombre oficial: **Taskblero** (antes Task Manager App).
+- URL de producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 - Tagline: *Tu tablero, sin ruido.*
 - Logo: tres columnas + punto rojo (Bloqueos).
 - Look: tinta + teal; Source Sans 3 (self-hosted).
@@ -70,11 +70,9 @@ tablero por defecto del usuario.
 - Kanban, DnD, formularios y Telegram usan `column_id`; inbox (`is_inbox`) = Pendiente.
 - SQL pendiente en Supabase si aún no se ejecutó: `supabase/columns-schema.sql`.
 
-### A4. Imagen de fondo de tarjeta (URL) — ✅
+### A4. Imagen de fondo de tarjeta (URL) — descartado
 
-- URL http(s) en `tasks.background`; preview en modal y tarjeta.
-- Sin Unsplash ni hosting. SQL si falta la columna: `supabase/add-task-background.sql`.
-- Ampliación prevista en **A6** (buscador integrado; sigue sin almacenar archivos propios).
+- Se quitó: no aportaba valor (URL, Unsplash, portada en card).
 
 ### A5. Comentarios en tarea — ✅ (MVP)
 
@@ -83,12 +81,15 @@ tablero por defecto del usuario.
 - Tabla `task_comments` (`supabase/comments-schema.sql`): `task_id`, `body`, `created_at`, `updated_at`, `user_id`.
 - UI en modal de edición de tarea (`TaskComments`).
 
-### A6. Buscador de imágenes en la tarea — ✅ (MVP)
+### A6. Buscador de imágenes en la tarea — descartado
 
-- Ampliación de **A4**: buscar imágenes **desde el modal de crear/editar tarea**.
-- Flujo: búsqueda → grid de thumbnails → lightbox → confirmar; quitar / cambiar.
-- Edge Function `search-images` + secret `UNSPLASH_ACCESS_KEY`.
-- UI en `TaskImageUrl`; se guarda solo la URL en `tasks.background`.
+- Se retiró junto con A4 (Unsplash + `tasks.background`).
+
+### A7. Anclar tareas — ✅
+
+- Chincheta en la tarjeta: ancla arriba de su columna (`tasks.pinned`).
+- El drag & drop no puede dejar una no anclada por encima de las ancladas.
+- SQL: `supabase/add-task-pinned.sql`.
 
 ---
 
@@ -118,9 +119,9 @@ tablero por defecto del usuario.
 
 ### C2. Etiquetas personalizadas — ✅
 
-- Tabla `tags` por usuario (`supabase/tags-schema.sql`).
-- Estándar al aprobar: **Urgente**, **Importante**, **Idea**.
-- CRUD en UI («Etiquetas» en header + Gestionar en el modal de tarea).
+- Tabla `tags` por tablero (`board_id`; `supabase/tags-schema.sql`).
+- Estándar al aprobar / al crear tablero: **Urgente**, **Importante**, **Idea**.
+- CRUD en UI (gestor en el tablero + modal de tarea).
 - `tasks.tags` guarda UUIDs de etiquetas.
 
 ---
@@ -180,12 +181,12 @@ Comandos:
 
 ### E1. `juanmacano.eu/tablero` → URL final
 
-- Hoy la app vive en Vercel; hay tunnel Cloudflare en juego.
-- **No implementar ahora**: dejarlo para cuando la URL de producción y el
-  branding estén estables.
+- Producción actual: [https://taskblero.vercel.app/](https://taskblero.vercel.app/).
+- **No implementar ahora**: dejar el dominio corto para cuando el branding
+  propio (fuera de `vercel.app`) esté listo.
 - Enfoques posibles (elegir al final):
   1. **Cloudflare Redirect Rule / Bulk Redirect** — `juanmacano.eu/tablero` →
-     `https://….vercel.app` (301/302). Lo más simple.
+     `https://taskblero.vercel.app` (301/302). Lo más simple.
   2. **Cloudflare Worker** — rewrite/proxy si quieres misma origin o headers.
   3. **DNS CNAME** del subdominio (p. ej. `tablero.juanmacano.eu`) a Vercel +
      dominio custom en el proyecto.
@@ -213,7 +214,7 @@ Comandos:
 
 - Internacionalización.
 - Login por email + código (descartado; Google).
-- Storage propio de imágenes (A6 usa URLs de terceros; no subimos archivos).
+- Imágenes en tareas (URL / Unsplash / storage) — descartado; no aportaba valor.
 - Colaboración multi-usuario en el mismo tablero.
 - Sync de tema multi-dispositivo.
 
@@ -247,7 +248,7 @@ Comandos:
 profiles          — auth + status de acceso
 boards            — user_id, name, color, is_default, …
 columns           — board_id, name, color, position, slug, is_inbox   ← A3 ✅
-tasks             — board_id, column_id, title, tags, background (URL), …
+tasks             — board_id, column_id, title, tags, pinned, …
 task_comments     — task_id, body, timestamps   ← A5 ✅
 tags              — C2 ✅
 channel_links     — user_id, provider, external_id    ← D Telegram ✅
@@ -259,7 +260,6 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 
 ### Hecho recientemente
 - Tema (View Transitions) + toggle minimal
-- Imagen por URL + buscador Unsplash (A6)
 - Comentarios en tarea (A5)
 - Etiquetas, Telegram MVP, keep-alive, borrado de cuenta
 
@@ -269,7 +269,7 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 ### Después
 - WhatsApp / Alexa
 - **F1** Google Calendar bidireccional (exploración)
-- **Al final:** redirect `juanmacano.eu/tablero`
+- **Al final:** redirect `juanmacano.eu/tablero` → https://taskblero.vercel.app/
 
 ---
 

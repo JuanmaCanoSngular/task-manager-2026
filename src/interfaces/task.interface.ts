@@ -4,8 +4,8 @@ export interface Task {
   columnId: number;
   /** IDs de filas en `tags` (UUID como string). */
   tags: string[];
-  /** URL https de imagen externa (no hospedamos archivos). */
-  background?: string;
+  /** Anclada arriba de su columna (orden fijo respecto a no ancladas). */
+  pinned?: boolean;
   /** ISO timestamptz de creación (Supabase `created_at`). */
   createdAt?: string;
   /** Número de comentarios en la tarea (carga del tablero). */
@@ -14,5 +14,8 @@ export interface Task {
   latestCommentPreview?: string;
 }
 
-/** Campos editables al crear/actualizar (sin id ni timestamps). */
-export type TaskDraft = Omit<Task, 'id' | 'createdAt'>;
+/** Campos editables al crear/actualizar (sin id ni metadatos de solo-lectura). */
+export type TaskDraft = Omit<
+  Task,
+  'id' | 'createdAt' | 'commentCount' | 'latestCommentPreview' | 'pinned'
+>;

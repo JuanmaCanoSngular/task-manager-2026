@@ -36,6 +36,7 @@ vi.mock('../../src/services/board.service', () => ({
       tags: task.tags,
     })),
     updateTask: vi.fn(() => Promise.resolve()),
+    setTaskPinned: vi.fn(() => Promise.resolve()),
     deleteTask: vi.fn(() => Promise.resolve()),
     saveTaskOrder: vi.fn(() => Promise.resolve()),
   },
@@ -402,6 +403,54 @@ describe('BoardStore Selectors', () => {
     expect(backlogResult.current[0].title).toBe('Task 1');
     expect(completedResult.current).toHaveLength(1);
     expect(completedResult.current[0].title).toBe('Task 2');
+  });
+
+  test('toggleTaskPinned ancla la tarea arriba y no deja arrastrarla bajo no ancladas', async () => {
+    await act(async () => {
+      await useBoardStore.getState().addNewBoard('Board 1', 'bg-blue-500');
+    });
+    const boardId = useBoardStore.getState().currentBoardId!;
+    const colId = useBoardStore.getState().boards[0].columns[0].id;
+
+    act(() => {
+      useBoardStore.setState((state) => {
+        const board = state.boards.find((b) => b.id === boardId)!;
+        board.tasks = [
+          { id: 1, title: 'A', columnId: colId, tags: [] },
+          { id: 2, title: 'B', columnId: colId, tags: [] },
+          { id: 3, title: 'C', columnId: colId, tags: [] },
+        ];
+      });
+    });
+
+    act(() => {
+      useBoardStore.getState().toggleTaskPinned(3);
+    });
+
+    let titles = useBoardStore
+      .getState()
+      .boards[0].tasks.filter((t) => t.columnId === colId)
+      .map((t) => t.title);
+    expect(titles).toEqual(['C', 'A', 'B']);
+    expect(useBoardStore.getState().boards[0].tasks.find((t) => t.id === 3)?.pinned).toBe(true);
+    expect(boardService.setTaskPinned).toHaveBeenCalledWith(3, true);
+
+    const persistCalls = vi.mocked(boardService.saveTaskOrder).mock.calls.length;
+    act(() => {
+      useBoardStore.getState().updateTaskOrder(colId, 1, 0);
+    });
+    titles = useBoardStore
+      .getState()
+      .boards[0].tasks.filter((t) => t.columnId === colId)
+      .map((t) => t.title);
+    expect(titles).toEqual(['C', 'A', 'B']);
+    expect(vi.mocked(boardService.saveTaskOrder).mock.calls.length).toBe(persistCalls);
+
+    act(() => {
+      useBoardStore.getState().toggleTaskPinned(3);
+    });
+    expect(useBoardStore.getState().boards[0].tasks.find((t) => t.id === 3)?.pinned).toBeFalsy();
+    expect(boardService.setTaskPinned).toHaveBeenCalledWith(3, false);
   });
 });
 

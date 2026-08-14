@@ -23,12 +23,12 @@ export const BrandMark = ({ size = 32, className }: BrandMarkProps) => {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={`anota-bg-${gid}`} x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+        <linearGradient id={`brand-bg-${gid}`} x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
           <stop stopColor="var(--brand)" />
           <stop offset="1" stopColor="var(--brand-2)" />
         </linearGradient>
       </defs>
-      <rect width="32" height="32" rx="9" fill={`url(#anota-bg-${gid})`} />
+      <rect width="32" height="32" rx="9" fill={`url(#brand-bg-${gid})`} />
       <rect x="7" y="9" width="4.5" height="14" rx="1.75" fill="#fff" fillOpacity="0.92" />
       <rect x="13.75" y="7" width="4.5" height="16" rx="1.75" fill="#fff" fillOpacity="0.92" />
       <rect x="20.5" y="11" width="4.5" height="12" rx="1.75" fill="#fff" fillOpacity="0.55" />

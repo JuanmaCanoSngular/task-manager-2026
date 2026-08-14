@@ -10,7 +10,6 @@ interface TaskModalProps {
   mode: 'create' | 'edit';
   task?: Task;
   onSubmit: (data: TaskDraft) => void;
-  onPersistDraft?: (data: TaskDraft) => void;
   onManageTags?: () => void;
 }
 
@@ -20,7 +19,6 @@ export const TaskModal = ({
   mode,
   task,
   onSubmit,
-  onPersistDraft,
   onManageTags,
 }: TaskModalProps) => {
   return (
@@ -65,7 +63,6 @@ export const TaskModal = ({
                     mode={mode}
                     initialData={task}
                     onSubmit={onSubmit}
-                    onPersistDraft={onPersistDraft}
                     onCancel={onClose}
                     onManageTags={onManageTags}
                   />

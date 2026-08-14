@@ -12,6 +12,7 @@ import { supabase } from './services/supabase';
 const AppContent = () => {
   const error = useBoardStore((state) => state.error);
   const boards = useBoardStore((state) => state.boards);
+  const currentBoardId = useBoardStore((state) => state.currentBoardId);
   const fetchBoards = useBoardStore((state) => state.fetchBoards);
   const fetchTags = useTagStore((state) => state.fetchTags);
 
@@ -21,10 +22,17 @@ const AppContent = () => {
       // antes de hacer queries que dependen de RLS/user_id.
       await supabase.auth.getSession();
       fetchBoards();
-      fetchTags();
     };
     void init();
-  }, [fetchBoards, fetchTags]);
+  }, [fetchBoards]);
+
+  useEffect(() => {
+    if (currentBoardId == null) {
+      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null });
+      return;
+    }
+    void fetchTags(currentBoardId);
+  }, [currentBoardId, fetchTags]);
 
   useTasksRealtime();
 
@@ -34,7 +42,6 @@ const AppContent = () => {
       const reload = async () => {
         await supabase.auth.getSession();
         fetchBoards();
-        fetchTags();
       };
       void reload();
     };

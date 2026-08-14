@@ -12,33 +12,57 @@ const rowToTag = (row: { id: string; name: string; color: string }): Tag => ({
   color: row.color,
 });
 
+const defaultsInflight = new Map<number, Promise<Tag[]>>();
+
 export const tagService = {
-  async listTags(): Promise<Tag[]> {
+  async listTags(boardId: number): Promise<Tag[]> {
     const { data, error } = await supabase
       .from('tags')
       .select('id, name, color')
+      .eq('board_id', boardId)
       .order('created_at', { ascending: true });
     if (error) throw error;
     return (data ?? []).map(rowToTag);
   },
 
-  /** Si el usuario no tiene etiquetas, inserta Urgente / Importante / Idea. */
-  async ensureDefaults(): Promise<Tag[]> {
-    const existing = await this.listTags();
-    if (existing.length > 0) return existing;
+  /** Si el tablero no tiene etiquetas, inserta Urgente / Importante / Idea. */
+  async ensureDefaults(boardId: number): Promise<Tag[]> {
+    const pending = defaultsInflight.get(boardId);
+    if (pending) return pending;
 
-    const userId = await getSessionUserId();
-    if (!userId) return existing;
+    const run = (async () => {
+      const existing = await tagService.listTags(boardId);
+      if (existing.length > 0) return existing;
 
-    const { data, error } = await supabase
-      .from('tags')
-      .insert(DEFAULT_TAGS.map((t) => ({ user_id: userId, name: t.name, color: t.color })))
-      .select('id, name, color');
-    if (error) throw error;
-    return (data ?? []).map(rowToTag);
+      const userId = await getSessionUserId();
+      if (!userId) return existing;
+
+      const { data, error } = await supabase
+        .from('tags')
+        .insert(
+          DEFAULT_TAGS.map((t) => ({
+            user_id: userId,
+            board_id: boardId,
+            name: t.name,
+            color: t.color,
+          }))
+        )
+        .select('id, name, color');
+      if (error) {
+        const again = await tagService.listTags(boardId);
+        if (again.length > 0) return again;
+        throw error;
+      }
+      return (data ?? []).map(rowToTag);
+    })().finally(() => {
+      defaultsInflight.delete(boardId);
+    });
+
+    defaultsInflight.set(boardId, run);
+    return run;
   },
 
-  async createTag(name: string, color: string): Promise<Tag> {
+  async createTag(boardId: number, name: string, color: string): Promise<Tag> {
     const userId = await getSessionUserId();
     if (!userId) throw new Error('No autenticado');
     const trimmed = name.trim();
@@ -46,7 +70,7 @@ export const tagService = {
 
     const { data, error } = await supabase
       .from('tags')
-      .insert({ user_id: userId, name: trimmed, color })
+      .insert({ user_id: userId, board_id: boardId, name: trimmed, color })
       .select('id, name, color')
       .single();
     if (error) throw error;

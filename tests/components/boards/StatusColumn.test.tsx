@@ -59,6 +59,7 @@ vi.mock('../../../src/stores/board.store', () => ({
   useBoardStore: vi.fn((selector) => {
     const state = {
       updateTask: vi.fn(),
+      toggleTaskPinned: vi.fn(),
       removeTask: vi.fn(),
       selectedBoard: { id: 1, name: 'Test Board' },
     };
@@ -152,7 +153,6 @@ describe('StatusColumn', () => {
 
     const heading = screen.getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Completada (1)');
-    expect(screen.getByRole('list')).toBeInTheDocument();
-    expect(screen.getByTestId('placeholder')).toBeInTheDocument();
+    expect(screen.getAllByRole('list')).toHaveLength(2);
   });
 });

@@ -71,12 +71,12 @@ Se configuran en **Supabase Dashboard → Edge Functions → Secrets** o con `su
 | `RESEND_API_KEY` | Auth activo | Envío de emails (solicitud y aprobación de acceso) vía [Resend](https://resend.com) |
 | `OWNER_EMAIL` | Auth activo | Email del administrador que recibe las solicitudes |
 | `FROM_EMAIL` | Auth activo | Remitente verificado en Resend |
+| `APP_URL` | Auth activo | URL pública de la app (`https://taskblero.vercel.app`) para el botón «Entrar» del email de aprobación |
 | `GEMINI_API_KEY` | Telegram / agente | Clave de [Google AI Studio](https://aistudio.google.com/apikey). Convierte texto libre en tarea estructurada |
 | `GEMINI_MODEL` | Opcional | Modelo Gemini (default: `gemini-3.1-flash-lite`) |
 | `TELEGRAM_BOT_TOKEN` | Telegram | Token del bot desde [@BotFather](https://t.me/BotFather) |
 | `TELEGRAM_BOT_USERNAME` | Telegram | Username del bot (sin `@`) para deep links desde la web |
 | `TELEGRAM_WEBHOOK_SECRET` | Telegram | String aleatorio; protege el webhook (`X-Telegram-Bot-Api-Secret-Token`) |
-| `UNSPLASH_ACCESS_KEY` | Buscador de imágenes (A6) | Access Key de [Unsplash Developers](https://unsplash.com/oauth/applications) |
 
 Supabase inyecta automáticamente `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` al desplegar functions.
 
@@ -101,18 +101,38 @@ Ejecuta los scripts en el **SQL Editor** de Supabase, en este orden, en un proye
 | 2 | `supabase/auth-schema.sql` | Perfiles, `user_id`, RLS por usuario (necesario con auth) |
 | 3 | `supabase/alter-default-board.sql` | Columna `is_default` en tableros |
 | 4 | `supabase/alter-id-sequences.sql` | IDs autoincrementales en Postgres |
-| 5 | `supabase/tags-schema.sql` | Etiquetas por usuario |
+| 5 | `supabase/tags-schema.sql` | Etiquetas por tablero |
 | 6 | `supabase/columns-schema.sql` | Columnas personalizables (`board_columns`, `tasks.column_id`) |
-| 7 | `supabase/add-task-background.sql` | Columna `tasks.background` (URL de imagen) si no existe |
+| 7 | `supabase/add-task-pinned.sql` | Columna `tasks.pinned` (anclar arriba de la columna) |
 | 8 | `supabase/comments-schema.sql` | Comentarios en tareas (`task_comments`) |
 | 9 | `supabase/realtime-tasks.sql` | Publicación Realtime para refresco en vivo |
 | 10 | `supabase/telegram-schema.sql` | Vínculos Telegram ↔ usuario (solo si usas el bot) |
 
 > Si el proyecto ya existía sin columnas personalizables, basta con ejecutar `columns-schema.sql` (y los que falten de la lista).
+>
+> Si ya tenías etiquetas **por usuario** (tabla `tags` sin `board_id`), ejecuta también `supabase/tags-board-id.sql`. Clona las etiquetas a cada tablero y remapea las tareas.
 
 ### Google OAuth (solo modo producción)
 
 En Supabase → **Authentication → Providers → Google**: activa Google y configura el Client ID/Secret de Google Cloud Console. Añade la URL de callback que indica Supabase.
+
+En **Authentication → URL Configuration**:
+
+- Site URL: `https://taskblero.vercel.app`
+- Redirect URLs: `https://taskblero.vercel.app/**`
+
+#### Nombre y logo en el login de Google
+
+Google muestra «Ir a `….supabase.co`» porque el callback de OAuth es el de Supabase; eso no se cambia aquí. Sí se puede poner **Taskblero** y el icono en la [pantalla de consentimiento](https://console.cloud.google.com/auth/branding) (**Google Auth Platform → Branding**):
+
+| Campo | Valor |
+|-------|--------|
+| App name | `Taskblero` |
+| User support email | el email del owner |
+| App logo | `public/google-oauth-logo.png` (120×120 PNG) |
+| Application home page | `https://taskblero.vercel.app` |
+
+Guarda. En modo **Testing** basta con eso: tras elegir la cuenta, Google muestra el nombre y el logo. `vercel.app` no se puede verificar como dominio propio, así que no intentes añadirlo en Authorized domains.
 
 ---
 
@@ -173,15 +193,6 @@ Funcionalidad **opcional** pero diferenciadora: crear y consultar tareas desde T
 
 > Sin `GEMINI_API_KEY` el agente no puede interpretar mensajes. Sin secrets de Telegram el botón de vincular en la web no tendrá efecto útil.
 
-### Buscador de imágenes (Unsplash)
-
-1. Crea una app en [Unsplash Developers](https://unsplash.com/oauth/applications) y copia la **Access Key**.
-2. Secret: `supabase secrets set UNSPLASH_ACCESS_KEY=...`
-3. Despliega la función: `supabase functions deploy search-images --project-ref TU-PROJECT-REF`
-4. En el modal de tarea: busca → elige thumbnail → vista previa → **Usar esta imagen**.
-
-Sin la Access Key, la búsqueda devolverá un error claro.
-
 ---
 
 ## Edge Functions
@@ -194,9 +205,6 @@ Sin la Access Key, la búsqueda devolverá un error claro.
 | `telegram-link` | Sí | Generar / consultar / eliminar vínculo Telegram |
 | `telegram-webhook` | No | Recibir updates de Telegram (protegido por secret) |
 | `agent-create-task` | Sí | Crear tarea vía agente Gemini (HTTP) |
-| `search-images` | Sí* | Buscar imágenes en Unsplash (`UNSPLASH_ACCESS_KEY`) |
-
-\*El cliente envía el JWT del usuario en `Authorization` cuando hay sesión. `search-images` solo necesita la anon key de invocación.
 
 Despliegue de todas:
 
@@ -258,7 +266,7 @@ Los tests mockean Supabase (`tests/utils/`). `ResizeObserver` y `matchMedia` se 
 
 ### Despliegue frontend
 
-Build estático (`dist/`). En **Vercel** (o similar) configura las variables `VITE_*` del entorno de producción.
+Build estático (`dist/`). Producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/). En **Vercel** configura las variables `VITE_*`.
 
 ### Checklist producción
 
@@ -266,7 +274,7 @@ Build estático (`dist/`). En **Vercel** (o similar) configura las variables `VI
 - [ ] `.env` / variables de hosting con `VITE_SUPABASE_*`
 - [ ] `VITE_AUTH_ENABLED=true` si aplica
 - [ ] Google OAuth configurado en Supabase
-- [ ] Edge Functions desplegadas + secrets (Resend, etc.)
+- [ ] Edge Functions desplegadas + secrets (Resend, `APP_URL=https://taskblero.vercel.app`, etc.)
 - [ ] (Opcional) Telegram: secrets + webhook según [TELEGRAM.md](../supabase/TELEGRAM.md)
 - [ ] (Opcional) GitHub secrets para keep-alive
 

@@ -51,7 +51,7 @@ describe('Layout', () => {
 
     expect(getByRole.banner()).toBeInTheDocument();
     expect(getByRole.heading(1)).toBeInTheDocument();
-    expect(screen.getByText('Task Manager App')).toBeInTheDocument();
+    expect(screen.getByText('Taskblero')).toBeInTheDocument();
   });
 
   test('should have proper accessibility attributes', async () => {
@@ -69,7 +69,7 @@ describe('Layout', () => {
 
     const logoButton = getByRole.button(/ir al inicio/i);
     expect(logoButton).toBeInTheDocument();
-    expect(logoButton).toHaveAttribute('aria-label', 'Ir al inicio — Task Manager App');
+    expect(logoButton).toHaveAttribute('aria-label', 'Ir al inicio — Taskblero');
   });
 
   test('should call setCurrentBoardId with null when logo is clicked', async () => {
@@ -128,7 +128,7 @@ describe('Layout', () => {
 
     const heading = getByRole.heading(1);
     expect(heading).toBeInTheDocument();
-    expect(heading).toHaveTextContent('Task Manager App');
+    expect(heading).toHaveTextContent('Taskblero');
   });
 
   test('should handle multiple logo clicks', async () => {

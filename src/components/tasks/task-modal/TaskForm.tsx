@@ -4,8 +4,6 @@ import { MAX_TAGS_PER_TASK } from '../../../interfaces/tag.interface';
 import { getInboxColumn } from '../../../interfaces/column.interface';
 import { useCurrentBoardColumns } from '../../../stores/board.store';
 import { TaskTitle } from './TaskTitle';
-import { TaskImageUrl } from './TaskImageUrl';
-import { isValidImageUrl } from '../../../utils/imageUrl';
 import { TaskColumnSelect } from './TaskColumnSelect';
 import { TaskTags } from './TaskTags';
 import { TaskComments } from './TaskComments';
@@ -14,8 +12,6 @@ interface TaskFormProps {
   mode: 'create' | 'edit';
   initialData?: Partial<Task>;
   onSubmit: (data: TaskDraft) => void;
-  /** Guarda sin cerrar el modal (p. ej. al elegir imagen en edición). */
-  onPersistDraft?: (data: TaskDraft) => void;
   onCancel: () => void;
   onManageTags?: () => void;
 }
@@ -24,7 +20,6 @@ export const TaskForm = ({
   mode,
   initialData,
   onSubmit,
-  onPersistDraft,
   onCancel,
   onManageTags,
 }: TaskFormProps) => {
@@ -36,31 +31,16 @@ export const TaskForm = ({
   const [columnId, setColumnId] = useState(initialData?.columnId ?? defaultColumnId);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
   const [showTagWarning, setShowTagWarning] = useState(false);
-  const [backgroundUrl, setBackgroundUrl] = useState(initialData?.background || '');
-
-  const resolvedTitle = () => title.trim() || initialData?.title?.trim() || '';
-
-  const buildDraft = (background: string): TaskDraft => ({
-    title: resolvedTitle(),
-    columnId,
-    tags: selectedTags,
-    background: background.trim() || undefined,
-  });
-
-  const handleBackgroundChange = (url: string) => {
-    setBackgroundUrl(url);
-    // En edición, persistir al elegir/quitar imagen (no esperar a "Guardar").
-    if (mode === 'edit' && onPersistDraft && resolvedTitle()) {
-      onPersistDraft(buildDraft(url));
-    }
-  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !columnId) return;
-    if (!isValidImageUrl(backgroundUrl)) return;
 
-    onSubmit(buildDraft(backgroundUrl));
+    onSubmit({
+      title: title.trim(),
+      columnId,
+      tags: selectedTags,
+    });
   };
 
   const toggleTag = (tagId: string) => {
@@ -81,12 +61,6 @@ export const TaskForm = ({
       <form id="task-form" onSubmit={handleSubmit} className="space-y-6">
         <TaskTitle value={title} onChange={setTitle} />
 
-        <TaskImageUrl
-          value={backgroundUrl}
-          onChange={handleBackgroundChange}
-          suggestedQuery={title}
-        />
-
         {columns.length > 0 && (
           <TaskColumnSelect columns={columns} value={columnId} onChange={setColumnId} />
         )}
@@ -105,12 +79,7 @@ export const TaskForm = ({
         <button type="button" onClick={onCancel} className="btn-secondary">
           Cancelar
         </button>
-        <button
-          type="submit"
-          form="task-form"
-          className="btn-primary"
-          disabled={!isValidImageUrl(backgroundUrl) || !columnId}
-        >
+        <button type="submit" form="task-form" className="btn-primary" disabled={!title.trim() || !columnId}>
           {mode === 'create' ? 'Añadir tarea' : 'Guardar cambios'}
         </button>
       </div>

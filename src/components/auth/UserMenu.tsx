@@ -8,6 +8,13 @@ import { TelegramLinkDialog, useTelegramLink } from './TelegramLinkButton';
 
 const authEnabled = () => import.meta.env.VITE_AUTH_ENABLED === 'true';
 
+const avatarFromUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+  const meta = user?.user_metadata ?? {};
+  if (typeof meta.avatar_url === 'string' && meta.avatar_url) return meta.avatar_url;
+  if (typeof meta.picture === 'string' && meta.picture) return meta.picture;
+  return null;
+};
+
 /** Avatar redondo + menú (cerrar sesión / eliminar cuenta). */
 export const UserMenu = () => {
   const [open, setOpen] = useState(false);
@@ -15,8 +22,18 @@ export const UserMenu = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const { linked, refreshLinked, onStatusChange } = useTelegramLink();
+
+  useEffect(() => {
+    if (!authEnabled()) return;
+    const apply = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+      setAvatarUrl(avatarFromUser(user));
+    };
+    void authService.getSession().then((session) => apply(session?.user));
+    return authService.onAuthChange((session) => apply(session?.user));
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -40,7 +57,7 @@ export const UserMenu = () => {
     try {
       await authService.deleteAccount();
       useBoardStore.setState({ boards: [], currentBoardId: null, error: null });
-      useTagStore.setState({ tags: [], loaded: false, error: null });
+      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null });
       setConfirmDelete(false);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'No se pudo eliminar la cuenta');
@@ -54,7 +71,7 @@ export const UserMenu = () => {
       <div className="relative" ref={rootRef}>
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 dark:focus:ring-offset-[var(--app-bg)]"
+          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 dark:focus:ring-offset-[var(--app-bg)]"
           style={{
             backgroundColor: 'var(--surface-2)',
             borderColor: 'var(--border)',
@@ -65,7 +82,16 @@ export const UserMenu = () => {
           aria-haspopup="menu"
           onClick={() => setOpen((v) => !v)}
         >
-          <UserIcon className="h-5 w-5" aria-hidden />
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <UserIcon className="h-5 w-5" aria-hidden />
+          )}
         </button>
 
         {open && (

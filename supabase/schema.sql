@@ -26,7 +26,7 @@ create table tasks (
   board_id    bigint not null references boards(id) on delete cascade,
   title       text not null,
   status      text not null default 'backlog',
-  background  text,
+  pinned      boolean not null default false,
   tags        text[] not null default '{}',
   position    integer not null default 0,
   created_at  timestamptz not null default now()

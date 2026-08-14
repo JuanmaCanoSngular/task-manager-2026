@@ -12,7 +12,7 @@ interface TaskRow {
   title: string;
   status: string;
   column_id: number | null;
-  background: string | null;
+  pinned?: boolean | null;
   tags: string[];
   position: number;
   created_at?: string | null;
@@ -41,7 +41,7 @@ export const rowToTask = (row: TaskRow): Task => ({
   title: row.title ?? '',
   columnId: row.column_id ?? 0,
   tags: row.tags ?? [],
-  background: row.background ?? undefined,
+  ...(row.pinned ? { pinned: true } : {}),
   createdAt: row.created_at ?? undefined,
 });
 
@@ -191,10 +191,10 @@ export const boardService = {
       title: task.title,
       column_id: task.columnId,
       status: slug ?? 'backlog',
-      background: task.background?.trim() || null,
       tags: task.tags,
       position,
     };
+    if (task.pinned) row.pinned = true;
     if (userId) row.user_id = userId;
 
     const { data, error } = await supabase.from('tasks').insert(row).select('*').single();
@@ -215,15 +215,21 @@ export const boardService = {
         title: task.title,
         column_id: task.columnId,
         status: slug ?? 'backlog',
-        background: task.background?.trim() || null,
         tags: task.tags,
       })
       .eq('id', taskId);
     if (error) {
+      throw error;
+    }
+  },
+
+  async setTaskPinned(taskId: number, pinned: boolean): Promise<void> {
+    const { error } = await supabase.from('tasks').update({ pinned }).eq('id', taskId);
+    if (error) {
       const msg = error.message || '';
-      if (/background/i.test(msg) || error.code === 'PGRST204') {
+      if (/pinned/i.test(msg) || error.code === 'PGRST204') {
         throw new Error(
-          'No se pudo guardar la imagen: falta la columna background. Ejecuta supabase/add-task-background.sql en Supabase.'
+          'No se pudo anclar la tarea: falta la columna pinned. Ejecuta supabase/add-task-pinned.sql en Supabase.'
         );
       }
       throw error;

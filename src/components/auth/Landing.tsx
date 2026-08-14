@@ -1,5 +1,5 @@
 import { BrandLockup } from '../brand/BrandLockup';
-import { BRAND_TAGLINE } from '../../brand';
+import { BRAND_DESCRIPTION, BRAND_TAGLINE } from '../../brand';
 import { GoogleLogo } from './GoogleLogo';
 
 interface LandingProps {
@@ -12,6 +12,9 @@ export const Landing = ({ onSignIn }: LandingProps) => (
   <div className="auth-shell">
     <div className="auth-card space-y-8">
       <BrandLockup markSize={56} stacked showTagline tagline={BRAND_TAGLINE} />
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+        {BRAND_DESCRIPTION}
+      </p>
       <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
         El acceso es por invitación. Solicítalo con tu cuenta de Google; recibirás un aviso en cuanto
         se apruebe.

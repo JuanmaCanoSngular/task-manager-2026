@@ -127,9 +127,9 @@ async function provisionExampleBoard(
   const { data: seededTags, error: tagsError } = await supabase
     .from('tags')
     .insert([
-      { user_id: userId, name: 'Urgente', color: '#ef4444' },
-      { user_id: userId, name: 'Importante', color: '#f59e0b' },
-      { user_id: userId, name: 'Idea', color: '#06b6d4' },
+      { user_id: userId, board_id: board.id, name: 'Urgente', color: '#ef4444' },
+      { user_id: userId, board_id: board.id, name: 'Importante', color: '#f59e0b' },
+      { user_id: userId, board_id: board.id, name: 'Idea', color: '#06b6d4' },
     ])
     .select('id, name');
 

@@ -4,24 +4,32 @@ import { TagsManagerDialog } from './TagsManagerDialog';
 
 const authEnabled = () => import.meta.env.VITE_AUTH_ENABLED === 'true';
 
-/** Abrir gestor de etiquetas. Solo con auth (etiquetas por usuario). */
-export const TagsManagerButton = () => {
-  const [open, setOpen] = useState(false);
+interface TagsManagerButtonProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
 
-  if (!authEnabled()) return null;
+/** Abrir gestor de etiquetas. Solo con auth (etiquetas por tablero). */
+export const TagsManagerButton = ({ open: openProp, onOpenChange }: TagsManagerButtonProps = {}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
+  if (!authEnabled() && openProp === undefined) return null;
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="btn-secondary text-sm p-2 sm:px-3 sm:py-1.5 flex items-center justify-center"
-        aria-label="Gestionar etiquetas"
-        title="Gestionar etiquetas"
-      >
-        <TagIcon className="w-4 h-4 sm:hidden" aria-hidden />
-        <span className="hidden sm:inline">Etiquetas</span>
-      </button>
+      {authEnabled() ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="btn-secondary p-2 flex items-center justify-center flex-shrink-0"
+          aria-label="Gestionar etiquetas"
+          title="Gestionar etiquetas"
+        >
+          <TagIcon className="w-4 h-4" aria-hidden />
+        </button>
+      ) : null}
       <TagsManagerDialog open={open} onClose={() => setOpen(false)} />
     </>
   );

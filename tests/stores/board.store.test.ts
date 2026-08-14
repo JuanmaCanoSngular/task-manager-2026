@@ -14,6 +14,7 @@ vi.mock('../../src/services/board.service', () => ({
     setDefaultBoard: vi.fn(() => Promise.resolve()),
     insertTask: vi.fn(() => Promise.resolve()),
     updateTask: vi.fn(() => Promise.resolve()),
+    setTaskPinned: vi.fn(() => Promise.resolve()),
     deleteTask: vi.fn(() => Promise.resolve()),
     saveTaskOrder: vi.fn(() => Promise.resolve()),
   },

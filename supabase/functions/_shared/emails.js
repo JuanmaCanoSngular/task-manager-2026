@@ -2,7 +2,7 @@
 // (scripts/preview-emails.mjs). Fuente única del diseño de los correos.
 // JS/ESM plano para poder importarse tanto desde Deno como desde Node.
 
-const BRAND = 'Task Manager App';
+const BRAND = 'Taskblero';
 
 export function button(href, label, color = '#0d9488') {
   return `<a href="${href}" style="display:inline-block;padding:12px 22px;border-radius:10px;background:${color};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">${label}</a>`;
@@ -13,7 +13,7 @@ export function layout(heading, bodyHtml) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
       <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(12,18,34,.10)">
         <tr><td style="background:linear-gradient(135deg,#0d9488,#0f766e);padding:26px 32px">
-          <div style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:.2px;font-family:Georgia,'Times New Roman',serif">${BRAND}</div>
+          <div style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:.2px">${BRAND}</div>
         </td></tr>
         <tr><td style="padding:32px">
           <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:#0c1222">${heading}</h1>

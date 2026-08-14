@@ -1,19 +1,19 @@
-# Task Manager — Kanban personal
+# Taskblero — Kanban personal
 
 ![Deploy](https://img.shields.io/badge/deploy-vercel-000000?style=for-the-badge&logo=vercel)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 ![Tests](https://img.shields.io/badge/tests-vitest-yellow?style=for-the-badge)
 
-**Demo:** https://task-manager-mu-sandy.vercel.app/
+**Producción:** [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 
-Gestor de tareas con tablero Kanban: columnas personalizables, etiquetas, tema claro/oscuro, persistencia en Supabase y —opcionalmente— acceso restringido con Google, bot de **Telegram** y agente **Gemini** para crear tareas por mensaje.
+**Taskblero** es un gestor de tareas con tablero Kanban: columnas personalizables, etiquetas, tema claro/oscuro, persistencia en Supabase y —opcionalmente— acceso restringido con Google, bot de **Telegram** y agente **Gemini** para crear tareas por mensaje.
 
 ---
 
 ## Características
 
 - Tableros Kanban con **columnas personalizables** (crear, renombrar, colores, reordenar)
-- Tareas con título, etiquetas (hasta 4), imagen de fondo por URL y drag & drop
+- Tareas con título, etiquetas (hasta 4), anclar arriba de la columna y drag & drop
 - Tema claro/oscuro con transición animada
 - Persistencia en **Supabase** (Postgres) con sincronización en tiempo real
 - **Auth opcional** (`VITE_AUTH_ENABLED`): login Google + aprobación manual del owner
@@ -78,7 +78,7 @@ React · TypeScript · Vite · Tailwind CSS · Zustand · Supabase · @hello-pan
 
 ## Despliegue
 
-SPA estática compatible con Vercel, Netlify, etc. Configura las mismas variables `VITE_*` en el panel del hosting. Checklist completo en [docs/SETUP.md](docs/SETUP.md).
+SPA estática en [Vercel](https://taskblero.vercel.app/). Configura las mismas variables `VITE_*` en el panel del hosting. Checklist completo en [docs/SETUP.md](docs/SETUP.md).
 
 ---
 

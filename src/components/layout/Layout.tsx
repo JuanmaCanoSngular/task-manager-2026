@@ -2,7 +2,6 @@ import { useBoardStore } from '../../stores/board.store';
 import { ErrorBanner } from '../common/ErrorBanner';
 import { BrandLockup } from '../brand/BrandLockup';
 import { UserMenu } from '../auth/UserMenu';
-import { TagsManagerButton } from '../tags/TagsManagerButton';
 import { ToggleTheme } from './ToggleTheme';
 import { BRAND_NAME } from '../../brand';
 
@@ -42,7 +41,6 @@ export const Layout = ({ children }: LayoutProps) => {
         </h1>
 
         <div className="flex items-center justify-end gap-1 sm:gap-2 flex-shrink-0">
-          <TagsManagerButton />
           <UserMenu />
         </div>
       </header>

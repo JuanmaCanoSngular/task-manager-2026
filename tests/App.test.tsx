@@ -12,8 +12,11 @@ vi.mock('../src/hooks/useTasksRealtime', () => ({
 }));
 
 vi.mock('../src/stores/tag.store', () => ({
-  useTagStore: (selector: (s: { fetchTags: () => void }) => unknown) =>
-    selector({ fetchTags: vi.fn() }),
+  useTagStore: Object.assign(
+    (selector: (s: { fetchTags: (boardId: number) => void; tags: unknown[] }) => unknown) =>
+      selector({ fetchTags: vi.fn(), tags: [] }),
+    { setState: vi.fn() }
+  ),
 }));
 
 beforeEach(() => {
@@ -119,6 +122,7 @@ describe('App', () => {
     const { default: App } = await import('../src/App');
     render(<App />);
 
-    expect(screen.getByText(/error: test error message/i)).toBeInTheDocument();
+    expect(screen.getByText(/no se pudo cargar/i)).toBeInTheDocument();
+    expect(screen.getByText(/test error message/i)).toBeInTheDocument();
   });
 });
