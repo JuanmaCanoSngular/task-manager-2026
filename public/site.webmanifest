@@ -1,7 +1,7 @@
 {
   "name": "Taskblero",
   "short_name": "Taskblero",
-  "description": "Tu tablero Kanban, sin ruido. Columnas a tu medida, etiquetas y bloqueos a la vista.",
+  "description": "Tu tablero de tareas, sin ruido. Personaliza columnas, etiquetas y mucho más. Más fácil que la tabla del uno.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f766e",

@@ -72,31 +72,37 @@ def write_og(path: Path) -> None:
     url_font = ImageFont.truetype(FONT_REG, 18)
 
     title = "Taskblero"
-    tagline = "Tu tablero, sin ruido."
-    sub = "Kanban personal · columnas, etiquetas y bloqueos a la vista"
+    tagline = "Tu tablero de tareas, sin ruido."
+    sub_lines = (
+        "Personaliza columnas, etiquetas y mucho más.",
+        "Más fácil que la tabla del uno.",
+    )
 
     scratch = ImageDraw.Draw(canvas)
     title_box = scratch.textbbox((0, 0), title, font=title_font)
     tag_box = scratch.textbbox((0, 0), tagline, font=tag_font)
-    sub_box = scratch.textbbox((0, 0), sub, font=sub_font)
+    sub_boxes = [scratch.textbbox((0, 0), line, font=sub_font) for line in sub_lines]
     title_w, title_h = title_box[2] - title_box[0], title_box[3] - title_box[1]
     tag_w = tag_box[2] - tag_box[0]
-    sub_w = sub_box[2] - sub_box[0]
+    sub_w = max(box[2] - box[0] for box in sub_boxes)
     text_w = max(title_w, tag_w, sub_w)
     gap = 36
+    text_block_h = title_h + 18 + 36 + 16 + 26 * len(sub_lines)
     group_w = mark.width + gap + text_w
-    group_h = max(mark.height, title_h + 18 + 36 + 16 + 26)
+    group_h = max(mark.height, text_block_h)
     gx = (w - group_w) // 2
     gy = (h - group_h) // 2 - 8
 
     canvas.paste(mark, (gx, gy + (group_h - mark.height) // 2), mark)
 
     tx = gx + mark.width + gap
-    ty = gy + (group_h - (title_h + 18 + 36 + 16 + 26)) // 2
+    ty = gy + (group_h - text_block_h) // 2
     d = ImageDraw.Draw(canvas)
     d.text((tx, ty), title, font=title_font, fill=WHITE)
     d.text((tx, ty + title_h + 18), tagline, font=tag_font, fill=(255, 255, 255, 220))
-    d.text((tx, ty + title_h + 18 + 44), sub, font=sub_font, fill=(255, 255, 255, 170))
+    sub_y = ty + title_h + 18 + 44
+    for i, line in enumerate(sub_lines):
+        d.text((tx, sub_y + i * 28), line, font=sub_font, fill=(255, 255, 255, 170))
     url = "taskblero.vercel.app"
     url_box = d.textbbox((0, 0), url, font=url_font)
     uw = url_box[2] - url_box[0]
