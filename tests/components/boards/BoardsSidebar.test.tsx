@@ -22,12 +22,16 @@ describe('BoardsSidebar', () => {
     render(<BoardsSidebar />);
 
     expect(screen.getByText('Lista de tableros')).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Ocultar tableros' }));
+    const hide = screen.getByRole('button', { name: 'Ocultar tableros' });
+    expect(hide).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(hide);
 
-    expect(screen.getByRole('button', { name: 'Mostrar tableros' })).toBeInTheDocument();
+    const show = screen.getByRole('button', { name: 'Mostrar tableros' });
+    expect(show).toBeInTheDocument();
+    expect(show).toHaveAttribute('aria-expanded', 'false');
     expect(localStorage.getItem(STORAGE_KEY)).toBe('1');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mostrar tableros' }));
+    fireEvent.click(show);
     expect(screen.getByRole('button', { name: 'Ocultar tableros' })).toBeInTheDocument();
     expect(localStorage.getItem(STORAGE_KEY)).toBe('0');
   });

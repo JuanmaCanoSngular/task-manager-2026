@@ -22,8 +22,10 @@ import { TagChip } from '../tags/TagChip';
 import { useTagStore } from '../../stores/tag.store';
 import { taskMatchesTagFilter } from '../../interfaces/tag.interface';
 import { isShoppingBoard } from '../../interfaces/board.interface';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
+import { useScrollOverflow } from '../../hooks/useScrollOverflow';
+import { ColumnsOverflowHint } from './ColumnsOverflowHint';
 
 const COLUMN_DND_TYPE = 'COLUMN';
 
@@ -76,6 +78,11 @@ export const BoardContent = () => {
     destinationIndex: number;
   } | null>(null);
   const [tagsOpen, setTagsOpen] = useState(false);
+  const columnsScrollRef = useRef<HTMLDivElement | null>(null);
+  const { canScrollLeft, canScrollRight, scrollByPage } = useScrollOverflow(
+    columnsScrollRef,
+    columns.length
+  );
   const filtering = filterTagIds.length > 0;
   const totalTasks = boardTasks.length;
   const visibleTasks = filtering
@@ -90,14 +97,14 @@ export const BoardContent = () => {
     return <ShoppingBoard board={board} />;
   }
 
-  const scrollOnDesktop = columns.length > 4;
+  const overflowColumns = columns.length > 3;
 
-  const columnsScrollClass = scrollOnDesktop
+  const columnsScrollClass = overflowColumns
     ? 'overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth'
     : 'overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth md:overflow-x-hidden md:w-full';
 
-  const columnShellClass = scrollOnDesktop
-    ? 'w-full min-w-full flex-shrink-0 snap-center md:w-72 md:min-w-[18rem] md:snap-start'
+  const columnShellClass = overflowColumns
+    ? 'w-full min-w-full flex-shrink-0 snap-center md:w-[calc((100%-2.5rem)/3)] md:min-w-[calc((100%-2.5rem)/3)] md:snap-start 2xl:w-[calc((100%-3.75rem)/4)] 2xl:min-w-[calc((100%-3.75rem)/4)]'
     : 'w-full min-w-full flex-shrink-0 snap-center md:flex-1 md:min-w-0 md:max-w-none md:basis-0';
 
   const handleDragStart = (start: DragStart) => {
@@ -237,59 +244,70 @@ export const BoardContent = () => {
 
         <Droppable droppableId="board-columns" direction="horizontal" type={COLUMN_DND_TYPE}>
           {(provided) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className={`board-columns-scroll flex gap-3 md:gap-5 flex-1 min-h-0 min-w-0 pb-2 ${columnsScrollClass}`}
-              data-testid="board-columns-scroll"
-            >
-              {columns.map((column, index) => (
-                <Draggable
-                  key={column.id}
-                  draggableId={columnDraggableId(column.id)}
-                  index={index}
-                  {...({ type: COLUMN_DND_TYPE } as object)}
-                >
-                  {(colProvided, colSnapshot) => {
-                    const isColumnDragging = columnDragState !== null;
-                    const isDropTarget =
-                      isColumnDragging &&
-                      columnDragState.destinationIndex === index &&
-                      columnDragState.sourceIndex !== columnDragState.destinationIndex;
-                    const isShiftPreview =
-                      isColumnDragging &&
-                      !colSnapshot.isDragging &&
-                      !isDropTarget &&
-                      isColumnShiftPreview(
-                        index,
-                        columnDragState.sourceIndex,
-                        columnDragState.destinationIndex
-                      );
+            <div className="relative flex-1 min-h-0 min-w-0">
+              <div
+                ref={(node) => {
+                  columnsScrollRef.current = node;
+                  provided.innerRef(node);
+                }}
+                {...provided.droppableProps}
+                className={`board-columns-scroll flex gap-3 md:gap-5 flex-1 min-h-0 min-w-0 h-full pb-2 ${columnsScrollClass}`}
+                data-testid="board-columns-scroll"
+              >
+                {columns.map((column, index) => (
+                  <Draggable
+                    key={column.id}
+                    draggableId={columnDraggableId(column.id)}
+                    index={index}
+                    {...({ type: COLUMN_DND_TYPE } as object)}
+                  >
+                    {(colProvided, colSnapshot) => {
+                      const isColumnDragging = columnDragState !== null;
+                      const isDropTarget =
+                        isColumnDragging &&
+                        columnDragState.destinationIndex === index &&
+                        columnDragState.sourceIndex !== columnDragState.destinationIndex;
+                      const isShiftPreview =
+                        isColumnDragging &&
+                        !colSnapshot.isDragging &&
+                        !isDropTarget &&
+                        isColumnShiftPreview(
+                          index,
+                          columnDragState.sourceIndex,
+                          columnDragState.destinationIndex
+                        );
 
-                    return (
-                      <div
-                        ref={colProvided.innerRef}
-                        {...colProvided.draggableProps}
-                        style={colProvided.draggableProps.style}
-                        className={`${columnShellClass} h-full flex flex-col rounded-xl p-1 transition-all duration-200 ${
-                          colSnapshot.isDragging ? 'column-dragging' : ''
-                        } ${isDropTarget ? 'drop-zone-active' : ''} ${
-                          isShiftPreview ? 'column-shift-preview' : ''
-                        }`}
-                      >
-                        <StatusColumn
-                          column={column}
-                          dragHandleProps={
-                            colProvided.dragHandleProps as DraggableProvidedDragHandleProps | null
-                          }
-                          isColumnDragging={isColumnDragging}
-                        />
-                      </div>
-                    );
-                  }}
-                </Draggable>
-              ))}
-              {provided.placeholder}
+                      return (
+                        <div
+                          ref={colProvided.innerRef}
+                          {...colProvided.draggableProps}
+                          style={colProvided.draggableProps.style}
+                          className={`${columnShellClass} h-full flex flex-col rounded-xl p-1 transition-all duration-200 ${
+                            colSnapshot.isDragging ? 'column-dragging' : ''
+                          } ${isDropTarget ? 'drop-zone-active' : ''} ${
+                            isShiftPreview ? 'column-shift-preview' : ''
+                          }`}
+                        >
+                          <StatusColumn
+                            column={column}
+                            dragHandleProps={
+                              colProvided.dragHandleProps as DraggableProvidedDragHandleProps | null
+                            }
+                            isColumnDragging={isColumnDragging}
+                          />
+                        </div>
+                      );
+                    }}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+              <ColumnsOverflowHint
+                canScrollLeft={canScrollLeft}
+                canScrollRight={canScrollRight}
+                onScrollLeft={() => scrollByPage(-1)}
+                onScrollRight={() => scrollByPage(1)}
+              />
             </div>
           )}
         </Droppable>

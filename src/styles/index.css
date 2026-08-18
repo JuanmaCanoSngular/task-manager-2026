@@ -325,7 +325,9 @@
     display: grid;
     grid-template-rows: 1fr;
     opacity: 1;
-    transition: grid-template-rows 180ms ease, opacity 150ms ease;
+    transition:
+      grid-template-rows 180ms ease,
+      opacity 150ms ease;
   }
 
   .task-card__extra-inner {
@@ -373,5 +375,208 @@
 
   .board-columns-scroll::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  .board-columns-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0.5rem;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    width: 3.25rem;
+    pointer-events: none;
+  }
+
+  .board-columns-fade--right {
+    right: 0;
+    justify-content: flex-end;
+    padding-right: 0.35rem;
+    background: linear-gradient(to right, transparent, var(--surface) 72%);
+  }
+
+  .board-columns-fade--left {
+    left: 0;
+    justify-content: flex-start;
+    padding-left: 0.35rem;
+    background: linear-gradient(to left, transparent, var(--surface) 72%);
+  }
+
+  .board-columns-fade__btn {
+    pointer-events: auto;
+    display: flex;
+    height: 2.25rem;
+    width: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 9999px;
+    background: var(--brand);
+    color: #fff;
+    box-shadow: var(--shadow-brand);
+    animation: board-columns-hint-right 2.4s ease-in-out infinite;
+  }
+
+  .board-columns-fade__btn:hover {
+    background: var(--brand-2);
+    color: #fff;
+  }
+
+  .board-columns-fade--left .board-columns-fade__btn {
+    animation-name: board-columns-hint-left;
+  }
+
+  @keyframes board-columns-hint-right {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(5px);
+    }
+  }
+
+  @keyframes board-columns-hint-left {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-5px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .board-columns-fade__btn {
+      animation: none;
+    }
+  }
+
+  /* Columna de tableros: plegado con easing de calidad */
+  .boards-sidebar {
+    transition: width 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .boards-sidebar__label,
+  .boards-sidebar__panel {
+    transition:
+      opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .boards-sidebar__fab {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    animation: boards-sidebar-hint-close 8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    transition:
+      color 0.2s ease,
+      opacity 0.15s ease;
+  }
+
+  .boards-sidebar__fab:hover,
+  .boards-sidebar__fab:focus,
+  .boards-sidebar__fab:focus-visible {
+    animation-play-state: paused;
+    color: var(--brand);
+    outline: none;
+    box-shadow: none;
+  }
+
+  .boards-sidebar__fab:active {
+    opacity: 0.65;
+  }
+
+  .boards-sidebar__icon {
+    transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .boards-sidebar__rail {
+    opacity: 0.28;
+    animation: boards-sidebar-rail 3.4s ease-in-out infinite;
+  }
+
+  @keyframes boards-sidebar-rail {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes boards-sidebar-hint-close {
+    0%,
+    82%,
+    100% {
+      transform: translateX(0);
+    }
+    86% {
+      transform: translateX(-3px);
+    }
+    90% {
+      transform: translateX(0);
+    }
+    93% {
+      transform: translateX(-1.5px);
+    }
+    97% {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes boards-sidebar-hint-open {
+    0%,
+    82%,
+    100% {
+      transform: translateX(0);
+    }
+    86% {
+      transform: translateX(3px);
+    }
+    90% {
+      transform: translateX(0);
+    }
+    93% {
+      transform: translateX(1.5px);
+    }
+    97% {
+      transform: translateX(0);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .boards-sidebar--collapsed .boards-sidebar__label,
+    .boards-sidebar--collapsed .boards-sidebar__panel {
+      opacity: 0;
+      transform: translateX(-0.7rem);
+      pointer-events: none;
+    }
+
+    .boards-sidebar--collapsed .boards-sidebar__icon {
+      transform: rotate(180deg);
+    }
+
+    .boards-sidebar--collapsed .boards-sidebar__fab {
+      animation-name: boards-sidebar-hint-open;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .boards-sidebar,
+    .boards-sidebar__label,
+    .boards-sidebar__panel,
+    .boards-sidebar__fab,
+    .boards-sidebar__icon,
+    .boards-sidebar__rail {
+      transition: none;
+      animation: none;
+    }
+
+    .boards-sidebar__fab:hover,
+    .boards-sidebar__fab:focus-visible {
+      animation: none;
+    }
   }
 }
