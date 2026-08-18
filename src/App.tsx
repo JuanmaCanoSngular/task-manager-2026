@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useBoardStore } from './stores/board.store';
-import { BoardsList } from './components/boards/BoardsList';
+import { BoardsSidebar } from './components/boards/BoardsSidebar';
 import { BoardContent } from './components/boards/BoardContent';
 import { Layout } from './components/layout/Layout';
 import { AuthGate } from './components/auth/AuthGate';
@@ -75,9 +75,7 @@ const AppContent = () => {
 
       <div className="flex flex-col p-4 h-full min-h-0 min-w-0 overflow-hidden">
         <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0 min-w-0 overflow-hidden">
-          <aside id="boards-list" className="flex-shrink-0 md:w-64 md:flex md:flex-col min-w-0">
-            <BoardsList />
-          </aside>
+          <BoardsSidebar />
 
           <section id="main-content" className="flex-1 min-w-0 min-h-0 overflow-hidden">
             <BoardContent />

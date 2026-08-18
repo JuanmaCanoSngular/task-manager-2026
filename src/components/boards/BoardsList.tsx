@@ -7,7 +7,7 @@ export const BoardsList = () => {
   const boards = useBoardStore((state) => state.boards);
 
   return (
-    <div className="md:col-span-1 flex flex-col w-full md:w-[250px] h-full min-h-0">
+    <div className="flex flex-col w-full h-full min-h-0">
       <nav aria-label="Navegación de tableros" className="flex flex-col min-h-0">
         <div className="flex flex-col gap-4" role="list">
           {boards.map((board) => (

@@ -117,15 +117,8 @@ describe('BoardsList', () => {
 
     // Verify the main container has correct classes
     const boardTexts = screen.getAllByText('Test Board');
-    const container = boardTexts[0].closest('div[class*="md:col-span-1"]');
-    expect(container).toHaveClass(
-      'md:col-span-1',
-      'flex',
-      'flex-col',
-      'w-full',
-      'md:w-[250px]',
-      'h-full'
-    );
+    const container = boardTexts[0].closest('div[class*="w-full"]');
+    expect(container).toHaveClass('flex', 'flex-col', 'w-full', 'h-full');
   });
 
   test('should render board cards on all screen sizes', async () => {
