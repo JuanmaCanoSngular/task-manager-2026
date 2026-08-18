@@ -68,7 +68,7 @@ curl -s "https://api.telegram.org/botTOKEN/getWebhookInfo"
 
 1. Login en la app → **Telegram** → **Generar código**
 2. Abre el deep link o envía `/start CODIGO` al bot
-3. Texto libre **o nota de voz** → tarea en Pendiente
+3. Texto libre **o nota de voz** → tarea en Pendiente (o en el tablero que indiques)
 4. `/pendientes` · `/bloqueos` · `/desvincular` · `/ayuda`
 
 ## Functions

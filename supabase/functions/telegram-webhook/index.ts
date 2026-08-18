@@ -271,6 +271,7 @@ function helpText() {
   return (
     'Taskblero — bot\n\n' +
     '• Escribe una tarea en castellano → va a Pendiente\n' +
+    '• Di el tablero si quieres otro: «llamar a Julián en Personal»\n' +
     '• Nota de voz → se transcribe y crea la tarea\n' +
     '• /pendientes — lista Pendiente\n' +
     '• /bloqueos — lista Bloqueos\n' +

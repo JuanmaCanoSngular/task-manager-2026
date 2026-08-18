@@ -181,7 +181,7 @@ Funcionalidad **opcional** pero diferenciadora: crear y consultar tareas desde T
 2. `telegram-link` genera un código de vinculación (deep link al bot).
 3. El usuario envía `/start CODIGO` al bot o abre el enlace.
 4. A partir de ahí puede:
-   - Escribir texto libre **o enviar una nota de voz** → nueva tarea en Pendiente (vía Gemini)
+   - Escribir texto libre **o enviar una nota de voz** → nueva tarea en Pendiente (vía Gemini). Si indicas el tablero (*«en Personal»*), va a ese.
    - `/pendientes` — listar tareas pendientes
    - `/bloqueos` — listar bloqueos
    - `/desvincular` — quitar el vínculo

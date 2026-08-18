@@ -169,7 +169,7 @@ function TelegramLinkDialogInner({ open, onClose, onStatusChange }: DialogProps)
                       .
                     </p>
                     <p className="opacity-80">
-                      Escribe o envía una nota de voz para crear tareas en Pendiente; /pendientes y /bloqueos para listar.
+                      Escribe o envía una nota de voz; si dices el tablero («en Personal») va ahí. /pendientes y /bloqueos para listar.
                     </p>
                     {status.botUrl && (
                       <a

@@ -22,9 +22,14 @@ const JUNK_TITLES = new Set([
   'tarea',
 ]);
 
-export async function extractTitleWithGemini(text) {
+export async function extractTitleWithGemini(text, boardNames = []) {
   const apiKey = Deno.env.get('GEMINI_API_KEY');
   if (!apiKey) throw new Error('GEMINI_API_KEY no configurada en Supabase secrets');
+
+  const boardList =
+    boardNames.length > 0
+      ? boardNames.map((n) => `- ${n}`).join('\n')
+      : '(ninguno listado)';
 
   const prompt = `Eres un asistente de un tablero Kanban. Trabajas SOLO en castellano (español de España).
 
@@ -34,7 +39,11 @@ Reglas:
 - Extrae UNA tarea: título corto y claro (máx. 80 caracteres).
 - Quita muletillas ("recuérdame", "por favor", "mañana"…) si no aportan al título.
 - No inventes detalles que no estén en el mensaje. No uses comillas en el título.
-- Responde SOLO con JSON: {"title":"..."} o {"title":null,"error":"solo_castellano"}
+- NO pongas el nombre del tablero en el título.
+- Tableros del usuario:
+${boardList}
+- "board" SOLO si el mensaje indica con claridad uno de esos tableros. Debe ser el nombre EXACTO de la lista. Si no lo indica o no está claro: null.
+- Responde SOLO con JSON: {"title":"...","board":null} o {"title":"...","board":"Nombre"} o {"title":null,"error":"solo_castellano"}
 
 Mensaje:
 ${text}`;
@@ -77,7 +86,10 @@ ${text}`;
   if (parsed && typeof parsed === 'object' && parsed.rejected) {
     return parsed;
   }
-  return typeof parsed === 'string' ? parsed.slice(0, 120) : null;
+  if (parsed && typeof parsed === 'object' && parsed.title) {
+    return parsed;
+  }
+  return null;
 }
 
 const SOLO_CASTELLANO = 'SOLO_CASTELLANO';
@@ -153,32 +165,36 @@ Si no hay habla, no se entiende, o no está en castellano, responde exactamente:
 function parseTitleFromModelText(raw) {
   if (!raw) return null;
 
-  // 1) JSON completo
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed?.error === 'solo_castellano' || parsed?.title === null) {
+  const fromParsed = (parsed) => {
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (parsed.error === 'solo_castellano' || parsed.title === null) {
       return { rejected: 'solo_castellano' };
     }
-    const t = normalizeTitle(parsed?.title);
-    if (t) return t;
+    const title = normalizeTitle(parsed.title);
+    if (!title) return null;
+    const board =
+      typeof parsed.board === 'string' && parsed.board.trim() ? parsed.board.trim() : null;
+    return { title: title.slice(0, 120), board };
+  };
+
+  try {
+    const parsed = JSON.parse(raw);
+    const got = fromParsed(parsed);
+    if (got) return got;
   } catch {
     // sigue
   }
 
-  // 2) Extrae el primer objeto {"title":"..."} embebido (por si hay texto alrededor)
   const match = raw.match(/\{[\s\S]*?"title"\s*:\s*(null|"((?:\\.|[^"\\])*)")[\s\S]*?\}/);
   if (match) {
     try {
       const parsed = JSON.parse(match[0]);
-      if (parsed?.error === 'solo_castellano' || parsed?.title === null) {
-        return { rejected: 'solo_castellano' };
-      }
-      const t = normalizeTitle(parsed?.title);
-      if (t) return t;
+      const got = fromParsed(parsed);
+      if (got) return got;
     } catch {
       if (match[1] === 'null') return { rejected: 'solo_castellano' };
-      const t = normalizeTitle(match[2]?.replace(/\\"/g, '"'));
-      if (t) return t;
+      const title = normalizeTitle(match[2]?.replace(/\\"/g, '"'));
+      if (title) return { title: title.slice(0, 120), board: null };
     }
   }
 
@@ -194,45 +210,127 @@ function normalizeTitle(value) {
 }
 
 export async function getDefaultBoard(supabase, userId) {
+  const boards = await getUserBoards(supabase, userId);
+  return pickDefaultBoard(boards);
+}
+
+export async function getUserBoards(supabase, userId) {
   const { data, error } = await supabase
     .from('boards')
-    .select('id, name')
+    .select('id, name, is_default')
     .eq('user_id', userId)
-    .eq('is_default', true)
-    .maybeSingle();
+    .order('created_at', { ascending: true });
   if (error) throw error;
-  return data;
+  return data ?? [];
+}
+
+function pickDefaultBoard(boards) {
+  if (!boards.length) return null;
+  return boards.find((b) => b.is_default) ?? boards[0];
+}
+
+function normalizeForMatch(value) {
+  return String(value)
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function matchBoardHint(hint, boards) {
+  if (!hint || !boards.length) return null;
+  const needle = normalizeForMatch(hint);
+  if (needle.length < 2) return null;
+
+  const exact = boards.find((b) => normalizeForMatch(b.name) === needle);
+  if (exact) return exact;
+
+  const hits = boards.filter((b) => {
+    const name = normalizeForMatch(b.name);
+    return name.includes(needle) || needle.includes(name);
+  });
+  if (hits.length === 1) return hits[0];
+  if (hits.length > 1) {
+    hits.sort((a, b) => normalizeForMatch(b.name).length - normalizeForMatch(a.name).length);
+    return hits[0];
+  }
+  return null;
+}
+
+/** Menciona el tablero con una pista ("en Personal", "tablero Trabajo"). */
+function findBoardMentionedInText(text, boards) {
+  if (!text || !boards.length) return null;
+  const hay = normalizeForMatch(text);
+  const sorted = [...boards].sort(
+    (a, b) => normalizeForMatch(b.name).length - normalizeForMatch(a.name).length
+  );
+  for (const board of sorted) {
+    const name = normalizeForMatch(board.name);
+    if (name.length < 3) continue;
+    const cues = [
+      `en el tablero ${name}`,
+      `al tablero ${name}`,
+      `tablero ${name}`,
+      `en ${name}`,
+      `al ${name}`,
+      `para ${name}`,
+    ];
+    if (cues.some((cue) => hay.includes(cue))) return board;
+  }
+  return null;
+}
+
+function stripBoardCueFromTitle(title, board) {
+  if (!title || !board?.name) return title;
+  const name = board.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return title
+    .replace(new RegExp(`\\s*(?:en|al|para)(?:\\s+el)?(?:\\s+tablero)?\\s+${name}\\.?$`, 'i'), '')
+    .replace(new RegExp(`\\s*tablero\\s+${name}\\.?$`, 'i'), '')
+    .trim() || title;
 }
 
 export async function createTaskOnDefault(supabase, userId, text) {
-  const board = await getDefaultBoard(supabase, userId);
-  if (!board) {
+  const boards = await getUserBoards(supabase, userId);
+  const defaultBoard = pickDefaultBoard(boards);
+  if (!defaultBoard) {
     return { error: 'No tienes un tablero por defecto. Ábrelo en la app y márcalo con la estrella.' };
   }
 
   let title;
   let usedGemini = false;
+  let boardHint = null;
   try {
-    const extracted = await extractTitleWithGemini(text);
+    const extracted = await extractTitleWithGemini(
+      text,
+      boards.map((b) => b.name)
+    );
     if (extracted && typeof extracted === 'object' && extracted.rejected === 'solo_castellano') {
       return {
         error:
           'Solo entiendo mensajes en castellano. Escribe la tarea en español, por favor.',
       };
     }
-    title = typeof extracted === 'string' ? extracted : null;
-    usedGemini = Boolean(title);
+    if (extracted && typeof extracted === 'object' && extracted.title) {
+      title = extracted.title;
+      boardHint = extracted.board;
+      usedGemini = true;
+    }
   } catch (err) {
     console.error('Gemini fallback:', err);
     title = null;
   }
   if (!title) {
-    // Sin Gemini (o basura rechazada): usa el mensaje tal cual como título.
     title = text.split('\n')[0].trim().slice(0, 120);
   }
   if (!title) {
     return { error: 'No pude entender la tarea. Prueba a reformular.' };
   }
+
+  const board =
+    matchBoardHint(boardHint, boards) ?? findBoardMentionedInText(text, boards) ?? defaultBoard;
+  title = stripBoardCueFromTitle(title, board);
 
   let inboxColumnId = await getInboxColumnId(supabase, board.id);
   if (!inboxColumnId) {
