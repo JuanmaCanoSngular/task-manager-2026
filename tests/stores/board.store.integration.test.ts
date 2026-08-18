@@ -13,7 +13,13 @@ const mockColumnsForBoard = (boardId: number) =>
 vi.mock('../../src/services/board.service', () => ({
   boardService: {
     getBoards: vi.fn(),
-    insertBoard: vi.fn(async (board: { name: string; emoji: string; color: string; isDefault: boolean }) => {
+    insertBoard: vi.fn(async (board: {
+      name: string;
+      emoji: string;
+      color: string;
+      isDefault: boolean;
+      kind?: string;
+    }) => {
       const id = Math.floor(Math.random() * 100000) + 1;
       return {
         id,
@@ -22,6 +28,7 @@ vi.mock('../../src/services/board.service', () => ({
         color: board.color,
         link: '',
         isDefault: board.isDefault,
+        kind: board.kind ?? 'kanban',
         columns: mockColumnsForBoard(id),
         tasks: [],
       };
@@ -109,6 +116,16 @@ describe('BoardStore Integration Tests', () => {
     expect(boardService.insertBoard).toHaveBeenCalledWith(
       expect.objectContaining({ isDefault: true })
     );
+  });
+
+  test('addNewBoard pasa kind shopping al servicio', async () => {
+    await act(async () => {
+      await useBoardStore.getState().addNewBoard('Compra', '#0d9488', 'shopping');
+    });
+    expect(boardService.insertBoard).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Compra', kind: 'shopping' })
+    );
+    expect(useBoardStore.getState().boards[0].kind).toBe('shopping');
   });
 
   test('should add a new task to the current board', async () => {

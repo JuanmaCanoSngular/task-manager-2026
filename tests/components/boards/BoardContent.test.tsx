@@ -134,4 +134,37 @@ describe('BoardContent', () => {
     render(<BoardContent />);
     expect(screen.getByText(/Filtrando 1 tarea de un total de 2/)).toBeInTheDocument();
   });
+
+  test('un tablero shopping muestra la lista de la compra, no columnas kanban', async () => {
+    const { MOCK_SHOPPING_COLUMNS } = await import('../../utils/mock-columns');
+    vi.doMock('../../../src/stores/board.store', () => ({
+      useBoardStore: (selector?: (s: { currentBoardId: number; addNewTask: () => void; moveTask: () => void }) => unknown) => {
+        const state = {
+          currentBoardId: 1,
+          addNewTask: vi.fn(),
+          moveTask: vi.fn(),
+          updateTaskOrder: vi.fn(),
+          reorderColumns: vi.fn(),
+        };
+        return typeof selector === 'function' ? selector(state) : state;
+      },
+      useCurrentBoard: () => ({
+        id: 1,
+        name: 'Compra semanal',
+        color: '#0d9488',
+        kind: 'shopping',
+        columns: MOCK_SHOPPING_COLUMNS,
+        tasks: [],
+      }),
+      useCurrentBoardColumns: () => MOCK_SHOPPING_COLUMNS,
+      useCurrentBoardTasks: () => [],
+    }));
+    const { BoardContent } = await import('../../../src/components/boards/BoardContent');
+    render(<BoardContent />);
+    expect(screen.getByTestId('shopping-board')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Compra semanal' })).toBeInTheDocument();
+    expect(screen.queryByText(/pendiente/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('board-columns-scroll')).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /por comprar/i })).toBeInTheDocument();
+  });
 });

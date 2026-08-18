@@ -6,6 +6,16 @@ export const DEFAULT_COLUMN_DEFS = [
   { name: 'Completada', color: '#4ade80', slug: 'completed', isInbox: false, position: 3 },
 ] as const;
 
+/** Columnas internas de una lista de la compra (la UI no las muestra como Kanban). */
+export const SHOPPING_COLUMN_DEFS = [
+  { name: 'Por comprar', color: '#0d9488', slug: 'backlog', isInbox: true, position: 0 },
+  { name: 'Comprado', color: '#22c55e', slug: 'completed', isInbox: false, position: 1 },
+  { name: 'Descartado', color: '#94a3b8', slug: 'discarded', isInbox: false, position: 2 },
+] as const;
+
+export const columnDefsForKind = (kind: 'kanban' | 'shopping' = 'kanban') =>
+  kind === 'shopping' ? SHOPPING_COLUMN_DEFS : DEFAULT_COLUMN_DEFS;
+
 export interface BoardColumn {
   id: number;
   boardId: number;
@@ -50,3 +60,9 @@ export const getInboxColumn = (columns: BoardColumn[]): BoardColumn | undefined 
 
 export const getBlockersColumn = (columns: BoardColumn[]): BoardColumn | undefined =>
   columns.find((c) => c.slug === 'in-review');
+
+export const getShoppingBoughtColumn = (columns: BoardColumn[]): BoardColumn | undefined =>
+  columns.find((c) => c.slug === 'completed') ?? columns.find((c) => /comprado/i.test(c.name));
+
+export const getShoppingDiscardedColumn = (columns: BoardColumn[]): BoardColumn | undefined =>
+  columns.find((c) => c.slug === 'discarded') ?? columns.find((c) => /descartad/i.test(c.name));

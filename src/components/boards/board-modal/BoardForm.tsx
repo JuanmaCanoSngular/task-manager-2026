@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { BoardName } from './BoardName';
 import { BoardColor } from './BoardColor';
 import { BoardActions } from './BoardActions';
-import { BOARD_COLORS } from '../../../interfaces/board.interface';
+import { BoardKindPicker } from './BoardKindPicker';
+import { BOARD_COLORS, BoardKind } from '../../../interfaces/board.interface';
 
 interface BoardFormProps {
-  onSubmit: (name: string, color: string) => void;
+  onSubmit: (name: string, color: string, kind?: BoardKind) => void;
   onCancel: () => void;
   initialName?: string;
   initialColor?: string;
   submitLabel?: string;
+  showKindPicker?: boolean;
 }
 
 export const BoardForm = ({
@@ -18,9 +20,11 @@ export const BoardForm = ({
   initialName = '',
   initialColor = BOARD_COLORS[0],
   submitLabel,
+  showKindPicker = false,
 }: BoardFormProps) => {
   const [boardName, setBoardName] = useState(initialName);
   const [color, setColor] = useState(initialColor);
+  const [kind, setKind] = useState<BoardKind>('kanban');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -29,7 +33,7 @@ export const BoardForm = ({
 
     setIsSubmitting(true);
     try {
-      onSubmit(boardName.trim(), color);
+      onSubmit(boardName.trim(), color, showKindPicker ? kind : undefined);
     } finally {
       setIsSubmitting(false);
     }
@@ -38,6 +42,7 @@ export const BoardForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <BoardName value={boardName} onChange={setBoardName} />
+      {showKindPicker ? <BoardKindPicker value={kind} onChange={setKind} /> : null}
       <BoardColor value={color} onChange={setColor} />
       <BoardActions
         isSubmitting={isSubmitting}

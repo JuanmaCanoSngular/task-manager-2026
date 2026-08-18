@@ -8,13 +8,20 @@ import {
 } from '@hello-pangea/dnd';
 import type { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { StatusColumn } from './StatusColumn';
-import { useBoardStore, useCurrentBoard, useCurrentBoardColumns, useCurrentBoardTasks } from '../../stores/board.store';
+import { ShoppingBoard } from './shopping/ShoppingBoard';
+import {
+  useBoardStore,
+  useCurrentBoard,
+  useCurrentBoardColumns,
+  useCurrentBoardTasks,
+} from '../../stores/board.store';
 import { NoBoardSelected } from './NoBoardSelected';
 import { ColumnsManagerButton } from '../columns/ColumnsManagerButton';
 import { TagsManagerButton } from '../tags/TagsManagerButton';
 import { TagChip } from '../tags/TagChip';
 import { useTagStore } from '../../stores/tag.store';
 import { taskMatchesTagFilter } from '../../interfaces/tag.interface';
+import { isShoppingBoard } from '../../interfaces/board.interface';
 import { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 
@@ -77,6 +84,10 @@ export const BoardContent = () => {
 
   if (currentBoardId === null) {
     return <NoBoardSelected />;
+  }
+
+  if (board && isShoppingBoard(board)) {
+    return <ShoppingBoard board={board} />;
   }
 
   const scrollOnDesktop = columns.length > 4;
@@ -167,7 +178,10 @@ export const BoardContent = () => {
               </h2>
             ) : null}
             {tags.length > 0 ? (
-              <ul className="flex flex-wrap items-center gap-1.5 min-w-0" aria-label="Filtrar por etiqueta">
+              <ul
+                className="flex flex-wrap items-center gap-1.5 min-w-0"
+                aria-label="Filtrar por etiqueta"
+              >
                 {tags.map((tag) => {
                   const selected = filterTagIds.includes(tag.id);
                   const dimOthers = filtering && !selected;

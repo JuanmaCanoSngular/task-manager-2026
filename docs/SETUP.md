@@ -108,10 +108,13 @@ Ejecuta los scripts en el **SQL Editor** de Supabase, en este orden, en un proye
 | 9 | `supabase/realtime-tasks.sql` | Publicación Realtime para refresco en vivo |
 | 10 | `supabase/telegram-schema.sql` | Vínculos Telegram ↔ usuario (solo si usas el bot) |
 | 11 | `supabase/checklist-schema.sql` | Checklist / subtareas en tareas (`task_checklist_items`) |
+| 12 | `supabase/boards-kind.sql` | Tipo de tablero (`kind`: kanban o lista de la compra) |
 
 > Si el proyecto ya existía sin columnas personalizables, basta con ejecutar `columns-schema.sql` (y los que falten de la lista).
 >
 > Si ya tenías etiquetas **por usuario** (tabla `tags` sin `board_id`), ejecuta también `supabase/tags-board-id.sql`. Clona las etiquetas a cada tablero y remapea las tareas.
+>
+> Para tableros tipo lista de la compra, ejecuta `supabase/boards-kind.sql` y recarga el schema cache de la API.
 
 ### Google OAuth (solo modo producción)
 

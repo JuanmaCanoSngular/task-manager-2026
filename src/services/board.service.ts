@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Board } from '../interfaces/board.interface';
+import { Board, parseBoardKind } from '../interfaces/board.interface';
 import { BoardColumn, sortColumns } from '../interfaces/column.interface';
 import { Task, TaskDraft } from '../interfaces/task.interface';
 import { columnService } from './column.service';
@@ -25,6 +25,7 @@ interface BoardRow {
   emoji: string;
   color: string;
   is_default?: boolean | null;
+  kind?: string | null;
 }
 
 interface ColumnRow {
@@ -57,6 +58,11 @@ const getSessionUserId = async (): Promise<string | null> => {
   return data.session?.user.id ?? null;
 };
 
+const isMissingKindColumn = (error: { message?: string; code?: string }) => {
+  const msg = error.message ?? '';
+  return error.code === 'PGRST204' || /'?kind'?/i.test(msg);
+};
+
 export type TaskRealtimeHandlers = {
   onInsert: (boardId: number, task: Task) => void;
   onUpdate: (boardId: number, task: Task) => void;
@@ -79,11 +85,14 @@ export const boardService = {
 
     const columnsByBoard = await columnService.fetchColumnsForBoards(boardIds);
 
-    for (const boardId of boardIds) {
-      if (!columnsByBoard.has(boardId) || columnsByBoard.get(boardId)!.length === 0) {
+    for (const board of boardRows) {
+      if (!columnsByBoard.has(board.id) || columnsByBoard.get(board.id)!.length === 0) {
         try {
-          const seeded = await columnService.seedDefaultColumns(boardId);
-          columnsByBoard.set(boardId, seeded);
+          const seeded = await columnService.seedDefaultColumns(
+            board.id,
+            parseBoardKind(board.kind)
+          );
+          columnsByBoard.set(board.id, seeded);
         } catch {
           /* tabla aún no migrada; el front mostrará tablero vacío de columnas */
         }
@@ -132,28 +141,37 @@ export const boardService = {
       color: board.color,
       link: '',
       isDefault: Boolean(board.is_default),
+      kind: parseBoardKind(board.kind),
       columns: sortColumns(columnsByBoard.get(board.id) ?? []),
       tasks: tasksByBoard.get(board.id) ?? [],
     }));
   },
 
   async insertBoard(
-    board: Pick<Board, 'name' | 'emoji' | 'color' | 'isDefault'>
+    board: Pick<Board, 'name' | 'emoji' | 'color' | 'isDefault' | 'kind'>
   ): Promise<Board> {
     const userId = await getSessionUserId();
+    const kind = parseBoardKind(board.kind);
     const row: Record<string, unknown> = {
       name: board.name,
       emoji: board.emoji,
       color: board.color,
       is_default: board.isDefault,
+      kind,
     };
     if (userId) row.user_id = userId;
 
-    const { data, error } = await supabase.from('boards').insert(row).select('*').single();
+    let { data, error } = await supabase.from('boards').insert(row).select('*').single();
+    if (error && isMissingKindColumn(error)) {
+      delete row.kind;
+      const retry = await supabase.from('boards').insert(row).select('*').single();
+      data = retry.data;
+      error = retry.error;
+    }
     if (error) throw error;
 
     const boardId = data.id as number;
-    const columns = await columnService.seedDefaultColumns(boardId);
+    const columns = await columnService.seedDefaultColumns(boardId, kind);
 
     return {
       id: boardId,
@@ -162,6 +180,7 @@ export const boardService = {
       color: data.color as string,
       link: '',
       isDefault: Boolean(data.is_default),
+      kind,
       columns,
       tasks: [],
     };
@@ -296,33 +315,21 @@ export const boardService = {
   subscribeTasks(handlers: TaskRealtimeHandlers): () => void {
     const channel: RealtimeChannel = supabase
       .channel('tasks-realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'tasks' },
-        (payload) => {
-          const row = payload.new as TaskRow;
-          if (!row?.id || row.board_id == null) return;
-          handlers.onInsert(row.board_id, rowToTask(row));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'tasks' },
-        (payload) => {
-          const row = payload.new as TaskRow;
-          if (!row?.id || row.board_id == null) return;
-          handlers.onUpdate(row.board_id, rowToTask(row));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'tasks' },
-        (payload) => {
-          const row = payload.old as Partial<TaskRow>;
-          if (row?.id == null) return;
-          handlers.onDelete(row.id);
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, (payload) => {
+        const row = payload.new as TaskRow;
+        if (!row?.id || row.board_id == null) return;
+        handlers.onInsert(row.board_id, rowToTask(row));
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, (payload) => {
+        const row = payload.new as TaskRow;
+        if (!row?.id || row.board_id == null) return;
+        handlers.onUpdate(row.board_id, rowToTask(row));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tasks' }, (payload) => {
+        const row = payload.old as Partial<TaskRow>;
+        if (row?.id == null) return;
+        handlers.onDelete(row.id);
+      })
       .subscribe();
 
     return () => {

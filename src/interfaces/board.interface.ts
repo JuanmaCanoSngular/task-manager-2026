@@ -1,6 +1,11 @@
 import { Task } from './task.interface';
 import { BoardColumn } from './column.interface';
 
+export type BoardKind = 'kanban' | 'shopping';
+
+export const parseBoardKind = (value: unknown): BoardKind =>
+  value === 'shopping' ? 'shopping' : 'kanban';
+
 export interface Board {
   id: number;
   name: string;
@@ -12,7 +17,12 @@ export interface Board {
   /** Tablero que se abre al cargar la app. Solo uno a la vez. */
   isDefault: boolean;
   isLocal?: boolean;
+  /** `shopping` = lista de la compra (sin Kanban). Default: kanban. */
+  kind?: BoardKind;
 }
+
+export const isShoppingBoard = (board: Board | null | undefined): boolean =>
+  board?.kind === 'shopping';
 
 import { APP_COLOR_PRESETS } from '../constants/color-presets';
 

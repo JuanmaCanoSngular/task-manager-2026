@@ -41,6 +41,36 @@ export const MOCK_COLUMNS: BoardColumn[] = [
   },
 ];
 
+export const MOCK_SHOPPING_COLUMNS: BoardColumn[] = [
+  {
+    id: 11,
+    boardId: 1,
+    name: 'Por comprar',
+    color: '#0d9488',
+    slug: 'backlog',
+    isInbox: true,
+    position: 0,
+  },
+  {
+    id: 12,
+    boardId: 1,
+    name: 'Comprado',
+    color: '#22c55e',
+    slug: 'completed',
+    isInbox: false,
+    position: 1,
+  },
+  {
+    id: 13,
+    boardId: 1,
+    name: 'Descartado',
+    color: '#94a3b8',
+    slug: 'discarded',
+    isInbox: false,
+    position: 2,
+  },
+];
+
 export const mockTask = (
   partial: Partial<Task> & Pick<Task, 'id' | 'title'>
 ): Task => ({

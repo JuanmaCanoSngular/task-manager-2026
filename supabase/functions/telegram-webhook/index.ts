@@ -366,6 +366,21 @@ async function createAndConfirm(supabase, botToken, chatId, userId, text, transc
     return;
   }
 
+  if (result.shopping) {
+    const items = result.items?.length ? result.items : [result.task.title];
+    let body = `✅ Añadí ${items.length === 1 ? 'un artículo' : `${items.length} artículos`} en «${result.board.name}»:`;
+    const shown = items.slice(0, 8);
+    body += '\n' + shown.map((item) => `☐ ${item}`).join('\n');
+    if (items.length > 8) {
+      body += `\n…y ${items.length - 8} más`;
+    }
+    if (!result.usedGemini) {
+      body += '\n_(sin Gemini: título = mensaje)_';
+    }
+    await sendMessage(botToken, chatId, body);
+    return;
+  }
+
   let body =
     `✅ Añadida a Pendiente en «${result.board.name}»:\n• ${result.task.title}` +
     (result.usedGemini ? '' : '\n_(sin Gemini: título = mensaje)_');

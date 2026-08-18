@@ -7,8 +7,15 @@ export const DEFAULT_COLUMN_DEFS = [
   { name: 'Completada', color: '#4ade80', slug: 'completed', isInbox: false, position: 3 },
 ];
 
-export async function seedDefaultColumns(supabase, boardId, userId) {
-  const rows = DEFAULT_COLUMN_DEFS.map((def) => ({
+export const SHOPPING_COLUMN_DEFS = [
+  { name: 'Por comprar', color: '#0d9488', slug: 'backlog', isInbox: true, position: 0 },
+  { name: 'Comprado', color: '#22c55e', slug: 'completed', isInbox: false, position: 1 },
+  { name: 'Descartado', color: '#94a3b8', slug: 'discarded', isInbox: false, position: 2 },
+];
+
+export async function seedDefaultColumns(supabase, boardId, userId, kind = 'kanban') {
+  const defs = kind === 'shopping' ? SHOPPING_COLUMN_DEFS : DEFAULT_COLUMN_DEFS;
+  const rows = defs.map((def) => ({
     board_id: boardId,
     user_id: userId,
     name: def.name,

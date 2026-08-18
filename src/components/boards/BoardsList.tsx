@@ -1,10 +1,13 @@
-import { useBoardStore } from '../../stores/board.store';
+import { useBoardStore, useCurrentBoard } from '../../stores/board.store';
 import { BoardCard } from './BoardCard';
 import { AddNewBoardButton } from './AddNewBoardButton';
 import { CreateTaskButton } from '../tasks/CreateTaskButton';
+import { isShoppingBoard } from '../../interfaces/board.interface';
 
 export const BoardsList = () => {
   const boards = useBoardStore((state) => state.boards);
+  const currentBoard = useCurrentBoard();
+  const hideCreateTask = isShoppingBoard(currentBoard);
 
   return (
     <div className="flex flex-col w-full h-full min-h-0">
@@ -14,7 +17,7 @@ export const BoardsList = () => {
             <BoardCard key={board.id} board={board} />
           ))}
           <AddNewBoardButton />
-          <CreateTaskButton />
+          {hideCreateTask ? null : <CreateTaskButton />}
         </div>
       </nav>
     </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Board } from '../../interfaces/board.interface';
 import { useBoardStore } from '../../stores/board.store';
-import { TrashIcon, PencilIcon, StarIcon } from '@heroicons/react/20/solid';
+import { TrashIcon, PencilIcon, StarIcon, ShoppingCartIcon } from '@heroicons/react/20/solid';
 import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { BoardModal } from './board-modal/BoardModal';
@@ -132,6 +132,12 @@ export const BoardCard = ({ board }: BoardCardProps) => {
           style={{ backgroundColor: board.color }}
           aria-hidden="true"
         />
+        {board.kind === 'shopping' ? (
+          <ShoppingCartIcon
+            className="w-3.5 h-3.5 flex-shrink-0 text-slate-400"
+            aria-label="Lista de la compra"
+          />
+        ) : null}
         <h2 className="text-sm font-medium truncate min-w-0">{board.name}</h2>
       </div>
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import { BoardModal } from './board-modal/BoardModal';
 import { useBoardStore } from '../../stores/board.store';
+import { BoardKind } from '../../interfaces/board.interface';
 
 export const AddNewBoardButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,8 +16,8 @@ export const AddNewBoardButton = () => {
     setIsModalOpen(false);
   };
 
-  const handleSubmit = (name: string, color: string) => {
-    addNewBoard(name, color);
+  const handleSubmit = (name: string, color: string, kind?: BoardKind) => {
+    void addNewBoard(name, color, kind);
     handleCloseModal();
   };
 

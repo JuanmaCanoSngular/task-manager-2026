@@ -171,11 +171,14 @@ describe('Board Service (Supabase)', () => {
         emoji: '🎯',
         color: '#000',
         is_default: false,
+        kind: 'kanban',
         user_id: 'user-abc',
       });
       expect(selectAfterInsertMock).toHaveBeenCalled();
       expect(created.id).toBe(42);
       expect(created.columns).toHaveLength(4);
+      expect(created.kind).toBe('kanban');
+      expect(seedDefaultColumnsMock).toHaveBeenCalledWith(42, 'kanban');
     });
 
     test('setDefaultBoard limpia el resto y marca el elegido', async () => {
@@ -315,6 +318,28 @@ describe('Board Service (Supabase)', () => {
 
       const result = await boardService.getBoards();
       expect(result[0].isDefault).toBe(true);
+      expect(result[0].kind).toBe('kanban');
+    });
+
+    test('insertBoard con kind shopping siembra columnas de compra', async () => {
+      seedDefaultColumnsMock.mockResolvedValueOnce([
+        { id: 11, boardId: 42, name: 'Por comprar', color: '#0d9488', slug: 'backlog', isInbox: true, position: 0 },
+        { id: 12, boardId: 42, name: 'Comprado', color: '#22c55e', slug: 'completed', isInbox: false, position: 1 },
+        { id: 13, boardId: 42, name: 'Descartado', color: '#94a3b8', slug: 'discarded', isInbox: false, position: 2 },
+      ]);
+      const created = await boardService.insertBoard({
+        name: 'Compra',
+        emoji: '',
+        color: '#0d9488',
+        isDefault: false,
+        kind: 'shopping',
+      });
+      expect(insertMock).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Compra', kind: 'shopping' })
+      );
+      expect(seedDefaultColumnsMock).toHaveBeenCalledWith(42, 'shopping');
+      expect(created.kind).toBe('shopping');
+      expect(created.columns).toHaveLength(3);
     });
   });
 });

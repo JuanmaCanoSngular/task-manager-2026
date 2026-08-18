@@ -2,8 +2,10 @@ import { create, StateCreator } from 'zustand';
 import {
   Board,
   BOARD_COLORS,
+  BoardKind,
   ensureSingleDefault,
   getDefaultBoardId,
+  parseBoardKind,
 } from '../interfaces/board.interface';
 import { BoardColumn, BoardColumnDraft } from '../interfaces/column.interface';
 import { Task, TaskDraft } from '../interfaces/task.interface';
@@ -20,7 +22,7 @@ interface BoardStore {
   error: string | null;
   fetchBoards: () => Promise<void>;
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
-  addNewBoard: (name?: string, color?: string) => Promise<void>;
+  addNewBoard: (name?: string, color?: string, kind?: BoardKind) => Promise<void>;
   updateBoard: (id: number, name: string, color: string) => void;
   setDefaultBoard: (id: number) => void;
   removeBoard: () => void;
@@ -184,7 +186,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       state.currentBoardId = id;
     });
   },
-  addNewBoard: async (name?: string, color?: string) => {
+  addNewBoard: async (name?: string, color?: string, kind?: BoardKind) => {
     const isFirst = useBoardStore.getState().boards.length === 0;
     try {
       const board = await boardService.insertBoard({
@@ -192,6 +194,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         emoji: '',
         color: color || BOARD_COLORS[0],
         isDefault: isFirst,
+        kind: parseBoardKind(kind),
       });
       set((state) => {
         state.boards.push(board);

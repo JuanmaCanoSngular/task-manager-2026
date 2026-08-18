@@ -2,10 +2,11 @@ import { supabase } from './supabase';
 import {
   BoardColumn,
   BoardColumnDraft,
-  DEFAULT_COLUMN_DEFS,
+  columnDefsForKind,
   rowToColumn,
   sortColumns,
 } from '../interfaces/column.interface';
+import type { BoardKind } from '../interfaces/board.interface';
 
 interface ColumnRow {
   id: number;
@@ -47,9 +48,9 @@ export const columnService = {
     return byBoard;
   },
 
-  async seedDefaultColumns(boardId: number): Promise<BoardColumn[]> {
+  async seedDefaultColumns(boardId: number, kind: BoardKind = 'kanban'): Promise<BoardColumn[]> {
     const userId = await getSessionUserId();
-    const rows = DEFAULT_COLUMN_DEFS.map((def) => ({
+    const rows = columnDefsForKind(kind).map((def) => ({
       board_id: boardId,
       user_id: userId,
       name: def.name,
@@ -76,7 +77,9 @@ export const columnService = {
       .limit(1);
 
     const nextPosition =
-      existing && existing.length > 0 ? ((existing[0] as { position: number }).position ?? 0) + 1 : 0;
+      existing && existing.length > 0
+        ? ((existing[0] as { position: number }).position ?? 0) + 1
+        : 0;
 
     const row: Record<string, unknown> = {
       board_id: boardId,

@@ -2,11 +2,12 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { BoardForm } from './BoardForm';
+import { BoardKind } from '../../../interfaces/board.interface';
 
 interface BoardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (name: string, color: string) => void;
+  onSubmit: (name: string, color: string, kind?: BoardKind) => void;
   mode?: 'create' | 'edit';
   initialName?: string;
   initialColor?: string;
@@ -61,6 +62,7 @@ export const BoardModal = ({
                 initialName={initialName}
                 initialColor={initialColor}
                 submitLabel={mode === 'edit' ? 'Guardar cambios' : 'Crear tablero'}
+                showKindPicker={mode === 'create'}
               />
             </Dialog.Panel>
           </Transition.Child>
