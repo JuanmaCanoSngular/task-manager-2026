@@ -42,6 +42,7 @@ interface BoardStore {
   applyRemoteTaskUpdate: (boardId: number, task: Task) => void;
   applyRemoteTaskDelete: (taskId: number) => void;
   setTaskCommentSummary: (taskId: number, count: number, latestPreview?: string) => void;
+  setTaskChecklistSummary: (taskId: number, done: number, total: number) => void;
 }
 
 const reportWriteError = (error: unknown) => {
@@ -515,6 +516,27 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
           };
         } else {
           const { commentCount: _c, latestCommentPreview: _p, ...rest } = task;
+          board.tasks[taskIndex] = rest;
+        }
+        break;
+      }
+    });
+  },
+  setTaskChecklistSummary: (taskId, done, total) => {
+    set((state) => {
+      for (const board of state.boards) {
+        const taskIndex = board.tasks.findIndex((t) => t.id === taskId);
+        if (taskIndex === -1) continue;
+
+        const task = board.tasks[taskIndex];
+        if (total > 0) {
+          board.tasks[taskIndex] = {
+            ...task,
+            checklistDone: done,
+            checklistTotal: total,
+          };
+        } else {
+          const { checklistDone: _d, checklistTotal: _t, ...rest } = task;
           board.tasks[taskIndex] = rest;
         }
         break;

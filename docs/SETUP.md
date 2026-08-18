@@ -107,6 +107,7 @@ Ejecuta los scripts en el **SQL Editor** de Supabase, en este orden, en un proye
 | 8 | `supabase/comments-schema.sql` | Comentarios en tareas (`task_comments`) |
 | 9 | `supabase/realtime-tasks.sql` | Publicación Realtime para refresco en vivo |
 | 10 | `supabase/telegram-schema.sql` | Vínculos Telegram ↔ usuario (solo si usas el bot) |
+| 11 | `supabase/checklist-schema.sql` | Checklist / subtareas en tareas (`task_checklist_items`) |
 
 > Si el proyecto ya existía sin columnas personalizables, basta con ejecutar `columns-schema.sql` (y los que falten de la lista).
 >

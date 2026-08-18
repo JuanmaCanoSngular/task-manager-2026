@@ -1,9 +1,10 @@
 import { supabase } from './supabase';
 import { Board } from '../interfaces/board.interface';
 import { BoardColumn, sortColumns } from '../interfaces/column.interface';
-import { Task } from '../interfaces/task.interface';
+import { Task, TaskDraft } from '../interfaces/task.interface';
 import { columnService } from './column.service';
 import { commentService } from './comment.service';
+import { checklistService } from './checklist.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface TaskRow {
@@ -99,6 +100,13 @@ export const boardService = {
       /* tabla task_comments aún no migrada */
     }
 
+    let checklistSummaries: Awaited<ReturnType<typeof checklistService.summariesByTaskIds>> = {};
+    try {
+      checklistSummaries = await checklistService.summariesByTaskIds(allTaskIds);
+    } catch {
+      /* tabla task_checklist_items aún no migrada */
+    }
+
     const tasksByBoard = new Map<number, Task[]>();
     for (const row of taskRows) {
       const task = rowToTask(row);
@@ -106,6 +114,11 @@ export const boardService = {
       if (summary?.count) {
         task.commentCount = summary.count;
         task.latestCommentPreview = summary.latestPreview;
+      }
+      const checks = checklistSummaries[row.id];
+      if (checks?.total) {
+        task.checklistTotal = checks.total;
+        task.checklistDone = checks.done;
       }
       const list = tasksByBoard.get(row.board_id) ?? [];
       list.push(task);
@@ -180,7 +193,7 @@ export const boardService = {
 
   async insertTask(
     boardId: number,
-    task: Omit<Task, 'id' | 'createdAt'>,
+    task: TaskDraft & { pinned?: boolean },
     position: number,
     columns: BoardColumn[]
   ): Promise<Task> {
@@ -200,7 +213,20 @@ export const boardService = {
     const { data, error } = await supabase.from('tasks').insert(row).select('*').single();
     if (error) throw error;
 
-    return rowToTask(data as TaskRow);
+    const created = rowToTask(data as TaskRow);
+    const labels = (task.checklistItems ?? [])
+      .map((label) => label.trim())
+      .filter((label) => label.length > 0);
+    if (labels.length > 0) {
+      try {
+        const items = await checklistService.addMany(created.id, labels);
+        created.checklistTotal = items.length;
+        created.checklistDone = 0;
+      } catch {
+        /* tabla checklist aún no migrada */
+      }
+    }
+    return created;
   },
 
   async updateTask(

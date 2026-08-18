@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { TaskCardMeta, TaskCommentBadge } from '../../../src/components/tasks/TaskCardMeta';
+import { TaskCardMeta, TaskCommentBadge, TaskChecklistBadge } from '../../../src/components/tasks/TaskCardMeta';
 
 describe('TaskCommentBadge', () => {
   test('muestra icono, conteo y preview al hover', () => {
@@ -40,6 +40,32 @@ describe('TaskCommentBadge', () => {
   test('no renderiza si no hay comentarios', () => {
     const { container } = render(
       <TaskCommentBadge task={{ id: 1, title: 'Tarea', columnId: 1, tags: [] }} />
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe('TaskChecklistBadge', () => {
+  test('muestra el progreso del checklist', () => {
+    render(
+      <TaskChecklistBadge
+        task={{
+          id: 1,
+          title: 'Compra',
+          columnId: 1,
+          tags: [],
+          checklistTotal: 3,
+          checklistDone: 1,
+        }}
+      />
+    );
+    expect(screen.getByLabelText('1 de 3 en el checklist')).toBeInTheDocument();
+    expect(screen.getByText('1/3')).toBeInTheDocument();
+  });
+
+  test('no renderiza si no hay ítems', () => {
+    const { container } = render(
+      <TaskChecklistBadge task={{ id: 1, title: 'Tarea', columnId: 1, tags: [] }} />
     );
     expect(container).toBeEmptyDOMElement();
   });

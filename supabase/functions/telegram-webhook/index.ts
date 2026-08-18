@@ -272,6 +272,7 @@ function helpText() {
     'Taskblero — bot\n\n' +
     '• Escribe una tarea en castellano → va a Pendiente\n' +
     '• Di el tablero si quieres otro: «llamar a Julián en Personal»\n' +
+    '• Lista de la compra: «leche, pan y huevos en Compra» → checklist\n' +
     '• Nota de voz → se transcribe y crea la tarea\n' +
     '• /pendientes — lista Pendiente\n' +
     '• /bloqueos — lista Bloqueos\n' +
@@ -368,7 +369,13 @@ async function createAndConfirm(supabase, botToken, chatId, userId, text, transc
   let body =
     `✅ Añadida a Pendiente en «${result.board.name}»:\n• ${result.task.title}` +
     (result.usedGemini ? '' : '\n_(sin Gemini: título = mensaje)_');
-  if (transcriptPreview) {
+  if (result.items?.length) {
+    const shown = result.items.slice(0, 8);
+    body += '\n' + shown.map((item) => `☐ ${item}`).join('\n');
+    if (result.items.length > 8) {
+      body += `\n…y ${result.items.length - 8} más`;
+    }
+  } else if (transcriptPreview) {
     body += `\n\n«${transcriptPreview}»`;
   }
   await sendMessage(botToken, chatId, body);

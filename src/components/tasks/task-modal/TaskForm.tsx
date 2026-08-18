@@ -7,6 +7,7 @@ import { TaskTitle } from './TaskTitle';
 import { TaskColumnSelect } from './TaskColumnSelect';
 import { TaskTags } from './TaskTags';
 import { TaskComments } from './TaskComments';
+import { TaskChecklist, TaskChecklistDraft } from './TaskChecklist';
 
 interface TaskFormProps {
   mode: 'create' | 'edit';
@@ -31,6 +32,7 @@ export const TaskForm = ({
   const [columnId, setColumnId] = useState(initialData?.columnId ?? defaultColumnId);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
   const [showTagWarning, setShowTagWarning] = useState(false);
+  const [checklistItems, setChecklistItems] = useState<string[]>([]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -40,6 +42,7 @@ export const TaskForm = ({
       title: title.trim(),
       columnId,
       tags: selectedTags,
+      ...(mode === 'create' && checklistItems.length > 0 ? { checklistItems } : {}),
     });
   };
 
@@ -71,9 +74,18 @@ export const TaskForm = ({
           onToggleTag={toggleTag}
           onManage={onManageTags}
         />
+
+        {mode === 'create' ? (
+          <TaskChecklistDraft items={checklistItems} onChange={setChecklistItems} />
+        ) : null}
       </form>
 
-      {mode === 'edit' && initialData?.id != null && <TaskComments taskId={initialData.id} />}
+      {mode === 'edit' && initialData?.id != null ? (
+        <>
+          <TaskChecklist taskId={initialData.id} />
+          <TaskComments taskId={initialData.id} />
+        </>
+      ) : null}
 
       <div className="pt-4 flex justify-end gap-3">
         <button type="button" onClick={onCancel} className="btn-secondary">

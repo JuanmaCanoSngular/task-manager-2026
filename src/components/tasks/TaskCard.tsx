@@ -10,7 +10,7 @@ import { PushPinIcon } from '../common/PushPinIcon';
 import { isRecentlyCreated } from '../../utils/relativeTime';
 import { TagsManagerDialog } from '../tags/TagsManagerDialog';
 import { TagChip } from '../tags/TagChip';
-import { TaskCardMeta, TaskCommentBadge } from './TaskCardMeta';
+import { TaskCardMeta, TaskCommentBadge, TaskChecklistBadge } from './TaskCardMeta';
 
 interface TaskCardProps {
   task: Task;
@@ -41,6 +41,7 @@ export const TaskCard = ({
     .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
   const hasTags = tagItems.length > 0;
   const hasComments = (task.commentCount ?? 0) > 0;
+  const hasChecklist = (task.checklistTotal ?? 0) > 0;
   const title = (task.title ?? '').trim() || 'Sin título';
   const titleIsFallback = !(task.title ?? '').trim();
   const isPinned = Boolean(task.pinned);
@@ -149,6 +150,7 @@ export const TaskCard = ({
 
             <div className={`flex items-start gap-1.5 min-w-0 pr-14 ${recent ? 'pl-3' : ''}`}>
               {hasComments ? <TaskCommentBadge task={task} /> : null}
+              {hasChecklist ? <TaskChecklistBadge task={task} /> : null}
               <p
                 className={`min-w-0 flex-1 text-sm leading-5 line-clamp-2 ${
                   titleIsFallback ? 'italic text-[var(--text-muted)]' : ''

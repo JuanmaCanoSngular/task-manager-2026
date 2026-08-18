@@ -56,4 +56,5 @@ export const mockBoardStoreExtras = {
   reorderColumns: vi.fn(),
   toggleTaskPinned: vi.fn(),
   setTaskCommentSummary: vi.fn(),
+  setTaskChecklistSummary: vi.fn(),
 };

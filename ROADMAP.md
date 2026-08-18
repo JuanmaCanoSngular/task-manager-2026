@@ -35,7 +35,8 @@ Producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 | Etiquetas | CRUD por tablero; estándar Urgente / Importante / Idea; **filtro** en cabecera |
 | Anclar | Chincheta: tarea fija arriba de su columna (`tasks.pinned`) |
 | Comentarios | Hilo en el modal; icono + conteo en la card |
-| Telegram | Bot + Gemini: vincular, crear, `/pendientes`, `/bloqueos` (columnas del tablero) |
+| Checklist | Subtareas / artículos en la tarea; Telegram lista → ítems |
+| Telegram | Bot + Gemini: vincular, crear, voz, tablero indicado, `/pendientes`, `/bloqueos` |
 | Keep-alive | Cron GitHub Actions cada 3 días (Supabase free) |
 | Idioma | Solo español |
 | Calidad | Tests + deploy Vercel |
@@ -45,7 +46,7 @@ Producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 - **D** Voz en Telegram — ✅ notas de voz → Gemini → tarea. Luego WhatsApp / Alexa.
 - **F1** Posible integración bidireccional con Google Calendar (exploración).
 - SQL en el proyecto de Supabase si aún falta: `columns-schema.sql`,
-  `add-task-pinned.sql`, `tags-board-id.sql`.
+  `add-task-pinned.sql`, `tags-board-id.sql`, `checklist-schema.sql`.
 
 ---
 

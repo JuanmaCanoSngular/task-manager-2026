@@ -43,7 +43,9 @@ Reglas:
 - Tableros del usuario:
 ${boardList}
 - "board" SOLO si el mensaje indica con claridad uno de esos tableros. Debe ser el nombre EXACTO de la lista. Si no lo indica o no está claro: null.
-- Responde SOLO con JSON: {"title":"...","board":null} o {"title":"...","board":"Nombre"} o {"title":null,"error":"solo_castellano"}
+- Si el mensaje es una LISTA de artículos o subtareas (compra, recados, varios ítems), extrae cada uno en "items" (máx. 40, cortos). El título será un resumen ("Compra", "Lista de la compra") SIN enumerar los artículos.
+- Si es una sola acción, "items": [].
+- Responde SOLO con JSON: {"title":"...","board":null,"items":[]} o {"title":"...","board":"Nombre","items":["leche","pan"]} o {"title":null,"error":"solo_castellano"}
 
 Mensaje:
 ${text}`;
@@ -59,7 +61,7 @@ ${text}`;
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 256,
+        maxOutputTokens: 512,
         responseMimeType: 'application/json',
         // Evita que el razonamiento en inglés contamine el parseo ("Here", "H", …).
         thinkingConfig: { thinkingBudget: 0 },
@@ -174,7 +176,8 @@ function parseTitleFromModelText(raw) {
     if (!title) return null;
     const board =
       typeof parsed.board === 'string' && parsed.board.trim() ? parsed.board.trim() : null;
-    return { title: title.slice(0, 120), board };
+    const items = normalizeChecklistItems(parsed.items);
+    return { title: title.slice(0, 120), board, items };
   };
 
   try {
@@ -194,7 +197,7 @@ function parseTitleFromModelText(raw) {
     } catch {
       if (match[1] === 'null') return { rejected: 'solo_castellano' };
       const title = normalizeTitle(match[2]?.replace(/\\"/g, '"'));
-      if (title) return { title: title.slice(0, 120), board: null };
+      if (title) return { title: title.slice(0, 120), board: null, items: [] };
     }
   }
 
@@ -207,6 +210,40 @@ function normalizeTitle(value) {
   if (!t || t.length < 3) return null;
   if (JUNK_TITLES.has(t.toLowerCase())) return null;
   return t;
+}
+
+function normalizeChecklistItems(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const value of raw) {
+    if (typeof value !== 'string') continue;
+    const item = value.trim().replace(/^[-*•]\s+/, '').slice(0, 80);
+    if (item.length < 2) continue;
+    const key = item.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+    if (out.length >= 40) break;
+  }
+  return out.length >= 2 ? out : [];
+}
+
+function guessItemsFromText(text) {
+  const lines = String(text)
+    .split('\n')
+    .map((line) => line.replace(/^[-*•\d.)\s]+/, '').trim())
+    .filter((line) => line.length >= 2 && line.length <= 80);
+  if (lines.length >= 2) return lines.slice(0, 40);
+
+  const parts = String(text)
+    .split(/,\s*(?:y\s+)?|\s+y\s+/i)
+    .map((part) => part.trim().replace(/[.?]$/, ''))
+    .filter((part) => part.length >= 2 && part.length <= 40);
+  if (parts.length >= 3 && parts.every((part) => part.split(/\s+/).length <= 5)) {
+    return parts.slice(0, 40);
+  }
+  return [];
 }
 
 export async function getDefaultBoard(supabase, userId) {
@@ -301,6 +338,7 @@ export async function createTaskOnDefault(supabase, userId, text) {
   let title;
   let usedGemini = false;
   let boardHint = null;
+  let checklistItems = [];
   try {
     const extracted = await extractTitleWithGemini(
       text,
@@ -315,6 +353,7 @@ export async function createTaskOnDefault(supabase, userId, text) {
     if (extracted && typeof extracted === 'object' && extracted.title) {
       title = extracted.title;
       boardHint = extracted.board;
+      checklistItems = extracted.items ?? [];
       usedGemini = true;
     }
   } catch (err) {
@@ -326,6 +365,9 @@ export async function createTaskOnDefault(supabase, userId, text) {
   }
   if (!title) {
     return { error: 'No pude entender la tarea. Prueba a reformular.' };
+  }
+  if (checklistItems.length < 2) {
+    checklistItems = guessItemsFromText(text);
   }
 
   const board =
@@ -393,7 +435,20 @@ export async function createTaskOnDefault(supabase, userId, text) {
 
   if (insertError) return { error: insertError.message };
 
-  return { board, task, usedGemini };
+  if (checklistItems.length >= 2) {
+    const rows = checklistItems.map((itemTitle, index) => ({
+      task_id: task.id,
+      title: itemTitle,
+      done: false,
+      position: index,
+    }));
+    const { error: checkError } = await supabase.from('task_checklist_items').insert(rows);
+    if (checkError) {
+      console.error('checklist insert:', checkError);
+    }
+  }
+
+  return { board, task, usedGemini, items: checklistItems.length >= 2 ? checklistItems : [] };
 }
 
 export async function listPendingTasks(supabase, userId) {

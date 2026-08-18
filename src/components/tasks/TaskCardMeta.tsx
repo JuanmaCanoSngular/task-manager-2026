@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
+import { ChatBubbleLeftEllipsisIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
 import type { Task } from '../../interfaces/task.interface';
 import { formatRelativeCreatedAt } from '../../utils/relativeTime';
 
@@ -78,6 +78,25 @@ export const TaskCommentBadge = ({ task }: { task: Task }) => {
           )
         : null}
     </>
+  );
+};
+
+export const TaskChecklistBadge = ({ task }: { task: Task }) => {
+  const total = task.checklistTotal ?? 0;
+  const done = task.checklistDone ?? 0;
+  if (total <= 0) return null;
+
+  const complete = done === total;
+  return (
+    <span
+      className={`inline-flex h-5 shrink-0 items-center gap-0.5 text-[10px] font-medium leading-none tabular-nums ${
+        complete ? 'text-teal-700 dark:text-teal-400' : 'text-[var(--text-muted)]'
+      }`}
+      aria-label={`${done} de ${total} en el checklist`}
+    >
+      <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" aria-hidden />
+      {done}/{total}
+    </span>
   );
 };
 

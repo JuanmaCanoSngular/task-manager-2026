@@ -12,10 +12,22 @@ export interface Task {
   commentCount?: number;
   /** Primeros caracteres del comentario más reciente (tooltip en tarjeta). */
   latestCommentPreview?: string;
+  /** Ítems del checklist (resumen en tarjeta). */
+  checklistTotal?: number;
+  checklistDone?: number;
 }
 
 /** Campos editables al crear/actualizar (sin id ni metadatos de solo-lectura). */
 export type TaskDraft = Omit<
   Task,
-  'id' | 'createdAt' | 'commentCount' | 'latestCommentPreview' | 'pinned'
->;
+  | 'id'
+  | 'createdAt'
+  | 'commentCount'
+  | 'latestCommentPreview'
+  | 'pinned'
+  | 'checklistTotal'
+  | 'checklistDone'
+> & {
+  /** Solo al crear: subtareas / artículos del checklist. */
+  checklistItems?: string[];
+};
