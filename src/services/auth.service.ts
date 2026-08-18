@@ -23,7 +23,13 @@ export const authService = {
   },
 
   onAuthChange(callback: (session: Session | null) => void) {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      // supabase-js holds an auth mutex inside this callback. Any other
+      // client call (getSession, from(), functions.invoke) deadlocks.
+      // Defer so the lock is released first.
+      // https://supabase.com/docs/reference/javascript/auth-onauthstatechange
+      setTimeout(() => callback(session), 0);
+    });
     return () => data.subscription.unsubscribe();
   },
 

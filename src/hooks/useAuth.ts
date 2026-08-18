@@ -21,10 +21,8 @@ const POLL_INTERVAL_MS = 8000;
 export const useAuth = (): UseAuth => {
   const [state, setState] = useState<AuthState>('loading');
   const [user, setUser] = useState<User | null>(null);
-  // Evita que resolveAccess (costoso: query a profiles + posible requestAccess)
-  // se ejecute en paralelo. getSession + onAuthStateChange INITIAL_SESSION
-  // pueden disparar casi a la vez con el mismo usuario.
-  const pendingRef = useRef<string | null>(null);
+  // Dedupe getSession + INITIAL_SESSION (mismo usuario, casi a la vez).
+  const inFlightUserId = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -33,18 +31,14 @@ export const useAuth = (): UseAuth => {
       if (!active) return;
 
       if (!sessionUser) {
-        pendingRef.current = null;
+        inFlightUserId.current = null;
         setUser(null);
         setState('signed-out');
         return;
       }
 
-      // Si ya estamos resolviendo este mismo usuario, ignorar la llamada
-      // duplicada. Pero si el estado actual ya es terminal (approved, etc.)
-      // y llega el mismo user de nuevo (token refresh), no hay nada que hacer.
-      if (pendingRef.current === sessionUser.id) return;
-      pendingRef.current = sessionUser.id;
-
+      if (inFlightUserId.current === sessionUser.id) return;
+      inFlightUserId.current = sessionUser.id;
       setUser(sessionUser);
 
       try {
@@ -64,26 +58,22 @@ export const useAuth = (): UseAuth => {
         if (!active) return;
         setState(status === 'approved' ? 'approved' : status === 'denied' ? 'denied' : 'pending');
       } catch {
-        // Query fallida (red, Supabase reiniciando, etc.): no quedarse en
-        // loading para siempre. El usuario puede reintentar con F5.
         if (!active) return;
+        inFlightUserId.current = null;
         setState('signed-out');
-      } finally {
-        // Permitir reintentos futuros (p.ej. si onAuthChange dispara
-        // de nuevo tras un token refresh exitoso).
-        if (pendingRef.current === sessionUser.id) {
-          pendingRef.current = null;
-        }
       }
     };
 
-    // onAuthStateChange dispara INITIAL_SESSION síncronamente al suscribirse
-    // (con la sesión del localStorage, posiblemente con JWT expirado que
-    // Supabase refresca en background). Eso basta para arrancar; no
-    // necesitamos llamar a getSession() por separado.
-    const unsubscribe = authService.onAuthChange((session) =>
-      resolveAccess(session?.user ?? null)
+    void authService.getSession().then(
+      (session) => resolveAccess(session?.user ?? null),
+      () => {
+        if (active) setState('signed-out');
+      }
     );
+
+    const unsubscribe = authService.onAuthChange((session) => {
+      void resolveAccess(session?.user ?? null);
+    });
 
     return () => {
       active = false;
