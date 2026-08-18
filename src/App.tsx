@@ -7,7 +7,7 @@ import { AuthGate } from './components/auth/AuthGate';
 import { ApprovalResult } from './components/auth/ApprovalResult';
 import { useTasksRealtime } from './hooks/useTasksRealtime';
 import { useTagStore } from './stores/tag.store';
-import { supabase } from './services/supabase';
+import { TopLoader } from './components/common/TopLoader';
 
 const AppContent = () => {
   const error = useBoardStore((state) => state.error);
@@ -17,13 +17,9 @@ const AppContent = () => {
   const fetchTags = useTagStore((state) => state.fetchTags);
 
   useEffect(() => {
-    const init = async () => {
-      // Esperar a que Supabase resuelva la sesión (refresh de JWT incluido)
-      // antes de hacer queries que dependen de RLS/user_id.
-      await supabase.auth.getSession();
-      fetchBoards();
-    };
-    void init();
+    // AuthGate ya ha resuelto la sesión (onAuthStateChange INITIAL_SESSION)
+    // antes de montar AppContent, así que la sesión/JWT ya están disponibles.
+    fetchBoards();
   }, [fetchBoards]);
 
   useEffect(() => {
@@ -39,11 +35,7 @@ const AppContent = () => {
   if (error && boards.length === 0) {
     const handleRetry = () => {
       useBoardStore.setState({ error: null });
-      const reload = async () => {
-        await supabase.auth.getSession();
-        fetchBoards();
-      };
-      void reload();
+      fetchBoards();
     };
 
     return (
@@ -64,6 +56,7 @@ const AppContent = () => {
 
   return (
     <Layout>
+      <TopLoader />
       {/* Skip links for keyboard navigation */}
       <div className="absolute -top-40 left-4 z-50 focus-within:top-4">
         <a

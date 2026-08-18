@@ -16,6 +16,7 @@ import { useShallow } from 'zustand/react/shallow';
 interface BoardStore {
   currentBoardId: number | null;
   boards: Board[];
+  loading: boolean;
   error: string | null;
   fetchBoards: () => Promise<void>;
   fetchBoardDetails: (url: string, id: number) => Promise<void>;
@@ -140,11 +141,16 @@ const plainColumns = (columns: BoardColumn[]): BoardColumn[] =>
 const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => ({
   currentBoardId: null,
   boards: [],
+  loading: false,
   error: null,
   fetchBoards: async () => {
     if (useBoardStore.getState().boards.length > 0) {
       return;
     }
+
+    set((state) => {
+      state.loading = true;
+    });
 
     try {
       const boards = await boardService.getBoards();
@@ -155,6 +161,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         state.error = null;
         state.boards = normalized;
         state.currentBoardId = defaultId;
+        state.loading = false;
       });
 
       if (defaultsDiffer(boards, normalized) && defaultId !== null) {
@@ -167,6 +174,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         state.error = error instanceof Error ? error.message : 'Error al cargar los tableros';
         state.boards = [];
         state.currentBoardId = null;
+        state.loading = false;
       });
     }
   },

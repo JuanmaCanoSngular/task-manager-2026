@@ -16,15 +16,15 @@ interface UseAuth {
   signOut: () => void;
 }
 
-// Cada cuánto se comprueba si un usuario pendiente ya ha sido aprobado.
 const POLL_INTERVAL_MS = 8000;
 
 export const useAuth = (): UseAuth => {
   const [state, setState] = useState<AuthState>('loading');
   const [user, setUser] = useState<User | null>(null);
-  // Usuario ya procesado, para no lanzar requestAccess más de una vez
-  // (getSession + onAuthChange pueden resolver casi a la vez).
-  const handledUserId = useRef<string | null>(null);
+  // Evita que resolveAccess (costoso: query a profiles + posible requestAccess)
+  // se ejecute en paralelo. getSession + onAuthStateChange INITIAL_SESSION
+  // pueden disparar casi a la vez con el mismo usuario.
+  const pendingRef = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -33,36 +33,54 @@ export const useAuth = (): UseAuth => {
       if (!active) return;
 
       if (!sessionUser) {
-        handledUserId.current = null;
+        pendingRef.current = null;
         setUser(null);
         setState('signed-out');
         return;
       }
 
+      // Si ya estamos resolviendo este mismo usuario, ignorar la llamada
+      // duplicada. Pero si el estado actual ya es terminal (approved, etc.)
+      // y llega el mismo user de nuevo (token refresh), no hay nada que hacer.
+      if (pendingRef.current === sessionUser.id) return;
+      pendingRef.current = sessionUser.id;
+
       setUser(sessionUser);
 
-      // Dedupe síncrono: si este usuario ya se está procesando, no repetir.
-      if (handledUserId.current === sessionUser.id) return;
-      handledUserId.current = sessionUser.id;
+      try {
+        let status = await authService.getAccessStatus(sessionUser.id);
 
-      let status = await authService.getAccessStatus(sessionUser.id);
+        if (!active) return;
 
-      // Primer acceso: aún no tiene perfil. Se crea la solicitud (perfil
-      // pending + email al owner) una sola vez y queda en espera.
-      if (status === null) {
-        try {
-          await authService.requestAccess();
-        } catch {
-          // Si la Edge Function no está disponible, se muestra pending igual.
+        if (status === null) {
+          try {
+            await authService.requestAccess();
+          } catch {
+            // Edge Function no disponible → pending igual.
+          }
+          status = 'pending';
         }
-        status = 'pending';
-      }
 
-      if (!active) return;
-      setState(status === 'approved' ? 'approved' : status === 'denied' ? 'denied' : 'pending');
+        if (!active) return;
+        setState(status === 'approved' ? 'approved' : status === 'denied' ? 'denied' : 'pending');
+      } catch {
+        // Query fallida (red, Supabase reiniciando, etc.): no quedarse en
+        // loading para siempre. El usuario puede reintentar con F5.
+        if (!active) return;
+        setState('signed-out');
+      } finally {
+        // Permitir reintentos futuros (p.ej. si onAuthChange dispara
+        // de nuevo tras un token refresh exitoso).
+        if (pendingRef.current === sessionUser.id) {
+          pendingRef.current = null;
+        }
+      }
     };
 
-    authService.getSession().then((session) => resolveAccess(session?.user ?? null));
+    // onAuthStateChange dispara INITIAL_SESSION síncronamente al suscribirse
+    // (con la sesión del localStorage, posiblemente con JWT expirado que
+    // Supabase refresca en background). Eso basta para arrancar; no
+    // necesitamos llamar a getSession() por separado.
     const unsubscribe = authService.onAuthChange((session) =>
       resolveAccess(session?.user ?? null)
     );

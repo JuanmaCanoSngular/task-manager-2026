@@ -13,8 +13,14 @@ vi.mock('../src/hooks/useTasksRealtime', () => ({
 
 vi.mock('../src/stores/tag.store', () => ({
   useTagStore: Object.assign(
-    (selector: (s: { fetchTags: (boardId: number) => void; tags: unknown[] }) => unknown) =>
-      selector({ fetchTags: vi.fn(), tags: [] }),
+    (selector: (s: Record<string, unknown>) => unknown) =>
+      selector({
+        fetchTags: vi.fn(),
+        tags: [],
+        filterTagIds: [],
+        toggleTagFilter: vi.fn(),
+        clearTagFilter: vi.fn(),
+      }),
     { setState: vi.fn() }
   ),
 }));
@@ -35,6 +41,7 @@ describe('App', () => {
     const mockUseBoardStore = vi.fn((selector) =>
       selector({
         error: null,
+        loading: false,
         fetchBoards: vi.fn(),
         boards: [],
         currentBoardId: null,
@@ -45,6 +52,7 @@ describe('App', () => {
       useBoardStore: mockUseBoardStore,
       useCurrentBoard: () => null,
       useCurrentBoardColumns: () => [],
+      useCurrentBoardTasks: () => [],
     }));
 
     const { default: App } = await import('../src/App');
@@ -76,6 +84,7 @@ describe('App', () => {
     const mockUseBoardStore = vi.fn((selector) =>
       selector({
         error: null,
+        loading: false,
         fetchBoards: vi.fn(),
         boards: [],
         currentBoardId: null,
@@ -86,6 +95,7 @@ describe('App', () => {
       useBoardStore: mockUseBoardStore,
       useCurrentBoard: () => null,
       useCurrentBoardColumns: () => [],
+      useCurrentBoardTasks: () => [],
     }));
 
     const { default: App } = await import('../src/App');
@@ -107,6 +117,7 @@ describe('App', () => {
     const mockUseBoardStore = vi.fn((selector) =>
       selector({
         error: 'Test error message',
+        loading: false,
         fetchBoards: vi.fn(),
         boards: [],
         currentBoardId: null,
@@ -117,6 +128,7 @@ describe('App', () => {
       useBoardStore: mockUseBoardStore,
       useCurrentBoard: () => null,
       useCurrentBoardColumns: () => [],
+      useCurrentBoardTasks: () => [],
     }));
 
     const { default: App } = await import('../src/App');

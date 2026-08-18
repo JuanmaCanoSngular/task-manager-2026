@@ -18,15 +18,23 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+/** Simula onAuthStateChange INITIAL_SESSION: el callback se dispara síncronamente al suscribirse. */
+const mockInitialSession = (session: { user: { id: string; email: string } } | null) => {
+  authService.onAuthChange.mockImplementation((cb: (s: typeof session) => void) => {
+    cb(session);
+    return () => {};
+  });
+};
+
 describe('useAuth', () => {
   test('sin sesión: estado signed-out', async () => {
-    authService.getSession.mockResolvedValue(null);
+    mockInitialSession(null);
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.state).toBe('signed-out'));
   });
 
   test('sesión con perfil aprobado: estado approved', async () => {
-    authService.getSession.mockResolvedValue({ user: { id: 'u1', email: 'a@b.com' } });
+    mockInitialSession({ user: { id: 'u1', email: 'a@b.com' } });
     authService.getAccessStatus.mockResolvedValue('approved');
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.state).toBe('approved'));
@@ -34,7 +42,7 @@ describe('useAuth', () => {
   });
 
   test('sesión sin perfil: solicita acceso y queda pending', async () => {
-    authService.getSession.mockResolvedValue({ user: { id: 'u2', email: 'c@d.com' } });
+    mockInitialSession({ user: { id: 'u2', email: 'c@d.com' } });
     authService.getAccessStatus.mockResolvedValue(null);
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.state).toBe('pending'));
@@ -42,10 +50,17 @@ describe('useAuth', () => {
   });
 
   test('sesión con perfil pending: estado pending sin volver a solicitar', async () => {
-    authService.getSession.mockResolvedValue({ user: { id: 'u3', email: 'e@f.com' } });
+    mockInitialSession({ user: { id: 'u3', email: 'e@f.com' } });
     authService.getAccessStatus.mockResolvedValue('pending');
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.state).toBe('pending'));
     expect(authService.requestAccess).not.toHaveBeenCalled();
+  });
+
+  test('error en getAccessStatus: no queda en loading', async () => {
+    mockInitialSession({ user: { id: 'u4', email: 'g@h.com' } });
+    authService.getAccessStatus.mockRejectedValue(new Error('network'));
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.state).toBe('signed-out'));
   });
 });

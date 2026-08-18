@@ -2,20 +2,30 @@ import { useAuth } from '../../hooks/useAuth';
 import { Landing } from './Landing';
 import { PendingAccess } from './PendingAccess';
 import { DeniedAccess } from './DeniedAccess';
+import { BrandLockup } from '../brand/BrandLockup';
 
 interface AuthGateProps {
   children: React.ReactNode;
 }
 
-// Controla el acceso a la app según el estado de autenticación/aprobación.
-// Solo un usuario aprobado ve `children`.
 export const AuthGate = ({ children }: AuthGateProps) => {
   const { state, user, signInWithGoogle, signOut } = useAuth();
 
   if (state === 'loading') {
     return (
       <div role="status" aria-label="Cargando" className="auth-shell">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--brand)]" />
+        <div className="flex flex-col items-center gap-6">
+          <BrandLockup markSize={48} stacked />
+          <div
+            className="w-48 h-[2px] overflow-hidden rounded-full"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--brand) 20%, transparent)' }}
+          >
+            <div
+              className="top-loader-bar h-full rounded-full"
+              style={{ backgroundColor: 'var(--brand)' }}
+            />
+          </div>
+        </div>
       </div>
     );
   }

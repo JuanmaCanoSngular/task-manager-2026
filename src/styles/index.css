@@ -340,6 +340,21 @@
     }
   }
 
+  /* Loader horizontal (barra fina arriba) */
+  .top-loader-bar {
+    width: 40%;
+    animation: top-loader-slide 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes top-loader-slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(350%);
+    }
+  }
+
   /* Scroll horizontal del tablero en móvil */
   .board-columns-scroll {
     -webkit-overflow-scrolling: touch;
