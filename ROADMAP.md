@@ -42,7 +42,7 @@ Producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 
 ### Pendiente relevante
 
-- **D** Voz en Telegram (audio → Gemini → tarea). Luego WhatsApp / Alexa.
+- **D** Voz en Telegram — ✅ notas de voz → Gemini → tarea. Luego WhatsApp / Alexa.
 - **F1** Posible integración bidireccional con Google Calendar (exploración).
 - SQL en el proyecto de Supabase si aún falta: `columns-schema.sql`,
   `add-task-pinned.sql`, `tags-board-id.sql`.
@@ -156,7 +156,7 @@ La UI web **no** incluye captura con IA (redundante con el formulario normal).
 | Edge Function `telegram-link` | Códigos de emparejamiento (JWT) |
 | Tablas `channel_links` + `channel_link_codes` | `telegram-schema.sql` |
 | Emparejamiento | `/start` + código en la app (una vez) |
-| `GEMINI_API_KEY` | NL (voz: siguiente) |
+| `GEMINI_API_KEY` | NL + transcripción de voz |
 
 Comandos:
 
@@ -167,15 +167,16 @@ Comandos:
 
 ### Ampliación
 
-- **Siguiente:** voz en Telegram (mensajes de audio → Gemini).
+- **Hecho:** voz en Telegram (notas de voz → Gemini → tarea).
 - Después: WhatsApp / Alexa.
 
 ### D1. Criterios de aceptación (MVP) — ✅
 
 1. Usuario empareja Telegram con su cuenta (una vez).
 2. Texto en el bot → una tarea en `is_default` + inbox.
-3. `/pendientes` responde con la lista del default.
-4. Sin API keys en el cliente web.
+3. Nota de voz → transcripción Gemini → misma tarea en inbox.
+4. `/pendientes` responde con la lista del default.
+5. Sin API keys en el cliente web.
 
 ---
 
@@ -207,7 +208,7 @@ Comandos:
 ## Prioridad recomendada
 
 ### Alta
-1. **D** Voz en Telegram (luego WhatsApp / Alexa)
+1. ~~**D** Voz en Telegram~~ ✅ — siguiente: WhatsApp / Alexa
 
 ### Media
 2. Docs: README + `docs/SETUP.md` al día si cambia el setup
@@ -240,12 +241,13 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 ## Entregables por iteración
 
 ### Hecho recientemente
+- Voz en Telegram (nota de voz → Gemini → Pendiente)
 - Filtro por etiqueta + recuento en cabecera
 - Anclar tareas, comentarios en card, copy OG
 - Columnas personalizables, Telegram MVP, keep-alive
 
-### Siguiente — **D Voz en Telegram**
-- Mensajes de audio → Gemini → tarea
+### Siguiente
+- WhatsApp / Alexa
 
 ### Después
 - WhatsApp / Alexa

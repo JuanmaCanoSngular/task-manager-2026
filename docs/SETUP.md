@@ -168,7 +168,7 @@ Funcionalidad **opcional** pero diferenciadora: crear y consultar tareas desde T
 ### Qué hace Gemini
 
 - **Modelo:** `gemini-3.1-flash-lite` por defecto (rápido y económico).
-- **Entrada:** mensaje en lenguaje natural (ej. *«Mañana llamar al cliente sobre el presupuesto»*).
+- **Entrada:** mensaje en lenguaje natural o **nota de voz** (ej. *«Mañana llamar al cliente sobre el presupuesto»*).
 - **Salida:** título de tarea (+ metadatos si el agente los infiere) insertados en el **tablero por defecto** del usuario, columna **Pendiente**.
 - **Dónde se usa:**
   - `supabase/functions/telegram-webhook` — mensajes del bot
@@ -181,7 +181,7 @@ Funcionalidad **opcional** pero diferenciadora: crear y consultar tareas desde T
 2. `telegram-link` genera un código de vinculación (deep link al bot).
 3. El usuario envía `/start CODIGO` al bot o abre el enlace.
 4. A partir de ahí puede:
-   - Escribir texto libre → nueva tarea en Pendiente (vía Gemini)
+   - Escribir texto libre **o enviar una nota de voz** → nueva tarea en Pendiente (vía Gemini)
    - `/pendientes` — listar tareas pendientes
    - `/bloqueos` — listar bloqueos
    - `/desvincular` — quitar el vínculo

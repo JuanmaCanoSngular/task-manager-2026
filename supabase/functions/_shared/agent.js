@@ -80,6 +80,76 @@ ${text}`;
   return typeof parsed === 'string' ? parsed.slice(0, 120) : null;
 }
 
+const SOLO_CASTELLANO = 'SOLO_CASTELLANO';
+
+function uint8ToBase64(bytes) {
+  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < u8.length; i += chunk) {
+    binary += String.fromCharCode(...u8.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+/** Transcribe audio (nota de voz / archivo) a castellano. */
+export async function transcribeAudioWithGemini(bytes, mimeType) {
+  const apiKey = Deno.env.get('GEMINI_API_KEY');
+  if (!apiKey) throw new Error('GEMINI_API_KEY no configurada en Supabase secrets');
+
+  const mime = mimeType && mimeType.startsWith('audio/') ? mimeType : 'audio/ogg';
+  const prompt = `Transcribe este audio a castellano (español de España).
+Responde SOLO con el texto hablado, sin comillas, sin títulos y sin comentarios.
+Si no hay habla, no se entiende, o no está en castellano, responde exactamente: ${SOLO_CASTELLANO}`;
+
+  const url =
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent` +
+    `?key=${encodeURIComponent(apiKey)}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { inlineData: { mimeType: mime, data: uint8ToBase64(bytes) } },
+            { text: prompt },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1024,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    console.error('Gemini audio error:', res.status, detail);
+    throw new Error(`Gemini no disponible (${res.status})`);
+  }
+
+  const payload = await res.json();
+  const parts = payload?.candidates?.[0]?.content?.parts ?? [];
+  const raw = parts
+    .filter((p) => !p.thought && typeof p.text === 'string')
+    .map((p) => p.text)
+    .join('\n')
+    .trim();
+
+  if (!raw || raw.toUpperCase().includes(SOLO_CASTELLANO)) {
+    return { rejected: 'solo_castellano' };
+  }
+
+  const transcript = raw.replace(/^["'«»]+|["'«»]+$/g, '').trim();
+  if (transcript.length < 3) return { rejected: 'solo_castellano' };
+  return transcript.slice(0, 2000);
+}
+
 function parseTitleFromModelText(raw) {
   if (!raw) return null;
 

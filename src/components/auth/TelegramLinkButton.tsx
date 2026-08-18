@@ -169,7 +169,7 @@ function TelegramLinkDialogInner({ open, onClose, onStatusChange }: DialogProps)
                       .
                     </p>
                     <p className="opacity-80">
-                      Escribe al bot para crear tareas en Pendiente, o usa /pendientes y /bloqueos.
+                      Escribe o envía una nota de voz para crear tareas en Pendiente; /pendientes y /bloqueos para listar.
                     </p>
                     {status.botUrl && (
                       <a

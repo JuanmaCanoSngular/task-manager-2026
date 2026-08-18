@@ -7,7 +7,7 @@
 //   /bloqueos        — lista tareas en Bloqueos
 //   /desvincular     — quita el vínculo de este chat
 //   /ayuda           — ayuda
-// Texto libre        — crea tarea en Pendiente (Gemini)
+// Texto libre / nota de voz — crea tarea en Pendiente (Gemini)
 //
 // Secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, GEMINI_API_KEY,
 //          SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -17,9 +17,12 @@ import {
   createTaskOnDefault,
   listPendingTasks,
   listBlockedTasks,
+  transcribeAudioWithGemini,
 } from '../_shared/agent.js';
 
 const PROVIDER = 'telegram';
+const MAX_VOICE_SECONDS = 90;
+const MAX_AUDIO_BYTES = 4 * 1024 * 1024;
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -76,11 +79,14 @@ async function handleUpdate(update, botToken) {
 
   const chatId = String(message.chat.id);
   const text = typeof message.text === 'string' ? message.text.trim() : '';
-  if (!text) {
+  const caption = typeof message.caption === 'string' ? message.caption.trim() : '';
+  const media = getAudioMedia(message);
+
+  if (!text && !media) {
     await sendMessage(
       botToken,
       chatId,
-      'Por ahora solo entiendo texto. Escribe una tarea o /ayuda.'
+      'Escribe una tarea o envía una nota de voz. /ayuda'
     );
     return;
   }
@@ -138,9 +144,13 @@ async function handleUpdate(update, botToken) {
     return;
   }
 
-  // Texto libre → crear tarea (ignora comandos desconocidos con /)
   if (text.startsWith('/')) {
     await sendMessage(botToken, chatId, 'Comando no reconocido. Prueba /ayuda.');
+    return;
+  }
+
+  if (media) {
+    await handleVoiceTask(supabase, botToken, chatId, userId, media, caption);
     return;
   }
 
@@ -149,18 +159,7 @@ async function handleUpdate(update, botToken) {
     return;
   }
 
-  const result = await createTaskOnDefault(supabase, userId, text);
-  if (result.error) {
-    await sendMessage(botToken, chatId, result.error);
-    return;
-  }
-
-  await sendMessage(
-    botToken,
-    chatId,
-    `✅ Añadida a Pendiente en «${result.board.name}»:\n• ${result.task.title}` +
-      (result.usedGemini ? '' : '\n_(sin Gemini: título = mensaje)_')
-  );
+  await createAndConfirm(supabase, botToken, chatId, userId, text);
 }
 
 async function handleStart(supabase, botToken, chatId, code) {
@@ -170,7 +169,7 @@ async function handleStart(supabase, botToken, chatId, code) {
       await sendMessage(
         botToken,
         chatId,
-        'Ya estás vinculado. Escribe una tarea o usa /pendientes, /bloqueos, /ayuda.'
+        'Ya estás vinculado. Escribe una tarea, envía una nota de voz o usa /pendientes, /bloqueos, /ayuda.'
       );
       return;
     }
@@ -221,7 +220,7 @@ async function handleStart(supabase, botToken, chatId, code) {
     botToken,
     chatId,
     '🔗 Cuenta vinculada.\n\n' +
-      'Envía cualquier texto para crear una tarea en Pendiente.\n' +
+      'Escribe una tarea o envía una nota de voz → Pendiente.\n' +
       '/pendientes · /bloqueos · /ayuda'
   );
 }
@@ -272,11 +271,137 @@ function helpText() {
   return (
     'Taskblero — bot\n\n' +
     '• Escribe una tarea en castellano → va a Pendiente\n' +
+    '• Nota de voz → se transcribe y crea la tarea\n' +
     '• /pendientes — lista Pendiente\n' +
     '• /bloqueos — lista Bloqueos\n' +
     '• /desvincular — quita el vínculo\n' +
     '• /start CODIGO — vincula con tu cuenta web'
   );
+}
+
+function getAudioMedia(message) {
+  if (message.voice) {
+    return {
+      fileId: message.voice.file_id,
+      duration: message.voice.duration ?? 0,
+      mimeType: message.voice.mime_type || 'audio/ogg',
+    };
+  }
+  if (message.audio) {
+    return {
+      fileId: message.audio.file_id,
+      duration: message.audio.duration ?? 0,
+      mimeType: message.audio.mime_type || 'audio/mpeg',
+    };
+  }
+  return null;
+}
+
+async function handleVoiceTask(supabase, botToken, chatId, userId, media, caption) {
+  if (media.duration > MAX_VOICE_SECONDS) {
+    await sendMessage(
+      botToken,
+      chatId,
+      'La nota de voz es demasiado larga (máx. 1,5 min). Acórtala o escribe la tarea.'
+    );
+    return;
+  }
+
+  await sendChatAction(botToken, chatId, 'typing');
+
+  let bytes;
+  try {
+    bytes = await downloadTelegramFile(botToken, media.fileId);
+  } catch (err) {
+    console.error('telegram audio download:', err);
+    const tooBig = err instanceof Error && err.message.includes('too large');
+    await sendMessage(
+      botToken,
+      chatId,
+      tooBig
+        ? 'El audio es demasiado pesado (máx. 4 MB). Envía una nota de voz más corta.'
+        : 'No pude descargar el audio. Prueba otra vez.'
+    );
+    return;
+  }
+
+  let transcript;
+  try {
+    const extracted = await transcribeAudioWithGemini(bytes, media.mimeType);
+    if (extracted && typeof extracted === 'object' && extracted.rejected === 'solo_castellano') {
+      await sendMessage(
+        botToken,
+        chatId,
+        'Solo entiendo notas de voz en castellano. Prueba otra vez o escribe la tarea.'
+      );
+      return;
+    }
+    transcript = typeof extracted === 'string' ? extracted : null;
+  } catch (err) {
+    console.error('telegram audio transcribe:', err);
+    await sendMessage(
+      botToken,
+      chatId,
+      'No pude transcribir el audio. Escribe la tarea o prueba con una nota más corta.'
+    );
+    return;
+  }
+
+  if (!transcript) {
+    await sendMessage(botToken, chatId, 'No entendí el audio. Prueba a escribir la tarea.');
+    return;
+  }
+
+  const combined = caption ? `${transcript}\n${caption}` : transcript;
+  const preview = transcript.length > 180 ? `${transcript.slice(0, 177)}…` : transcript;
+  await createAndConfirm(supabase, botToken, chatId, userId, combined, preview);
+}
+
+async function createAndConfirm(supabase, botToken, chatId, userId, text, transcriptPreview) {
+  const result = await createTaskOnDefault(supabase, userId, text);
+  if (result.error) {
+    await sendMessage(botToken, chatId, result.error);
+    return;
+  }
+
+  let body =
+    `✅ Añadida a Pendiente en «${result.board.name}»:\n• ${result.task.title}` +
+    (result.usedGemini ? '' : '\n_(sin Gemini: título = mensaje)_');
+  if (transcriptPreview) {
+    body += `\n\n«${transcriptPreview}»`;
+  }
+  await sendMessage(botToken, chatId, body);
+}
+
+async function downloadTelegramFile(botToken, fileId) {
+  const infoRes = await fetch(
+    `https://api.telegram.org/bot${botToken}/getFile?file_id=${encodeURIComponent(fileId)}`
+  );
+  const info = await infoRes.json();
+  if (!info.ok || !info.result?.file_path) {
+    throw new Error('getFile failed');
+  }
+  if ((info.result.file_size ?? 0) > MAX_AUDIO_BYTES) {
+    throw new Error('audio too large');
+  }
+  const fileRes = await fetch(
+    `https://api.telegram.org/file/bot${botToken}/${info.result.file_path}`
+  );
+  if (!fileRes.ok) throw new Error(`file download ${fileRes.status}`);
+  const buf = new Uint8Array(await fileRes.arrayBuffer());
+  if (buf.byteLength > MAX_AUDIO_BYTES) throw new Error('audio too large');
+  return buf;
+}
+
+async function sendChatAction(botToken, chatId, action) {
+  const res = await fetch(`https://api.telegram.org/bot${botToken}/sendChatAction`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, action }),
+  });
+  if (!res.ok) {
+    console.error('sendChatAction failed:', res.status, await res.text());
+  }
 }
 
 async function sendMessage(botToken, chatId, text) {
