@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => {
     update: updateMock,
     delete: deleteMock,
   }));
+  const rpcMock = vi.fn(() => Promise.resolve({ data: 0, error: null as Error | null }));
   const getSessionMock = vi.fn(() =>
     Promise.resolve({ data: { session: null as { user: { id: string } } | null } })
   );
@@ -43,6 +44,7 @@ const mocks = vi.hoisted(() => {
     selectMock,
     updateMock,
     deleteMock,
+    rpcMock,
     fromMock,
     getSessionMock,
     singleMock,
@@ -58,6 +60,7 @@ const {
   insertMock,
   updateMock,
   deleteMock,
+  rpcMock,
   fromMock,
   getSessionMock,
   singleMock,
@@ -69,6 +72,7 @@ const {
 vi.mock('../../src/services/supabase', () => ({
   supabase: {
     from: mocks.fromMock,
+    rpc: mocks.rpcMock,
     auth: { getSession: mocks.getSessionMock },
     channel: vi.fn(() => ({
       on: vi.fn().mockReturnThis(),
@@ -128,6 +132,7 @@ describe('Board Service (Supabase)', () => {
         columnId: 1,
         tags: ['technical'],
       });
+      expect(rpcMock).toHaveBeenCalledWith('purge_stale_shopping_items');
     });
 
     test('tablero sin tareas devuelve lista vacía', async () => {
@@ -152,6 +157,24 @@ describe('Board Service (Supabase)', () => {
         .mockResolvedValueOnce({ data: [], error: null });
 
       await expect(boardService.getBoards()).rejects.toThrow('boom');
+    });
+
+    test('sigue cargando tableros si la RPC de purga aún no existe', async () => {
+      rpcMock.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Could not find the function', code: 'PGRST202' } as Error & {
+          code: string;
+        },
+      });
+      orderMock
+        .mockResolvedValueOnce({
+          data: [{ id: 1, name: 'Productividad', emoji: '🚀', color: '#fff' }],
+          error: null,
+        })
+        .mockResolvedValueOnce({ data: [], error: null });
+
+      const result = await boardService.getBoards();
+      expect(result).toHaveLength(1);
     });
   });
 
@@ -288,6 +311,22 @@ describe('Board Service (Supabase)', () => {
           position: 1,
         }).pinned
       ).toBeUndefined();
+    });
+
+    test('rowToTask incluye columnChangedAt si viene de la fila', async () => {
+      const { rowToTask } = await import('../../src/services/board.service');
+      expect(
+        rowToTask({
+          id: 3,
+          board_id: 1,
+          title: 'Leche',
+          status: 'completed',
+          column_id: 12,
+          tags: [],
+          position: 0,
+          column_changed_at: '2026-08-01T00:00:00.000Z',
+        }).columnChangedAt
+      ).toBe('2026-08-01T00:00:00.000Z');
     });
 
     test('saveTaskOrder actualiza columnId y posición de cada fila', async () => {

@@ -8,6 +8,8 @@ export interface Task {
   pinned?: boolean;
   /** ISO timestamptz de creación (Supabase `created_at`). */
   createdAt?: string;
+  /** ISO timestamptz del último cambio de columna (`column_changed_at`). */
+  columnChangedAt?: string;
   /** Número de comentarios en la tarea (carga del tablero). */
   commentCount?: number;
   /** Primeros caracteres del comentario más reciente (tooltip en tarjeta). */
@@ -22,6 +24,7 @@ export type TaskDraft = Omit<
   Task,
   | 'id'
   | 'createdAt'
+  | 'columnChangedAt'
   | 'commentCount'
   | 'latestCommentPreview'
   | 'pinned'

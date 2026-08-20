@@ -104,7 +104,7 @@ export const BoardContent = () => {
     : 'overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth md:overflow-x-hidden md:w-full';
 
   const columnShellClass = overflowColumns
-    ? 'w-full min-w-full flex-shrink-0 snap-center md:w-[calc((100%-2.5rem)/3)] md:min-w-[calc((100%-2.5rem)/3)] md:snap-start 2xl:w-[calc((100%-3.75rem)/4)] 2xl:min-w-[calc((100%-3.75rem)/4)]'
+    ? 'board-column-shell--paged flex-shrink-0 snap-center md:snap-start'
     : 'w-full min-w-full flex-shrink-0 snap-center md:flex-1 md:min-w-0 md:max-w-none md:basis-0';
 
   const handleDragStart = (start: DragStart) => {
@@ -244,7 +244,7 @@ export const BoardContent = () => {
 
         <Droppable droppableId="board-columns" direction="horizontal" type={COLUMN_DND_TYPE}>
           {(provided) => (
-            <div className="relative flex-1 min-h-0 min-w-0">
+            <div className="board-columns-frame relative flex-1 min-h-0 min-w-0">
               <div
                 ref={(node) => {
                   columnsScrollRef.current = node;

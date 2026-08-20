@@ -1,0 +1,49 @@
+name: Purgar lista de la compra
+
+# Borra artículos comprados o descartados con más de 7 días.
+# Complementa la llamada al abrir la app (por si nadie entra).
+on:
+  schedule:
+    # Todos los días a las 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: RPC purge_stale_shopping_items
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "Faltan secrets SUPABASE_URL y/o SUPABASE_ANON_KEY en el repo."
+            exit 1
+          fi
+
+          url="${SUPABASE_URL%/}/rest/v1/rpc/purge_stale_shopping_items"
+          code=$(curl -sS -o /tmp/purge.out -w "%{http_code}" \
+            "$url" \
+            -X POST \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+
+          echo "HTTP ${code}"
+          head -c 500 /tmp/purge.out || true
+          echo
+          case "$code" in
+            2*)
+              exit 0
+              ;;
+            404)
+              echo "RPC no encontrada: ejecuta supabase/shopping-purge.sql en Supabase."
+              exit 0
+              ;;
+            *)
+              exit 1
+              ;;
+          esac

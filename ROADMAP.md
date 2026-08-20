@@ -43,10 +43,11 @@ Producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 
 ### Pendiente relevante
 
-- **D** Voz en Telegram — ✅ notas de voz → Gemini → tarea. Luego WhatsApp / Alexa.
+- **D** Telegram (texto + voz) — ✅. WhatsApp y Alexa: descartados de momento.
 - **F1** Posible integración bidireccional con Google Calendar (exploración).
 - SQL en el proyecto de Supabase si aún falta: `columns-schema.sql`,
-  `add-task-pinned.sql`, `tags-board-id.sql`, `checklist-schema.sql`.
+  `add-task-pinned.sql`, `tags-board-id.sql`, `checklist-schema.sql`,
+  `boards-kind.sql`, `shopping-purge.sql`.
 
 ---
 
@@ -169,7 +170,9 @@ Comandos:
 ### Ampliación
 
 - **Hecho:** voz en Telegram (notas de voz → Gemini → tarea).
-- Después: WhatsApp / Alexa.
+- WhatsApp y Alexa: **descartados de momento** (WhatsApp = Cloud API + negocio Meta;
+  Alexa = skill + Account Linking, y la lista de la compra nativa de Amazon
+  compite con la de Taskblero). El canal de captura fuera de la web es Telegram.
 
 ### D1. Criterios de aceptación (MVP) — ✅
 
@@ -203,13 +206,14 @@ Comandos:
 - Dominio propio / redirect corto — descartado; vale [taskblero.vercel.app](https://taskblero.vercel.app/).
 - Colaboración multi-usuario en el mismo tablero.
 - Sync de tema multi-dispositivo.
+- WhatsApp (Cloud API) y Alexa (skill) como canales del agente.
 
 ---
 
 ## Prioridad recomendada
 
 ### Alta
-1. ~~**D** Voz en Telegram~~ ✅ — siguiente: WhatsApp / Alexa
+1. ~~**D** Telegram (texto + voz)~~ ✅ — canal de captura cerrado por ahora
 
 ### Media
 2. Docs: README + `docs/SETUP.md` al día si cambia el setup
@@ -248,10 +252,9 @@ channel_links     — user_id, provider, external_id    ← D Telegram ✅
 - Columnas personalizables, Telegram MVP, keep-alive
 
 ### Siguiente
-- WhatsApp / Alexa
+- Nada bloqueante en canales. Telegram cubre la captura fuera de la web.
 
 ### Después
-- WhatsApp / Alexa
 - **F1** Google Calendar bidireccional (exploración)
 
 ---

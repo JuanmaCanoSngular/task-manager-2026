@@ -54,14 +54,9 @@ export const ShoppingBoard = ({ board }: ShoppingBoardProps) => {
     };
   }, [tasks, buyColumn?.id, boughtColumn?.id, discardedColumn?.id]);
 
-  const visibleBuy = tasksByTab.buy;
-  const visibleBoughtOnList = tab === 'buy' ? tasksByTab.bought : [];
   const visible =
-    tab === 'buy' ? visibleBuy : tab === 'bought' ? tasksByTab.bought : tasksByTab.discarded;
-  const listEmpty =
-    tab === 'buy'
-      ? visibleBuy.length === 0 && visibleBoughtOnList.length === 0
-      : visible.length === 0;
+    tab === 'buy' ? tasksByTab.buy : tab === 'bought' ? tasksByTab.bought : tasksByTab.discarded;
+  const listEmpty = visible.length === 0;
 
   const handleAdd = async (event: FormEvent) => {
     event.preventDefault();
@@ -142,6 +137,9 @@ export const ShoppingBoard = ({ board }: ShoppingBoardProps) => {
           );
         })}
       </div>
+      <p className="text-[11px] leading-snug text-[var(--text-muted)] -mt-2 px-0.5">
+        Comprado y descartado se borran solos a los 7 días.
+      </p>
 
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain -mx-1 px-1">
         {listEmpty ? (
@@ -180,17 +178,6 @@ export const ShoppingBoard = ({ board }: ShoppingBoardProps) => {
                 )}
               </li>
             ))}
-            {tab === 'buy'
-              ? visibleBoughtOnList.map((task) => (
-                  <li key={task.id}>
-                    <ShoppingItemRow
-                      title={task.title}
-                      mode="bought"
-                      onRestore={() => restore(task.id)}
-                    />
-                  </li>
-                ))
-              : null}
           </ul>
         )}
       </div>

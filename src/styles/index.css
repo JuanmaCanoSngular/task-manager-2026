@@ -358,10 +358,37 @@
   }
 
   /* Scroll horizontal del tablero en móvil */
+  .board-columns-frame {
+    container-type: inline-size;
+    container-name: board-cols;
+  }
+
   .board-columns-scroll {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--brand) 55%, transparent) transparent;
+  }
+
+  /* Tablet / desktop mediano: 3 columnas. Si el tablero es ancho, 4. */
+  .board-column-shell--paged {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .board-column-shell--paged {
+      flex: 0 0 calc((100cqi - 2.5rem) / 3);
+      width: calc((100cqi - 2.5rem) / 3);
+      min-width: calc((100cqi - 2.5rem) / 3);
+    }
+  }
+
+  @container board-cols (min-width: 1040px) {
+    .board-column-shell--paged {
+      flex: 0 0 calc((100cqi - 3.75rem) / 4);
+      width: calc((100cqi - 3.75rem) / 4);
+      min-width: calc((100cqi - 3.75rem) / 4);
+    }
   }
 
   .board-columns-scroll::-webkit-scrollbar {

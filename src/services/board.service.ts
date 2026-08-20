@@ -17,6 +17,7 @@ interface TaskRow {
   tags: string[];
   position: number;
   created_at?: string | null;
+  column_changed_at?: string | null;
 }
 
 interface BoardRow {
@@ -45,6 +46,7 @@ export const rowToTask = (row: TaskRow): Task => ({
   tags: row.tags ?? [],
   ...(row.pinned ? { pinned: true } : {}),
   createdAt: row.created_at ?? undefined,
+  ...(row.column_changed_at ? { columnChangedAt: row.column_changed_at } : {}),
 });
 
 const slugForColumn = (columns: BoardColumn[], columnId: number): string | null => {
@@ -70,7 +72,22 @@ export type TaskRealtimeHandlers = {
 };
 
 export const boardService = {
+  async purgeStaleShoppingItems(): Promise<void> {
+    const { error } = await supabase.rpc('purge_stale_shopping_items');
+    if (error) {
+      const msg = error.message ?? '';
+      if (error.code === 'PGRST202' || /purge_stale_shopping_items/i.test(msg)) return;
+      throw error;
+    }
+  },
+
   async getBoards(): Promise<Board[]> {
+    try {
+      await boardService.purgeStaleShoppingItems();
+    } catch {
+      /* RPC o columna aún no migrados */
+    }
+
     const [{ data: boards, error: boardsError }, { data: tasks, error: tasksError }] =
       await Promise.all([
         supabase.from('boards').select('*').order('created_at', { ascending: true }),
