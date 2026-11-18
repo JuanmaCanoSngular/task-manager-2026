@@ -37,7 +37,7 @@ Producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 | Comentarios | Hilo en el modal; icono + conteo en la card |
 | Checklist | Subtareas / artículos en la tarea; Telegram lista → ítems |
 | Telegram | Bot + Gemini: vincular, crear, voz, tablero indicado, `/pendientes`, `/bloqueos` |
-| Keep-alive | Cron GitHub Actions cada 3 días (Supabase free) |
+| Keep-alive | Cron GitHub Actions diario (Supabase free) |
 | Idioma | Solo español |
 | Calidad | Tests + deploy Vercel |
 
@@ -110,7 +110,7 @@ Producción: [https://taskblero.vercel.app/](https://taskblero.vercel.app/)
 ### B2. Keep-alive Supabase (plan free) — ✅
 
 - Workflow `.github/workflows/keepalive-supabase.yml`
-- Cron cada 3 días + `workflow_dispatch`
+- Cron diario + `workflow_dispatch` (si GitHub lo desactiva por inactividad del repo, reactivar en Actions)
 - Secrets del repo: `SUPABASE_URL`, `SUPABASE_ANON_KEY`
 
 ---

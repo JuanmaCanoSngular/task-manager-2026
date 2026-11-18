@@ -82,7 +82,10 @@ Supabase inyecta automáticamente `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` a
 
 ### GitHub Actions — keep-alive (plan free de Supabase)
 
-Workflow: `.github/workflows/keepalive-supabase.yml` (cron cada 3 días).
+Workflow: `.github/workflows/keepalive-supabase.yml` (cron diario a las 07:00 UTC).
+
+Si el repo lleva ~60 días sin actividad, GitHub desactiva los cron (`disabled_inactivity`):
+Actions → Keep-alive Supabase → Enable workflow → Run workflow.
 
 | Secret del repo | Valor |
 |-----------------|-------|

@@ -1,11 +1,13 @@
 name: Keep-alive Supabase
 
 # Evita que el proyecto free de Supabase se pause por inactividad.
-# Ping ligero a PostgREST cada 3 días (y bajo demanda).
+# Ping ligero a PostgREST cada día (y bajo demanda).
+# Nota: si el repo lleva ~60 días sin pushes, GitHub desactiva los cron
+# (state: disabled_inactivity). Hay que reactivar el workflow o hacer un push.
 on:
   schedule:
-    # Cada 3 días a las 07:00 UTC
-    - cron: '0 7 */3 * *'
+    # Cada día a las 07:00 UTC
+    - cron: '0 7 * * *'
   workflow_dispatch: {}
 
 jobs:
