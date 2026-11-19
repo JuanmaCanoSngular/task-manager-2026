@@ -27,3 +27,11 @@ export const displayIdentity = (email: string | null | undefined): string | unde
   }
   return email;
 };
+
+/** Avatar estático en `/public/avatars/{nickname}.png` para logins por nickname. */
+export const nicknameAvatarUrl = (email: string | null | undefined): string | null => {
+  const nick = displayIdentity(email);
+  if (!email || !nick) return null;
+  if (!email.toLowerCase().endsWith(`@${NICKNAME_EMAIL_DOMAIN}`)) return null;
+  return `/avatars/${nick}.png`;
+};

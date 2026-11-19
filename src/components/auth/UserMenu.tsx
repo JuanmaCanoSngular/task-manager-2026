@@ -3,16 +3,19 @@ import { UserIcon } from '@heroicons/react/24/solid';
 import { authService } from '../../services/auth.service';
 import { useBoardStore } from '../../stores/board.store';
 import { useTagStore } from '../../stores/tag.store';
+import { nicknameAvatarUrl } from '../../utils/auth-nickname';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { TelegramLinkDialog, useTelegramLink } from './TelegramLinkButton';
 
 const authEnabled = () => import.meta.env.VITE_AUTH_ENABLED === 'true';
 
-const avatarFromUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+const avatarFromUser = (
+  user: { email?: string | null; user_metadata?: Record<string, unknown> } | null | undefined
+) => {
   const meta = user?.user_metadata ?? {};
   if (typeof meta.avatar_url === 'string' && meta.avatar_url) return meta.avatar_url;
   if (typeof meta.picture === 'string' && meta.picture) return meta.picture;
-  return null;
+  return nicknameAvatarUrl(user?.email ?? undefined);
 };
 
 /** Avatar redondo + menú (cerrar sesión / eliminar cuenta). */
@@ -28,7 +31,9 @@ export const UserMenu = () => {
 
   useEffect(() => {
     if (!authEnabled()) return;
-    const apply = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+    const apply = (
+      user: { email?: string | null; user_metadata?: Record<string, unknown> } | null | undefined
+    ) => {
       setAvatarUrl(avatarFromUser(user));
     };
     void authService.getSession().then((session) => apply(session?.user));
@@ -88,6 +93,7 @@ export const UserMenu = () => {
               alt=""
               className="h-full w-full object-cover"
               referrerPolicy="no-referrer"
+              onError={() => setAvatarUrl(null)}
             />
           ) : (
             <UserIcon className="h-5 w-5" aria-hidden />

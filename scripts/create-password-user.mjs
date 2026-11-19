@@ -83,11 +83,15 @@ async function findUserIdByEmail(targetEmail) {
 let userId = null;
 let action = 'creado';
 
+const appUrl = (process.env.APP_URL || 'https://taskblero.vercel.app').replace(/\/$/, '');
+const avatarUrl = `${appUrl}/avatars/${nickname}.png`;
+const userMetadata = { nickname, avatar_url: avatarUrl };
+
 const { data: created, error: createError } = await admin.auth.admin.createUser({
   email,
   password,
   email_confirm: true,
-  user_metadata: { nickname },
+  user_metadata: userMetadata,
 });
 
 if (!createError && created?.user) {
@@ -108,7 +112,7 @@ if (!createError && created?.user) {
   const { error: updateError } = await admin.auth.admin.updateUserById(userId, {
     password,
     email_confirm: true,
-    user_metadata: { nickname },
+    user_metadata: userMetadata,
   });
   if (updateError) {
     console.error('No se pudo cambiar la contraseña:', updateError.message);
