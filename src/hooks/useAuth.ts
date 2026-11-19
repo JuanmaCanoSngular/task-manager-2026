@@ -13,6 +13,7 @@ interface UseAuth {
   state: AuthState;
   user: User | null;
   signInWithGoogle: () => void;
+  signInWithNickname: (nickname: string, password: string) => Promise<void>;
   signOut: () => void;
 }
 
@@ -98,6 +99,7 @@ export const useAuth = (): UseAuth => {
     state,
     user,
     signInWithGoogle: () => authService.signInWithGoogle(),
+    signInWithNickname: (nickname, password) => authService.signInWithNickname(nickname, password),
     signOut: () => authService.signOut(),
   };
 };

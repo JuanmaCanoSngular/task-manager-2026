@@ -17,6 +17,7 @@ afterEach(() => {
 const base = {
   user: null,
   signInWithGoogle: vi.fn(),
+  signInWithNickname: vi.fn(() => Promise.resolve()),
   signOut: vi.fn(),
 };
 
@@ -32,13 +33,14 @@ describe('AuthGate', () => {
     expect(screen.queryByTestId('app')).not.toBeInTheDocument();
   });
 
-  test('signed-out: muestra la landing con botón de Google', () => {
+  test('signed-out: muestra la landing con usuario/contraseña y Google', () => {
     useAuthMock.mockReturnValue({ ...base, state: 'signed-out' });
     render(
       <AuthGate>
         <div data-testid="app">app</div>
       </AuthGate>
     );
+    expect(screen.getByRole('form', { name: /entrar con usuario/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /entrar con google/i })).toBeInTheDocument();
     expect(screen.queryByTestId('app')).not.toBeInTheDocument();
   });

@@ -7,6 +7,7 @@ const authService = vi.hoisted(() => ({
   getAccessStatus: vi.fn(),
   requestAccess: vi.fn(() => Promise.resolve()),
   signInWithGoogle: vi.fn(),
+  signInWithNickname: vi.fn(),
   signOut: vi.fn(),
 }));
 

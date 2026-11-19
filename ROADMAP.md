@@ -201,7 +201,7 @@ Comandos:
 ## Fuera de alcance (por ahora)
 
 - Internacionalización.
-- Login por email + código (descartado; Google).
+- Login por email + código (descartado). Hay **nickname + contraseña** (email sintético) además de Google.
 - Imágenes en tareas (URL / Unsplash / storage) — descartado; no aportaba valor.
 - Dominio propio / redirect corto — descartado; vale [taskblero.vercel.app](https://taskblero.vercel.app/).
 - Colaboración multi-usuario en el mismo tablero.

@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import type { Session } from '@supabase/supabase-js';
+import { isValidNickname, nicknameToEmail } from '../utils/auth-nickname';
 
 export type AccessStatus = 'pending' | 'approved' | 'denied';
 
@@ -11,6 +12,31 @@ export const authService = {
       provider: 'google',
       options: { redirectTo: window.location.origin },
     });
+  },
+
+  /**
+   * Login con nickname + contraseña.
+   * Por debajo Auth usa un email sintético (`nick@users.taskblero.local`).
+   */
+  async signInWithNickname(nickname: string, password: string): Promise<void> {
+    const nick = nickname.trim();
+    if (!isValidNickname(nick)) {
+      throw new Error('Usuario no válido (letras, números, . _ -)');
+    }
+    if (!password) {
+      throw new Error('Escribe la contraseña');
+    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email: nicknameToEmail(nick),
+      password,
+    });
+    if (error) {
+      const msg = error.message || '';
+      if (/invalid login credentials/i.test(msg)) {
+        throw new Error('Usuario o contraseña incorrectos');
+      }
+      throw new Error(msg || 'No se pudo iniciar sesión');
+    }
   },
 
   signOut() {

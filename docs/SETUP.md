@@ -26,7 +26,7 @@ Documentación para **poner en marcha**, **configurar** y **extender** el proyec
 | | Modo demo | Modo producción |
 |---|-----------|-----------------|
 | `VITE_AUTH_ENABLED` | `false` | `true` |
-| Login | No | Google OAuth |
+| Login | No | Google OAuth o usuario/contraseña (nickname) |
 | Datos | Compartidos (RLS abierta o demo) | Aislados por `user_id` |
 | Telegram / Gemini | Opcional | Opcional |
 | Emails (Resend) | No necesarios | Necesarios para aprobar accesos |
@@ -150,16 +150,35 @@ Guarda. En modo **Testing** basta con eso: tras elegir la cuenta, Google muestra
 
 Flujo cuando `VITE_AUTH_ENABLED=true`:
 
-1. El usuario inicia sesión con **Google** (Supabase Auth).
-2. La Edge Function `request-access` crea un perfil `pending` y envía email al **owner** (Resend).
+1. El usuario inicia sesión con **usuario/contraseña** (nickname) o con **Google**.
+2. Con Google: la Edge Function `request-access` crea un perfil `pending` y envía email al **owner** (Resend).
 3. El owner abre el enlace del email → `approve-access` marca el usuario como `approved` y crea un tablero de ejemplo con columnas por defecto.
 4. El frontend (`AuthGate`) solo muestra la app si `status === 'approved'`.
+
+### Login con nickname + contraseña
+
+Supabase Auth exige un email; la UI pide solo **Usuario**. Por debajo se usa
+`{nickname}@users.taskblero.local`.
+
+1. En Supabase → **Authentication → Providers → Email**: activo (la confirmación
+   de email da igual para usuarios creados con el script).
+2. Crear el usuario ya aprobado (no pegues la contraseña en el chat):
+
+```bash
+NICKNAME=elisabeth PASSWORD='tu-clave' \
+  SUPABASE_SERVICE_ROLE_KEY='…' \
+  node scripts/create-password-user.mjs
+```
+
+El script lee `VITE_SUPABASE_URL` del `.env` si no pasas `SUPABASE_URL`. Crea el
+usuario Auth, el perfil `approved` y un tablero Bienvenida si no tiene ninguno.
 
 **Frontend relevante:**
 
 - `src/services/auth.service.ts` — login, sesión, estado de acceso
 - `src/hooks/useAuth.ts` — `loading` / `signed-out` / `pending` / `approved`
 - `src/components/auth/` — `Landing`, `PendingAccess`, `AuthGate`, `UserMenu`
+- `src/utils/auth-nickname.ts` — nickname ↔ email sintético
 
 **Desplegar functions de auth:**
 

@@ -3,13 +3,14 @@ import { Landing } from './Landing';
 import { PendingAccess } from './PendingAccess';
 import { DeniedAccess } from './DeniedAccess';
 import { BrandLockup } from '../brand/BrandLockup';
+import { displayIdentity } from '../../utils/auth-nickname';
 
 interface AuthGateProps {
   children: React.ReactNode;
 }
 
 export const AuthGate = ({ children }: AuthGateProps) => {
-  const { state, user, signInWithGoogle, signOut } = useAuth();
+  const { state, user, signInWithGoogle, signInWithNickname, signOut } = useAuth();
 
   if (state === 'loading') {
     return (
@@ -31,11 +32,13 @@ export const AuthGate = ({ children }: AuthGateProps) => {
   }
 
   if (state === 'signed-out') {
-    return <Landing onSignIn={signInWithGoogle} />;
+    return (
+      <Landing onSignInGoogle={signInWithGoogle} onSignInNickname={signInWithNickname} />
+    );
   }
 
   if (state === 'pending') {
-    return <PendingAccess email={user?.email} onSignOut={signOut} />;
+    return <PendingAccess email={displayIdentity(user?.email)} onSignOut={signOut} />;
   }
 
   if (state === 'denied') {
