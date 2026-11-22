@@ -1,4 +1,11 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { PencilIcon, TrashIcon } from '@heroicons/react/20/solid';
 import { commentService } from '../../../services/comment.service';
 import type { TaskComment } from '../../../interfaces/comment.interface';
@@ -15,6 +22,8 @@ export type TaskCommentsHandle = {
   hasPendingDraft: () => boolean;
   /** Guarda el borrador si hay texto. `true` = ok (vacío o guardado). */
   flushPendingDraft: () => Promise<boolean>;
+  /** Vuelve a publicar el recuento en la card (al cerrar el modal). */
+  publishSummary: () => void;
 };
 
 const previewFromComments = (list: TaskComment[]): string | undefined => {
@@ -33,9 +42,11 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editBody, setEditBody] = useState('');
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const commentsRef = useRef<TaskComment[]>([]);
 
     const syncSummary = useCallback(
       (list: TaskComment[]) => {
+        commentsRef.current = list;
         useBoardStore
           .getState()
           .setTaskCommentSummary(taskId, list.length, previewFromComments(list));
@@ -60,6 +71,15 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
     useEffect(() => {
       void loadComments();
     }, [loadComments]);
+
+    useEffect(() => {
+      return () => {
+        const list = commentsRef.current;
+        useBoardStore
+          .getState()
+          .setTaskCommentSummary(taskId, list.length, previewFromComments(list));
+      };
+    }, [taskId]);
 
     const handleAdd = useCallback(async (): Promise<boolean> => {
       const trimmed = newBody.trim();
@@ -131,8 +151,11 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
           }
           return handleAdd();
         },
+        publishSummary: () => {
+          syncSummary(commentsRef.current);
+        },
       }),
-      [newBody, editBody, editingId, handleAdd, saveEdit]
+      [newBody, editBody, editingId, handleAdd, saveEdit, syncSummary]
     );
 
     const startEdit = (comment: TaskComment) => {

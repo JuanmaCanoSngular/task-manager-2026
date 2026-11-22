@@ -41,8 +41,11 @@ export const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
 
     useImperativeHandle(ref, () => ({
       confirmClose: () => {
-        if (!commentsRef.current?.hasPendingDraft()) return true;
-        return window.confirm(UNSAVED_COMMENT_MSG);
+        if (commentsRef.current?.hasPendingDraft()) {
+          if (!window.confirm(UNSAVED_COMMENT_MSG)) return false;
+        }
+        commentsRef.current?.publishSummary();
+        return true;
       },
     }));
 
@@ -55,6 +58,7 @@ export const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
         if (mode === 'edit') {
           const flushed = await commentsRef.current?.flushPendingDraft();
           if (flushed === false) return;
+          commentsRef.current?.publishSummary();
         }
 
         onSubmit({
@@ -72,6 +76,7 @@ export const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
       if (commentsRef.current?.hasPendingDraft()) {
         if (!window.confirm(UNSAVED_COMMENT_MSG)) return;
       }
+      commentsRef.current?.publishSummary();
       onCancel();
     };
 

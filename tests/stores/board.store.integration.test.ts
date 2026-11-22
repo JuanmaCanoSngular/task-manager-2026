@@ -680,6 +680,33 @@ describe('BoardStore Edge Cases', () => {
     expect(boards[0].color).toBe('#0d9488');
   });
 
+  test('updateTask sin cambiar columna conserva el badge de comentarios', async () => {
+    await act(async () => {
+      await useBoardStore.getState().addNewBoard('Board badge');
+    });
+    const boardId = useBoardStore.getState().currentBoardId!;
+    const columnId = useBoardStore.getState().boards[0].columns[0].id;
+
+    act(() => {
+      useBoardStore.setState((state) => {
+        const board = state.boards.find((b) => b.id === boardId);
+        if (!board) return;
+        board.tasks = [{ id: 55, title: 'Antes', columnId, tags: [] }];
+      });
+      useBoardStore.getState().setTaskCommentSummary(55, 1, 'Nota');
+      useBoardStore.getState().updateTask(55, {
+        title: 'Después',
+        columnId,
+        tags: [],
+      });
+    });
+
+    const task = useBoardStore.getState().boards[0].tasks[0];
+    expect(task.title).toBe('Después');
+    expect(task.commentCount).toBe(1);
+    expect(task.latestCommentPreview).toBe('Nota');
+  });
+
   test('applyRemoteTaskUpdate conserva resumen de comentarios y checklist', async () => {
     await act(async () => {
       await useBoardStore.getState().addNewBoard('Board comentarios');

@@ -32,12 +32,40 @@ export const TaskCard = ({
   const updateTask = useBoardStore((state) => state.updateTask);
   const toggleTaskPinned = useBoardStore((state) => state.toggleTaskPinned);
   const removeTask = useBoardStore((state) => state.removeTask);
-  // Suscripción directa: el badge de comentarios/checklist no espera al padre.
-  const task =
-    useBoardStore((state) => {
-      const board = state.boards.find((b) => b.id === state.currentBoardId);
-      return board?.tasks.find((t) => t.id === taskProp.id);
-    }) ?? taskProp;
+  // Primitivos: el badge reacciona aunque Immer reutilice referencias raras.
+  const commentCount = useBoardStore((state) => {
+    const board = state.boards.find((b) => b.id === state.currentBoardId);
+    return board?.tasks.find((t) => t.id === taskProp.id)?.commentCount ?? 0;
+  });
+  const checklistTotal = useBoardStore((state) => {
+    const board = state.boards.find((b) => b.id === state.currentBoardId);
+    return board?.tasks.find((t) => t.id === taskProp.id)?.checklistTotal ?? 0;
+  });
+  const checklistDone = useBoardStore((state) => {
+    const board = state.boards.find((b) => b.id === state.currentBoardId);
+    return board?.tasks.find((t) => t.id === taskProp.id)?.checklistDone ?? 0;
+  });
+  const latestCommentPreview = useBoardStore((state) => {
+    const board = state.boards.find((b) => b.id === state.currentBoardId);
+    return board?.tasks.find((t) => t.id === taskProp.id)?.latestCommentPreview;
+  });
+  const storeTask = useBoardStore((state) => {
+    const board = state.boards.find((b) => b.id === state.currentBoardId);
+    return board?.tasks.find((t) => t.id === taskProp.id);
+  });
+  const base = storeTask ?? taskProp;
+  const {
+    commentCount: _c,
+    latestCommentPreview: _p,
+    checklistTotal: _t,
+    checklistDone: _d,
+    ...rest
+  } = base;
+  const task: Task = {
+    ...rest,
+    ...(commentCount > 0 ? { commentCount, latestCommentPreview } : {}),
+    ...(checklistTotal > 0 ? { checklistTotal, checklistDone } : {}),
+  };
   const allTags = useTagStore((state) => state.tags);
   const toggleTagFilter = useTagStore((state) => state.toggleTagFilter);
   const recent = isRecentlyCreated(task.createdAt);

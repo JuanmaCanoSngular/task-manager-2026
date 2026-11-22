@@ -309,26 +309,43 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
 
       const prev = state.boards[boardIndex].tasks[taskIndex];
       const columnChanged = prev.columnId !== taskData.columnId;
+      const nextTitle = (taskData.title ?? '').trim() || prev.title;
+      const nextTags = [...taskData.tags];
+
+      if (!columnChanged) {
+        // Mutación in-place: no tocar commentCount / checklist.
+        prev.title = nextTitle;
+        prev.tags = nextTags;
+        return;
+      }
+
       const next = withClientTaskMeta(
         {
           id: prev.id,
-          title: (taskData.title ?? '').trim() || prev.title,
+          title: nextTitle,
           columnId: taskData.columnId,
-          tags: [...taskData.tags],
+          tags: nextTags,
           ...(prev.pinned ? { pinned: true } : {}),
           ...(prev.createdAt ? { createdAt: prev.createdAt } : {}),
         },
-        prev
+        {
+          id: prev.id,
+          title: prev.title,
+          columnId: prev.columnId,
+          tags: [...prev.tags],
+          pinned: prev.pinned,
+          createdAt: prev.createdAt,
+          commentCount: prev.commentCount,
+          latestCommentPreview: prev.latestCommentPreview,
+          checklistTotal: prev.checklistTotal,
+          checklistDone: prev.checklistDone,
+        }
       );
 
-      if (columnChanged) {
-        state.boards[boardIndex].tasks.splice(taskIndex, 1);
-        insertAtTopOfColumn(state.boards[boardIndex].tasks, next);
-        normalizePinnedOrder(state.boards[boardIndex].tasks);
-        affectedBoardId = state.boards[boardIndex].id;
-      } else {
-        state.boards[boardIndex].tasks[taskIndex] = next;
-      }
+      state.boards[boardIndex].tasks.splice(taskIndex, 1);
+      insertAtTopOfColumn(state.boards[boardIndex].tasks, next);
+      normalizePinnedOrder(state.boards[boardIndex].tasks);
+      affectedBoardId = state.boards[boardIndex].id;
     });
 
     boardService.updateTask(taskId, taskData, columns).catch(reportWriteError);
@@ -491,7 +508,19 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
 
       if (fromBoard && fromBoard.id === boardId && fromIndex !== -1) {
         const prev = fromBoard.tasks[fromIndex];
-        const merged = withClientTaskMeta(task, prev);
+        const prevSnap: Task = {
+          id: prev.id,
+          title: prev.title,
+          columnId: prev.columnId,
+          tags: [...prev.tags],
+          pinned: prev.pinned,
+          createdAt: prev.createdAt,
+          commentCount: prev.commentCount,
+          latestCommentPreview: prev.latestCommentPreview,
+          checklistTotal: prev.checklistTotal,
+          checklistDone: prev.checklistDone,
+        };
+        const merged = withClientTaskMeta(task, prevSnap);
         if (prev.columnId === task.columnId) {
           fromBoard.tasks[fromIndex] = merged;
           normalizePinnedOrder(fromBoard.tasks);
@@ -503,7 +532,21 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
         return;
       }
 
-      const prevMeta = fromBoard && fromIndex !== -1 ? fromBoard.tasks[fromIndex] : undefined;
+      const prevMeta =
+        fromBoard && fromIndex !== -1
+          ? ({
+              id: fromBoard.tasks[fromIndex].id,
+              title: fromBoard.tasks[fromIndex].title,
+              columnId: fromBoard.tasks[fromIndex].columnId,
+              tags: [...fromBoard.tasks[fromIndex].tags],
+              pinned: fromBoard.tasks[fromIndex].pinned,
+              createdAt: fromBoard.tasks[fromIndex].createdAt,
+              commentCount: fromBoard.tasks[fromIndex].commentCount,
+              latestCommentPreview: fromBoard.tasks[fromIndex].latestCommentPreview,
+              checklistTotal: fromBoard.tasks[fromIndex].checklistTotal,
+              checklistDone: fromBoard.tasks[fromIndex].checklistDone,
+            } satisfies Task)
+          : undefined;
       if (fromBoard && fromIndex !== -1) {
         fromBoard.tasks.splice(fromIndex, 1);
       }
@@ -524,19 +567,14 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
   setTaskCommentSummary: (taskId, count, latestPreview) => {
     set((state) => {
       for (const board of state.boards) {
-        const taskIndex = board.tasks.findIndex((t) => t.id === taskId);
-        if (taskIndex === -1) continue;
-
-        const task = board.tasks[taskIndex];
+        const task = board.tasks.find((t) => t.id === taskId);
+        if (!task) continue;
         if (count > 0) {
-          board.tasks[taskIndex] = {
-            ...task,
-            commentCount: count,
-            latestCommentPreview: latestPreview,
-          };
+          task.commentCount = count;
+          task.latestCommentPreview = latestPreview;
         } else {
-          const { commentCount: _c, latestCommentPreview: _p, ...rest } = task;
-          board.tasks[taskIndex] = rest;
+          delete task.commentCount;
+          delete task.latestCommentPreview;
         }
         break;
       }
@@ -545,19 +583,14 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
   setTaskChecklistSummary: (taskId, done, total) => {
     set((state) => {
       for (const board of state.boards) {
-        const taskIndex = board.tasks.findIndex((t) => t.id === taskId);
-        if (taskIndex === -1) continue;
-
-        const task = board.tasks[taskIndex];
+        const task = board.tasks.find((t) => t.id === taskId);
+        if (!task) continue;
         if (total > 0) {
-          board.tasks[taskIndex] = {
-            ...task,
-            checklistDone: done,
-            checklistTotal: total,
-          };
+          task.checklistDone = done;
+          task.checklistTotal = total;
         } else {
-          const { checklistDone: _d, checklistTotal: _t, ...rest } = task;
-          board.tasks[taskIndex] = rest;
+          delete task.checklistDone;
+          delete task.checklistTotal;
         }
         break;
       }
