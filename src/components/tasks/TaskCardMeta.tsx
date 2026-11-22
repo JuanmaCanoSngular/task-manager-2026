@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { ChatBubbleLeftEllipsisIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
 import type { Task } from '../../interfaces/task.interface';
 import { formatRelativeCreatedAt } from '../../utils/relativeTime';
+import { getStaleDaysInActiveColumn } from '../../utils/task-stale';
 import { TaskCommentsPopover } from './TaskCommentsPopover';
 
 interface TaskCardMetaProps {
@@ -45,12 +46,55 @@ export const TaskCommentBadge = ({ task }: { task: Task }) => {
       <TaskCommentsPopover
         taskId={task.id}
         taskTitle={title}
+        columnId={task.columnId}
         anchorEl={buttonRef.current}
         open={open}
         onClose={() => setOpen(false)}
       />
     </>
   );
+};
+
+/** Punto/aviso si lleva días en En progreso o Bloqueos. */
+export const TaskStaleBadge = ({
+  days,
+  kind,
+}: {
+  days: number;
+  kind: 'in-progress' | 'in-review';
+}) => {
+  const label =
+    kind === 'in-review'
+      ? `${days} día${days === 1 ? '' : 's'} en Bloqueos`
+      : `${days} día${days === 1 ? '' : 's'} en progreso`;
+  const tone =
+    kind === 'in-review'
+      ? 'bg-red-500/15 text-red-700 dark:text-red-300'
+      : 'bg-amber-500/15 text-amber-800 dark:text-amber-200';
+
+  return (
+    <span
+      className={`inline-flex h-5 shrink-0 items-center rounded-md px-1 text-[10px] font-semibold leading-none tabular-nums ${tone}`}
+      aria-label={label}
+      title={label}
+    >
+      {days}d
+    </span>
+  );
+};
+
+export const resolveTaskStale = (
+  task: Task,
+  columnSlug: string | null | undefined
+): { days: number; kind: 'in-progress' | 'in-review' } | null => {
+  const days = getStaleDaysInActiveColumn(
+    columnSlug,
+    task.columnChangedAt,
+    task.createdAt
+  );
+  if (days == null) return null;
+  if (columnSlug !== 'in-progress' && columnSlug !== 'in-review') return null;
+  return { days, kind: columnSlug };
 };
 
 export const TaskChecklistBadge = ({ task }: { task: Task }) => {

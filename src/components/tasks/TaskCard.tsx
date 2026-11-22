@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import { Task, TaskDraft } from '../../interfaces/task.interface';
 import { TaskModal } from './task-modal/TaskModal';
-import { useBoardStore } from '../../stores/board.store';
+import { useBoardStore, useCurrentBoardColumns } from '../../stores/board.store';
 import { useTagStore } from '../../stores/tag.store';
 import { TrashIcon } from '@heroicons/react/20/solid';
 import { ConfirmDialog } from '../common/ConfirmDialog';
@@ -10,7 +10,13 @@ import { PushPinIcon } from '../common/PushPinIcon';
 import { isRecentlyCreated } from '../../utils/relativeTime';
 import { TagsManagerDialog } from '../tags/TagsManagerDialog';
 import { TagChip } from '../tags/TagChip';
-import { TaskCardMeta, TaskCommentBadge, TaskChecklistBadge } from './TaskCardMeta';
+import {
+  TaskCardMeta,
+  TaskCommentBadge,
+  TaskChecklistBadge,
+  TaskStaleBadge,
+  resolveTaskStale,
+} from './TaskCardMeta';
 
 interface TaskCardProps {
   task: Task;
@@ -32,6 +38,7 @@ export const TaskCard = ({
   const updateTask = useBoardStore((state) => state.updateTask);
   const toggleTaskPinned = useBoardStore((state) => state.toggleTaskPinned);
   const removeTask = useBoardStore((state) => state.removeTask);
+  const columns = useCurrentBoardColumns();
   // Primitivos: el badge reacciona aunque Immer reutilice referencias raras.
   const commentCount = useBoardStore((state) => {
     const board = state.boards.find((b) => b.id === state.currentBoardId);
@@ -76,6 +83,8 @@ export const TaskCard = ({
   const hasTags = tagItems.length > 0;
   const hasComments = (task.commentCount ?? 0) > 0;
   const hasChecklist = (task.checklistTotal ?? 0) > 0;
+  const columnSlug = columns.find((c) => c.id === task.columnId)?.slug ?? null;
+  const stale = resolveTaskStale(task, columnSlug);
   const title = (task.title ?? '').trim() || 'Sin título';
   const titleIsFallback = !(task.title ?? '').trim();
   const isPinned = Boolean(task.pinned);
@@ -185,6 +194,7 @@ export const TaskCard = ({
             <div className={`flex items-start gap-1.5 min-w-0 pr-14 ${recent ? 'pl-3' : ''}`}>
               {hasComments ? <TaskCommentBadge task={task} /> : null}
               {hasChecklist ? <TaskChecklistBadge task={task} /> : null}
+              {stale ? <TaskStaleBadge days={stale.days} kind={stale.kind} /> : null}
               <p
                 className={`min-w-0 flex-1 text-sm leading-5 line-clamp-2 ${
                   titleIsFallback ? 'italic text-[var(--text-muted)]' : ''

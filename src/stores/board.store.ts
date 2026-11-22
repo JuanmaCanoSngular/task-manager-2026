@@ -60,6 +60,10 @@ const withClientTaskMeta = (incoming: Task, prev?: Task): Task => {
           checklistDone: prev.checklistDone ?? 0,
         }
       : {}),
+    // Si el remoto aún no trae column_changed_at, conserva el local.
+    ...(!incoming.columnChangedAt && prev.columnChangedAt
+      ? { columnChangedAt: prev.columnChangedAt }
+      : {}),
   };
 };
 
@@ -325,6 +329,7 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
           title: nextTitle,
           columnId: taskData.columnId,
           tags: nextTags,
+          columnChangedAt: new Date().toISOString(),
           ...(prev.pinned ? { pinned: true } : {}),
           ...(prev.createdAt ? { createdAt: prev.createdAt } : {}),
         },
@@ -605,6 +610,9 @@ const storeApi: StateCreator<BoardStore, [['zustand/immer', never]]> = (set) => 
       const taskIndex = state.boards[boardIndex].tasks.findIndex((task) => task.id === taskId);
       if (taskIndex !== -1) {
         const task = state.boards[boardIndex].tasks[taskIndex];
+        if (task.columnId !== newColumnId) {
+          task.columnChangedAt = new Date().toISOString();
+        }
         task.columnId = newColumnId;
 
         if (destinationIndex !== undefined) {

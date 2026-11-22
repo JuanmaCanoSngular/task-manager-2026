@@ -61,6 +61,10 @@ export const getInboxColumn = (columns: BoardColumn[]): BoardColumn | undefined 
 export const getBlockersColumn = (columns: BoardColumn[]): BoardColumn | undefined =>
   columns.find((c) => c.slug === 'in-review');
 
+export const getInProgressColumn = (columns: BoardColumn[]): BoardColumn | undefined =>
+  columns.find((c) => c.slug === 'in-progress') ??
+  columns.find((c) => /progreso/i.test(c.name));
+
 export const getShoppingBoughtColumn = (columns: BoardColumn[]): BoardColumn | undefined =>
   columns.find((c) => c.slug === 'completed') ?? columns.find((c) => /comprado/i.test(c.name));
 

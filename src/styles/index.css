@@ -444,18 +444,24 @@
     min-height: 0;
   }
 
-  /* Texto vertical anclado arriba (se lee de abajo hacia arriba). */
+  /*
+   * Rail plegado: palabra continua de abajo → arriba
+   * (más fácil de leer de un vistazo que letras sueltas).
+   */
   .board-column-collapsed-text {
+    display: block;
     writing-mode: vertical-rl;
     text-orientation: mixed;
     transform: rotate(180deg);
-    transform-origin: center top;
     white-space: nowrap;
-    max-height: calc(100% - 0.25rem);
+    max-height: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    align-self: center;
-    margin-top: 0.15rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+    text-transform: uppercase;
   }
 
   .board-columns-scroll::-webkit-scrollbar {

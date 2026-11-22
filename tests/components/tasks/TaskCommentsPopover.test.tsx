@@ -13,17 +13,44 @@ vi.mock('../../../src/services/comment.service', () => ({
   },
 }));
 
+const moveTask = vi.fn();
+
 vi.mock('../../../src/stores/board.store', () => ({
-  useBoardStore: {
-    getState: () => ({
-      setTaskCommentSummary: vi.fn(),
-    }),
-  },
+  useBoardStore: Object.assign(
+    (sel: (s: { moveTask: typeof moveTask }) => unknown) => sel({ moveTask }),
+    {
+      getState: () => ({
+        setTaskCommentSummary: vi.fn(),
+        moveTask,
+      }),
+    }
+  ),
+  useCurrentBoardColumns: () => [
+    {
+      id: 11,
+      boardId: 1,
+      name: 'Pendiente',
+      color: '#64748b',
+      position: 0,
+      slug: 'backlog',
+      isInbox: true,
+    },
+    {
+      id: 13,
+      boardId: 1,
+      name: 'Bloqueos',
+      color: '#ef4444',
+      position: 2,
+      slug: 'in-review',
+      isInbox: false,
+    },
+  ],
 }));
 
 beforeEach(() => {
   listByTask.mockReset();
   create.mockReset();
+  moveTask.mockReset();
   listByTask.mockResolvedValue([
     {
       id: 'c1',
@@ -107,5 +134,85 @@ describe('TaskCommentsPopover', () => {
       expect(create).toHaveBeenCalledWith(7, 'Hecho');
     });
     expect(await screen.findByText('Hecho')).toBeInTheDocument();
+  });
+
+  test('A Bloqueos comenta y mueve la tarea', async () => {
+    create.mockResolvedValue({
+      id: 'c3',
+      taskId: 7,
+      body: 'Bloqueado por proveedor',
+      createdAt: '2026-08-12T12:00:00.000Z',
+      updatedAt: '2026-08-12T12:00:00.000Z',
+    });
+    const onClose = vi.fn();
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({
+      x: 40,
+      y: 80,
+      top: 80,
+      bottom: 100,
+      left: 40,
+      right: 70,
+      width: 30,
+      height: 20,
+      toJSON: () => ({}),
+    });
+
+    render(
+      <TaskCommentsPopover
+        taskId={7}
+        taskTitle="Presupuesto"
+        columnId={11}
+        anchorEl={anchor}
+        open
+        onClose={onClose}
+      />
+    );
+
+    await screen.findByText('Llamar el martes');
+    fireEvent.change(screen.getByLabelText(/nuevo comentario/i), {
+      target: { value: 'Bloqueado por proveedor' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /a bloqueos/i }));
+
+    await waitFor(() => {
+      expect(create).toHaveBeenCalledWith(7, 'Bloqueado por proveedor');
+      expect(moveTask).toHaveBeenCalledWith(7, 13, 0);
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  test('el espacio en el textarea no se propaga al padre', async () => {
+    const parentKeyDown = vi.fn();
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({
+      x: 40,
+      y: 80,
+      top: 80,
+      bottom: 100,
+      left: 40,
+      right: 70,
+      width: 30,
+      height: 20,
+      toJSON: () => ({}),
+    });
+
+    render(
+      <div onKeyDown={parentKeyDown}>
+        <TaskCommentsPopover
+          taskId={7}
+          taskTitle="Tarea"
+          anchorEl={anchor}
+          open
+          onClose={vi.fn()}
+        />
+      </div>
+    );
+
+    const input = await screen.findByLabelText(/nuevo comentario/i);
+    fireEvent.keyDown(input, { key: ' ', code: 'Space' });
+    expect(parentKeyDown).not.toHaveBeenCalled();
   });
 });

@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { Droppable } from '@hello-pangea/dnd';
 import type { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { TaskCard } from '../tasks/TaskCard';
@@ -11,6 +12,7 @@ import {
   ChevronDoubleRightIcon,
 } from '@heroicons/react/20/solid';
 import { useTagStore } from '../../stores/tag.store';
+import { CollapsedColumnPreview } from './CollapsedColumnPreview';
 
 export const TASK_PINNED_TYPE = 'TASK-PINNED';
 export const TASK_UNPINNED_TYPE = 'TASK-UNPINNED';
@@ -39,47 +41,57 @@ export const StatusColumn = ({
   const filtering = filterTagIds.length > 0;
   const pinned = tasks.filter((task) => task.pinned);
   const rest = tasks.filter((task) => !task.pinned);
+  const collapsedRootRef = useRef<HTMLDivElement>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   if (collapsed) {
     return (
       <div
-        className="board-column-collapsed h-full flex flex-col min-h-0 rounded-xl overflow-hidden"
+        ref={collapsedRootRef}
+        className="board-column-collapsed group/collapsed h-full flex flex-col min-h-0 rounded-2xl overflow-hidden transition-[background-color,border-color] duration-150"
         style={{
-          backgroundColor: `color-mix(in srgb, ${column.color} 22%, var(--surface))`,
-          border: `1px solid color-mix(in srgb, ${column.color} 55%, var(--border))`,
-          boxShadow: `inset 3px 0 0 ${column.color}`,
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderLeft: `2px solid color-mix(in srgb, ${column.color} 45%, var(--border))`,
         }}
+        onMouseEnter={() => setPreviewOpen(true)}
+        onMouseLeave={() => setPreviewOpen(false)}
       >
+        <div className="flex flex-col items-center gap-1 px-0.5 pt-2 pb-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] opacity-50 group-hover/collapsed:opacity-100 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] focus:outline-none focus:ring-2 focus:ring-teal-500/40 transition-opacity"
+            aria-label={`Expandir columna ${column.name}`}
+            title={`Expandir ${column.name}`}
+          >
+            <ChevronDoubleRightIcon className="w-3.5 h-3.5" aria-hidden />
+          </button>
+          <span
+            className="inline-flex min-w-[1.35rem] items-center justify-center rounded-md px-1 py-0.5 text-[10px] font-semibold tabular-nums text-[var(--text-muted)] bg-black/[0.04] dark:bg-white/[0.08]"
+            aria-hidden
+          >
+            {tasks.length}
+          </span>
+        </div>
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="mx-auto mt-1.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
-          style={{ color: column.color }}
-          aria-label={`Expandir columna ${column.name}`}
-          title={`Expandir ${column.name}`}
-        >
-          <ChevronDoubleRightIcon className="w-4 h-4" aria-hidden />
-        </button>
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className="board-column-collapsed-body flex flex-1 min-h-0 w-full flex-col items-center justify-start gap-2 px-1 pb-2 pt-1 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+          className="board-column-collapsed-body relative flex flex-1 min-h-0 w-full items-center justify-center overflow-hidden px-0 py-3 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
           aria-label={`${column.name}, ${tasks.length} tareas. Expandir.`}
           title={column.name}
         >
-          <span
-            className="rounded-full w-2.5 h-2.5 flex-shrink-0 ring-2 ring-white/80 dark:ring-black/20"
-            style={{ backgroundColor: column.color }}
-            aria-hidden
-          />
-          <span
-            className="board-column-collapsed-text text-[11px] font-bold tracking-wide"
-            style={{ color: column.color }}
-          >
+          <span className="board-column-collapsed-text text-[var(--text-muted)]">
             {column.name}
-            <span className="opacity-80 font-semibold"> · {tasks.length}</span>
           </span>
         </button>
+        <CollapsedColumnPreview
+          open={previewOpen}
+          anchorEl={collapsedRootRef.current}
+          columnName={column.name}
+          columnColor={column.color}
+          tasks={tasks}
+        />
       </div>
     );
   }

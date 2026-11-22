@@ -1,15 +1,18 @@
-import { FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { XMarkIcon } from '@heroicons/react/20/solid';
+import { ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import { commentService } from '../../services/comment.service';
 import type { TaskComment } from '../../interfaces/comment.interface';
 import { MAX_COMMENT_LENGTH } from '../../interfaces/comment.interface';
+import { getBlockersColumn } from '../../interfaces/column.interface';
 import { formatRelativeCreatedAt } from '../../utils/relativeTime';
-import { useBoardStore } from '../../stores/board.store';
+import { useBoardStore, useCurrentBoardColumns } from '../../stores/board.store';
 
 interface TaskCommentsPopoverProps {
   taskId: number;
   taskTitle: string;
+  /** Columna actual; si ya es Bloqueos, se oculta el atajo. */
+  columnId?: number;
   anchorEl: HTMLElement | null;
   open: boolean;
   onClose: () => void;
@@ -28,6 +31,7 @@ const previewFromComments = (list: TaskComment[]): string | undefined => {
 export const TaskCommentsPopover = ({
   taskId,
   taskTitle,
+  columnId,
   anchorEl,
   open,
   onClose,
@@ -40,6 +44,11 @@ export const TaskCommentsPopover = ({
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const columns = useCurrentBoardColumns();
+  const moveTask = useBoardStore((s) => s.moveTask);
+  const blockers = useMemo(() => getBlockersColumn(columns), [columns]);
+  const canMoveToBlockers =
+    Boolean(blockers) && columnId != null && blockers?.id !== columnId;
 
   const syncSummary = (list: TaskComment[]) => {
     useBoardStore
@@ -145,6 +154,29 @@ export const TaskCommentsPopover = ({
     }
   };
 
+  const handleMoveToBlockers = async () => {
+    if (!blockers || saving) return;
+    const trimmed = draft.trim();
+    const body =
+      trimmed ||
+      `Pasado a Bloqueos${taskTitle ? `: ${taskTitle}` : ''}`;
+    setSaving(true);
+    setError(null);
+    try {
+      const created = await commentService.create(taskId, body);
+      const next = [...comments, created];
+      setComments(next);
+      syncSummary(next);
+      setDraft('');
+      moveTask(taskId, blockers.id, 0);
+      onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo pasar a Bloqueos');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!open || !pos) return null;
 
   return createPortal(
@@ -165,6 +197,8 @@ export const TaskCommentsPopover = ({
       }}
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      onKeyUp={(e) => e.stopPropagation()}
     >
       <div
         className="flex items-center justify-between gap-2 border-b px-3 py-2.5"
@@ -258,7 +292,20 @@ export const TaskCommentsPopover = ({
             }
           }}
         />
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {canMoveToBlockers ? (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-500/10 dark:text-red-300 disabled:opacity-50"
+              disabled={saving}
+              onClick={() => void handleMoveToBlockers()}
+            >
+              <ExclamationTriangleIcon className="h-3.5 w-3.5" aria-hidden />
+              A Bloqueos
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             type="submit"
             className="btn-primary text-xs px-3 py-1.5"

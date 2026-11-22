@@ -21,6 +21,11 @@ export const BoardCard = ({ board }: BoardCardProps) => {
   const isActive = currentBoardId === board.id;
   const onlyOneBoard = useBoardStore((state) => state.boards.length === 1);
   const isDefault = board.isDefault || onlyOneBoard;
+  const taskCount = board.tasks?.length ?? 0;
+  const countLabel =
+    board.kind === 'shopping'
+      ? `${taskCount} ${taskCount === 1 ? 'artículo' : 'artículos'}`
+      : `${taskCount} ${taskCount === 1 ? 'tarea' : 'tareas'}`;
 
   const handleDelete = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
@@ -70,21 +75,40 @@ export const BoardCard = ({ board }: BoardCardProps) => {
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="listitem"
-        aria-label={`${isActive ? 'Deseleccionar' : 'Seleccionar'} tablero ${board.name}`}
+        aria-label={`${isActive ? 'Deseleccionar' : 'Seleccionar'} tablero ${board.name}, ${countLabel}`}
         aria-pressed={isActive}
         style={
           isActive
             ? { backgroundColor: `${board.color}1f`, borderColor: `${board.color}66` }
             : undefined
         }
-        className={`card-base ${isActive ? '' : 'card-hover'} relative group cursor-pointer py-2.5 px-3 gap-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset ${
-          isActive ? 'pr-[4.5rem]' : 'pr-9'
-        }`}
+        className={`card-base ${isActive ? '' : 'card-hover'} group cursor-pointer py-2.5 px-3 gap-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset`}
       >
-        <div className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex items-center gap-0.5">
+        <span
+          className="flex-shrink-0 w-2.5 h-2.5 rounded-full self-center"
+          style={{ backgroundColor: board.color }}
+          aria-hidden="true"
+        />
+        {board.kind === 'shopping' ? (
+          <ShoppingCartIcon
+            className="w-3.5 h-3.5 flex-shrink-0 self-center text-slate-400"
+            aria-label="Lista de la compra"
+          />
+        ) : null}
+        <h2 className="text-sm font-medium leading-5 truncate min-w-0 flex-1 self-center">
+          {board.name}
+        </h2>
+        <span
+          className="flex-shrink-0 self-center inline-flex h-5 min-w-[1.25rem] items-center justify-center text-[11px] font-medium leading-none tabular-nums text-[var(--text-muted)]"
+          title={countLabel}
+          aria-hidden="true"
+        >
+          {taskCount}
+        </span>
+        <div className="flex flex-shrink-0 items-center gap-0.5 self-center -mr-0.5">
           {isDefault ? (
             <span
-              className="p-1 text-amber-400"
+              className="inline-flex h-7 w-7 items-center justify-center text-amber-400"
               title="Tablero por defecto"
               aria-label="Tablero por defecto"
             >
@@ -96,49 +120,38 @@ export const BoardCard = ({ board }: BoardCardProps) => {
               onClick={handleDefault}
               onKeyDown={keyActivate(handleDefault)}
               tabIndex={0}
-              className="p-1 rounded-md text-slate-400 hover:text-amber-400 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:text-amber-400 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
               aria-label={`Marcar ${board.name} como tablero por defecto`}
               title="Marcar como tablero por defecto"
             >
               <StarOutlineIcon className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           )}
-          {isActive && (
+          {isActive ? (
             <>
               <button
+                type="button"
                 onClick={handleEdit}
                 onKeyDown={keyActivate(handleEdit)}
                 tabIndex={0}
-                className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1"
                 aria-label={`Editar tablero ${board.name}`}
               >
                 <PencilIcon className="w-3.5 h-3.5" />
               </button>
               <button
+                type="button"
                 onClick={handleDelete}
                 onKeyDown={keyActivate(handleDelete)}
                 tabIndex={0}
-                className="p-1 rounded-md text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                 aria-label={`Eliminar tablero ${board.name}`}
               >
                 <TrashIcon className="w-3.5 h-3.5" />
               </button>
             </>
-          )}
+          ) : null}
         </div>
-
-        <span
-          className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: board.color }}
-          aria-hidden="true"
-        />
-        {board.kind === 'shopping' ? (
-          <ShoppingCartIcon
-            className="w-3.5 h-3.5 flex-shrink-0 text-slate-400"
-            aria-label="Lista de la compra"
-          />
-        ) : null}
-        <h2 className="text-sm font-medium truncate min-w-0">{board.name}</h2>
       </div>
 
       <BoardModal

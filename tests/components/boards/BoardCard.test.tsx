@@ -70,9 +70,31 @@ describe('BoardCard', () => {
     }));
     const { BoardCard } = await import('../../../src/components/boards/BoardCard');
     render(<BoardCard board={board} />);
-    const cardItem = screen.getByRole('listitem', { name: 'Seleccionar tablero Test Board' });
+    const cardItem = screen.getByRole('listitem', {
+      name: 'Seleccionar tablero Test Board, 0 tareas',
+    });
     expect(cardItem).toBeInTheDocument();
     expect(cardItem).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('muestra el número de tareas del tablero', async () => {
+    vi.doMock('../../../src/stores/board.store', () => ({
+      useBoardStore: mockUseBoardStore(),
+    }));
+    const { BoardCard } = await import('../../../src/components/boards/BoardCard');
+    const withTasks: Board = {
+      ...board,
+      tasks: [
+        { id: 1, title: 'A', columnId: 1, tags: [] },
+        { id: 2, title: 'B', columnId: 1, tags: [] },
+        { id: 3, title: 'C', columnId: 1, tags: [] },
+      ],
+    };
+    render(<BoardCard board={withTasks} />);
+    expect(
+      screen.getByRole('listitem', { name: 'Seleccionar tablero Test Board, 3 tareas' })
+    ).toBeInTheDocument();
+    expect(screen.getByTitle('3 tareas')).toHaveTextContent('3');
   });
 
   test('debe renderizar el punto con el color del board', async () => {
