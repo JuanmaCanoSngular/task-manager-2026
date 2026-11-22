@@ -5,7 +5,11 @@ import { useTasksByColumn } from '../../stores/board.store';
 import { BoardColumn } from '../../interfaces/column.interface';
 import { Task } from '../../interfaces/task.interface';
 import { taskMatchesTagFilter } from '../../interfaces/tag.interface';
-import { Bars2Icon } from '@heroicons/react/20/solid';
+import {
+  Bars2Icon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+} from '@heroicons/react/20/solid';
 import { useTagStore } from '../../stores/tag.store';
 
 export const TASK_PINNED_TYPE = 'TASK-PINNED';
@@ -18,12 +22,16 @@ interface StatusColumnProps {
   column: BoardColumn;
   dragHandleProps?: DraggableProvidedDragHandleProps | null;
   isColumnDragging?: boolean;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const StatusColumn = ({
   column,
   dragHandleProps,
   isColumnDragging = false,
+  collapsed = false,
+  onToggleCollapse,
 }: StatusColumnProps) => {
   const allTasks = useTasksByColumn(column.id);
   const filterTagIds = useTagStore((s) => s.filterTagIds);
@@ -32,23 +40,74 @@ export const StatusColumn = ({
   const pinned = tasks.filter((task) => task.pinned);
   const rest = tasks.filter((task) => !task.pinned);
 
+  if (collapsed) {
+    return (
+      <div className="h-full flex flex-col min-h-0 items-center py-1">
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+          aria-label={`Expandir columna ${column.name}`}
+          title={`Expandir ${column.name}`}
+        >
+          <ChevronDoubleRightIcon className="w-4 h-4" aria-hidden />
+        </button>
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="board-column-collapsed-label mt-3 flex flex-1 min-h-0 w-full items-center justify-center rounded-lg px-0.5 py-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+          aria-label={`${column.name}, ${tasks.length} tareas. Expandir.`}
+          title={column.name}
+        >
+          <span
+            className="rounded-full w-2.5 h-2.5 mb-2 flex-shrink-0"
+            style={{ backgroundColor: column.color }}
+            aria-hidden
+          />
+          <span className="board-column-collapsed-text text-xs font-semibold tracking-wide text-[var(--text-muted)]">
+            {column.name}
+            <span className="opacity-70"> ({tasks.length})</span>
+          </span>
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col min-h-0">
+    <div className="h-full flex flex-col min-h-0 relative">
       <h2
-        {...dragHandleProps}
-        className="font-semibold text-sm mb-3 flex items-center flex-shrink-0 tracking-wide cursor-grab active:cursor-grabbing touch-none select-none rounded-lg px-1 -mx-1 py-0.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+        className="font-semibold text-sm mb-3 flex items-center flex-shrink-0 tracking-wide select-none rounded-lg px-1 -mx-1 py-0.5 gap-0.5"
         style={{ color: 'var(--text-muted)' }}
-        title="Arrastra para reordenar la columna"
       >
-        <Bars2Icon className="w-3.5 h-3.5 mr-1.5 flex-shrink-0 opacity-50" aria-hidden />
         <span
-          className="rounded-full w-2.5 h-2.5 mr-2 inline-block flex-shrink-0"
-          style={{ backgroundColor: column.color }}
-          aria-hidden="true"
-        />
-        <span className="truncate">
-          {column.name} ({tasks.length})
+          {...dragHandleProps}
+          className="inline-flex items-center min-w-0 flex-1 cursor-grab active:cursor-grabbing touch-none rounded-md py-0.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+          title="Arrastra para reordenar la columna"
+        >
+          <Bars2Icon className="w-3.5 h-3.5 mr-1.5 flex-shrink-0 opacity-50" aria-hidden />
+          <span
+            className="rounded-full w-2.5 h-2.5 mr-2 inline-block flex-shrink-0"
+            style={{ backgroundColor: column.color }}
+            aria-hidden="true"
+          />
+          <span className="truncate">
+            {column.name} ({tasks.length})
+          </span>
         </span>
+        {onToggleCollapse ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse();
+            }}
+            className="hidden md:inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md opacity-40 group-hover/column:opacity-100 focus:opacity-100 text-[var(--text-muted)] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] focus:outline-none focus:ring-2 focus:ring-teal-500/40 transition-opacity"
+            aria-label={`Colapsar columna ${column.name}`}
+            title="Colapsar columna"
+          >
+            <ChevronDoubleLeftIcon className="w-3.5 h-3.5" aria-hidden />
+          </button>
+        ) : null}
       </h2>
 
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden">

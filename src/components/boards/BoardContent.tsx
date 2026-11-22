@@ -22,10 +22,16 @@ import { TagChip } from '../tags/TagChip';
 import { useTagStore } from '../../stores/tag.store';
 import { taskMatchesTagFilter } from '../../interfaces/tag.interface';
 import { isShoppingBoard } from '../../interfaces/board.interface';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState, type CSSProperties } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { useScrollOverflow } from '../../hooks/useScrollOverflow';
+import {
+  COLUMN_COLLAPSED_WIDTH,
+  COLUMN_DEFAULT_WIDTH,
+  useColumnLayout,
+} from '../../hooks/useColumnLayout';
 import { ColumnsOverflowHint } from './ColumnsOverflowHint';
+import { ColumnResizeHandle } from './ColumnResizeHandle';
 
 const COLUMN_DND_TYPE = 'COLUMN';
 
@@ -79,9 +85,23 @@ export const BoardContent = () => {
   } | null>(null);
   const [tagsOpen, setTagsOpen] = useState(false);
   const columnsScrollRef = useRef<HTMLDivElement | null>(null);
+  const columnElRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+  const { setWidth, isCollapsed, toggleCollapsed, shellWidth, getWidth } =
+    useColumnLayout(currentBoardId);
   const { canScrollLeft, canScrollRight, scrollByPage } = useScrollOverflow(
     columnsScrollRef,
     columns.length
+  );
+
+  const getMeasuredWidth = useCallback(
+    (columnId: number) => {
+      if (isCollapsed(columnId)) return COLUMN_COLLAPSED_WIDTH;
+      const stored = getWidth(columnId);
+      if (stored != null) return stored;
+      const el = columnElRefs.current.get(columnId);
+      return el?.getBoundingClientRect().width || COLUMN_DEFAULT_WIDTH;
+    },
+    [getWidth, isCollapsed]
   );
   const filtering = filterTagIds.length > 0;
   const totalTasks = boardTasks.length;
@@ -106,6 +126,17 @@ export const BoardContent = () => {
   const columnShellClass = overflowColumns
     ? 'board-column-shell--paged flex-shrink-0 snap-center md:snap-start'
     : 'w-full min-w-full flex-shrink-0 snap-center md:flex-1 md:min-w-0 md:max-w-none md:basis-0';
+
+  const columnShellStyle = (columnId: number): CSSProperties | undefined => {
+    const width = shellWidth(columnId);
+    if (width == null) return undefined;
+    return {
+      flex: `0 0 ${width}px`,
+      width,
+      minWidth: width,
+      maxWidth: width,
+    };
+  };
 
   const handleDragStart = (start: DragStart) => {
     if (start.type === COLUMN_DND_TYPE) {
@@ -277,12 +308,24 @@ export const BoardContent = () => {
                           columnDragState.destinationIndex
                         );
 
+                      const sized = columnShellStyle(column.id);
+                      const collapsed = isCollapsed(column.id);
+
                       return (
                         <div
-                          ref={colProvided.innerRef}
+                          ref={(node) => {
+                            colProvided.innerRef(node);
+                            if (node) columnElRefs.current.set(column.id, node);
+                            else columnElRefs.current.delete(column.id);
+                          }}
                           {...colProvided.draggableProps}
-                          style={colProvided.draggableProps.style}
-                          className={`${columnShellClass} h-full flex flex-col rounded-xl p-1 transition-all duration-200 ${
+                          style={{
+                            ...colProvided.draggableProps.style,
+                            ...sized,
+                          }}
+                          className={`group/column ${columnShellClass} ${
+                            sized ? 'board-column-shell--sized' : ''
+                          } ${collapsed ? 'board-column-shell--collapsed' : ''} relative h-full flex flex-col rounded-xl p-1 transition-[width,flex-basis,max-width] duration-200 ${
                             colSnapshot.isDragging ? 'column-dragging' : ''
                           } ${isDropTarget ? 'drop-zone-active' : ''} ${
                             isShiftPreview ? 'column-shift-preview' : ''
@@ -294,7 +337,17 @@ export const BoardContent = () => {
                               colProvided.dragHandleProps as DraggableProvidedDragHandleProps | null
                             }
                             isColumnDragging={isColumnDragging}
+                            collapsed={collapsed}
+                            onToggleCollapse={() => toggleCollapsed(column.id)}
                           />
+                          {!collapsed ? (
+                            <ColumnResizeHandle
+                              columnId={column.id}
+                              disabled={colSnapshot.isDragging || isColumnDragging}
+                              getStartWidth={() => getMeasuredWidth(column.id)}
+                              onResize={setWidth}
+                            />
+                          ) : null}
                         </div>
                       );
                     }}
