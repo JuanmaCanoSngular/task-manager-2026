@@ -4,28 +4,18 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import { setupWindowMocks } from '../../utils/component-test-utils';
 
 const signOut = vi.fn();
-const deleteAccount = vi.fn();
 const getSession = vi.fn();
 const onAuthChange = vi.fn();
 
 vi.mock('../../../src/services/auth.service', () => ({
   authService: {
     signOut: () => signOut(),
-    deleteAccount: () => deleteAccount(),
     getSession: () => getSession(),
     onAuthChange: (cb: (session: unknown) => void) => {
       onAuthChange(cb);
       return () => undefined;
     },
   },
-}));
-
-vi.mock('../../../src/stores/board.store', () => ({
-  useBoardStore: Object.assign(vi.fn(), { setState: vi.fn() }),
-}));
-
-vi.mock('../../../src/stores/tag.store', () => ({
-  useTagStore: Object.assign(vi.fn(), { setState: vi.fn() }),
 }));
 
 const getStatus = vi.fn();
@@ -45,8 +35,6 @@ beforeAll(() => {
 
 beforeEach(() => {
   signOut.mockClear();
-  deleteAccount.mockReset();
-  deleteAccount.mockResolvedValue(undefined);
   getSession.mockReset();
   getSession.mockResolvedValue(null);
   onAuthChange.mockReset();
@@ -85,21 +73,14 @@ describe('UserMenu', () => {
     expect(signOut).toHaveBeenCalledTimes(1);
   });
 
-  test('elimina cuenta tras confirmar', async () => {
+  test('no ofrece eliminar cuenta', async () => {
     vi.stubEnv('VITE_AUTH_ENABLED', 'true');
     vi.resetModules();
     const { UserMenu } = await import('../../../src/components/auth/UserMenu');
     render(<UserMenu />);
 
     fireEvent.click(screen.getByRole('button', { name: /menú de cuenta/i }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: /eliminar cuenta/i }));
-
-    expect(screen.getByRole('heading', { name: /eliminar tu cuenta/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^eliminar cuenta$/i }));
-
-    await waitFor(() => {
-      expect(deleteAccount).toHaveBeenCalledTimes(1);
-    });
+    expect(screen.queryByRole('menuitem', { name: /eliminar cuenta/i })).not.toBeInTheDocument();
   });
 
   test('abre diálogo de Telegram desde el menú', async () => {

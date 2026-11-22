@@ -1,8 +1,8 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import { Fragment, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { Task, TaskDraft } from '../../../interfaces/task.interface';
-import { TaskForm } from './TaskForm';
+import { TaskForm, TaskFormHandle } from './TaskForm';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -21,9 +21,16 @@ export const TaskModal = ({
   onSubmit,
   onManageTags,
 }: TaskModalProps) => {
+  const formRef = useRef<TaskFormHandle>(null);
+
+  const tryClose = () => {
+    if (formRef.current && !formRef.current.confirmClose()) return;
+    onClose();
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={tryClose}>
         <Transition.Child
           as={Fragment}
           enter="modal-backdrop-transition-enter"
@@ -52,13 +59,14 @@ export const TaskModal = ({
                   <Dialog.Title as="h3" className="modal-title">
                     {mode === 'create' ? 'Añadir nueva tarea' : 'Editar tarea'}
                   </Dialog.Title>
-                  <button onClick={onClose} className="modal-close-button">
+                  <button type="button" onClick={tryClose} className="modal-close-button">
                     <XMarkIcon className="w-5 h-5" />
                   </button>
                 </div>
 
                 {isOpen && (
                   <TaskForm
+                    ref={formRef}
                     key={`${mode}-${task?.id ?? 'new'}`}
                     mode={mode}
                     initialData={task}

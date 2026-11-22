@@ -1,7 +1,11 @@
 import '@testing-library/jest-dom';
+import { createRef } from 'react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { TaskComments } from '../../../../src/components/tasks/task-modal/TaskComments';
+import {
+  TaskComments,
+  type TaskCommentsHandle,
+} from '../../../../src/components/tasks/task-modal/TaskComments';
 
 const listByTask = vi.fn();
 const create = vi.fn();
@@ -83,5 +87,26 @@ describe('TaskComments', () => {
       expect(update).toHaveBeenCalledWith('c1', 'Texto editado');
     });
     expect(await screen.findByText('Texto editado')).toBeInTheDocument();
+  });
+
+  test('flushPendingDraft guarda el texto escrito sin pulsar Añadir', async () => {
+    create.mockResolvedValue({
+      ...sampleComment,
+      body: 'Desde guardar cambios',
+    });
+    const ref = createRef<TaskCommentsHandle>();
+    render(<TaskComments ref={ref} taskId={42} />);
+    await screen.findByText(/sin comentarios/i);
+
+    fireEvent.change(screen.getByPlaceholderText(/escribe un comentario/i), {
+      target: { value: 'Desde guardar cambios' },
+    });
+
+    expect(ref.current?.hasPendingDraft()).toBe(true);
+    await expect(ref.current?.flushPendingDraft()).resolves.toBe(true);
+    await waitFor(() => {
+      expect(create).toHaveBeenCalledWith(42, 'Desde guardar cambios');
+    });
+    expect(ref.current?.hasPendingDraft()).toBe(false);
   });
 });

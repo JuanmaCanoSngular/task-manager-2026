@@ -1,82 +1,54 @@
 import { useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ChatBubbleLeftEllipsisIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
 import type { Task } from '../../interfaces/task.interface';
 import { formatRelativeCreatedAt } from '../../utils/relativeTime';
+import { TaskCommentsPopover } from './TaskCommentsPopover';
 
 interface TaskCardMetaProps {
   task: Task;
   recent: boolean;
 }
 
-const commentLabel = (count: number, preview?: string) => {
-  const n = `${count} comentario${count === 1 ? '' : 's'}`;
-  const text = preview?.trim();
-  return text ? `${n}: ${text}` : n;
-};
+const commentLabel = (count: number) =>
+  `${count} comentario${count === 1 ? '' : 's'}. Abrir hilo`;
 
-const TIP_GAP = 8;
-const TIP_H = 56;
-const TIP_W = 224;
-
-/** Icono + recuento a la izquierda del título. Tooltip en portal (no lo recorta la columna). */
+/** Icono + recuento: al hacer clic abre un popup tipo chat. */
 export const TaskCommentBadge = ({ task }: { task: Task }) => {
   const commentCount = task.commentCount ?? 0;
-  const anchorRef = useRef<HTMLSpanElement>(null);
-  const [tip, setTip] = useState<{ top: number; left: number; below: boolean } | null>(null);
-
-  const preview = task.latestCommentPreview?.trim();
-  const label = commentLabel(commentCount, preview);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
 
   if (commentCount <= 0) return null;
 
-  const showTip = () => {
-    if (!preview) return;
-    const el = anchorRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const spaceAbove = r.top;
-    const spaceBelow = window.innerHeight - r.bottom;
-    const need = TIP_H + TIP_GAP;
-    const below = spaceAbove < need && spaceBelow > spaceAbove;
-    const left = Math.min(Math.max(8, r.left), window.innerWidth - TIP_W - 8);
-    setTip({
-      top: below ? r.bottom + TIP_GAP : r.top - TIP_GAP,
-      left,
-      below,
-    });
-  };
+  const title = (task.title ?? '').trim() || 'Sin título';
 
   return (
     <>
-      <span
-        ref={anchorRef}
-        className="task-card__comment-badge relative inline-flex h-5 shrink-0 items-center gap-0.5 text-[10px] font-medium leading-none text-teal-700/90 dark:text-teal-400/90"
-        aria-label={label}
-        onMouseEnter={showTip}
-        onMouseLeave={() => setTip(null)}
+      <button
+        ref={buttonRef}
+        type="button"
+        className="task-card__comment-badge relative inline-flex h-5 shrink-0 items-center gap-0.5 rounded-md text-[10px] font-medium leading-none text-teal-700/90 dark:text-teal-400/90 hover:bg-teal-500/10 focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+        aria-label={commentLabel(commentCount)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        title="Ver comentarios"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <ChatBubbleLeftEllipsisIcon className="w-3.5 h-3.5 shrink-0" aria-hidden />
         <span className="tabular-nums">{commentCount}</span>
-      </span>
-      {tip && preview
-        ? createPortal(
-            <span
-              role="tooltip"
-              className="pointer-events-none fixed z-[80] w-max max-w-[14rem] rounded-lg px-2.5 py-1.5 text-left text-[11px] font-normal leading-snug shadow-lg ring-1 ring-[var(--border)]"
-              style={{
-                top: tip.top,
-                left: tip.left,
-                transform: tip.below ? undefined : 'translateY(-100%)',
-                backgroundColor: 'var(--surface)',
-                color: 'var(--text)',
-              }}
-            >
-              {preview}
-            </span>,
-            document.body
-          )
-        : null}
+      </button>
+      <TaskCommentsPopover
+        taskId={task.id}
+        taskTitle={title}
+        anchorEl={buttonRef.current}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </>
   );
 };

@@ -2,8 +2,13 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TaskCardMeta, TaskCommentBadge, TaskChecklistBadge } from '../../../src/components/tasks/TaskCardMeta';
 
+vi.mock('../../../src/components/tasks/TaskCommentsPopover', () => ({
+  TaskCommentsPopover: ({ open }: { open: boolean }) =>
+    open ? <div role="dialog" aria-label="Comentarios mock">chat</div> : null,
+}));
+
 describe('TaskCommentBadge', () => {
-  test('muestra icono, conteo y preview al hover', () => {
+  test('abre el popup de comentarios al hacer clic', () => {
     render(
       <TaskCommentBadge
         task={{
@@ -17,24 +22,10 @@ describe('TaskCommentBadge', () => {
       />
     );
 
-    const badge = screen.getByLabelText(/2 comentarios/);
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
-
-    vi.spyOn(badge, 'getBoundingClientRect').mockReturnValue({
-      x: 40,
-      y: 200,
-      top: 200,
-      bottom: 220,
-      left: 40,
-      right: 70,
-      width: 30,
-      height: 20,
-      toJSON: () => ({}),
-    });
-    fireEvent.mouseEnter(badge);
-
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Falta el listado de Julián');
+    const badge = screen.getByRole('button', { name: /2 comentarios/i });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    fireEvent.click(badge);
+    expect(screen.getByRole('dialog', { name: /comentarios mock/i })).toBeInTheDocument();
   });
 
   test('no renderiza si no hay comentarios', () => {

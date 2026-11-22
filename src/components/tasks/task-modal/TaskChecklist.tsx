@@ -91,11 +91,9 @@ export const TaskChecklist = ({ taskId }: TaskChecklistProps) => {
 
   const syncSummary = useCallback(
     (list: ChecklistItem[]) => {
-      queueMicrotask(() => {
-        useBoardStore
-          .getState()
-          .setTaskChecklistSummary(taskId, list.filter((i) => i.done).length, list.length);
-      });
+      useBoardStore
+        .getState()
+        .setTaskChecklistSummary(taskId, list.filter((i) => i.done).length, list.length);
     },
     [taskId]
   );

@@ -21,7 +21,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({
-  task,
+  task: taskProp,
   index,
   dragType,
   columnColor = '#64748b',
@@ -32,6 +32,12 @@ export const TaskCard = ({
   const updateTask = useBoardStore((state) => state.updateTask);
   const toggleTaskPinned = useBoardStore((state) => state.toggleTaskPinned);
   const removeTask = useBoardStore((state) => state.removeTask);
+  // Suscripción directa: el badge de comentarios/checklist no espera al padre.
+  const task =
+    useBoardStore((state) => {
+      const board = state.boards.find((b) => b.id === state.currentBoardId);
+      return board?.tasks.find((t) => t.id === taskProp.id);
+    }) ?? taskProp;
   const allTags = useTagStore((state) => state.tags);
   const toggleTagFilter = useTagStore((state) => state.toggleTagFilter);
   const recent = isRecentlyCreated(task.createdAt);

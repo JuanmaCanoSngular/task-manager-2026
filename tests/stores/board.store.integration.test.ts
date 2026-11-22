@@ -679,4 +679,47 @@ describe('BoardStore Edge Cases', () => {
     expect(boards[0].emoji).toBe('');
     expect(boards[0].color).toBe('#0d9488');
   });
+
+  test('applyRemoteTaskUpdate conserva resumen de comentarios y checklist', async () => {
+    await act(async () => {
+      await useBoardStore.getState().addNewBoard('Board comentarios');
+    });
+    const boardId = useBoardStore.getState().currentBoardId!;
+    const columnId = useBoardStore.getState().boards[0].columns[0].id;
+
+    act(() => {
+      useBoardStore.setState((state) => {
+        const board = state.boards.find((b) => b.id === boardId);
+        if (!board) return;
+        board.tasks = [
+          {
+            id: 99,
+            title: 'Con meta',
+            columnId,
+            tags: [],
+            commentCount: 2,
+            latestCommentPreview: 'Hola',
+            checklistTotal: 3,
+            checklistDone: 1,
+          },
+        ];
+      });
+    });
+
+    act(() => {
+      useBoardStore.getState().applyRemoteTaskUpdate(boardId, {
+        id: 99,
+        title: 'Con meta editada',
+        columnId,
+        tags: [],
+      });
+    });
+
+    const task = useBoardStore.getState().boards[0].tasks[0];
+    expect(task.title).toBe('Con meta editada');
+    expect(task.commentCount).toBe(2);
+    expect(task.latestCommentPreview).toBe('Hola');
+    expect(task.checklistTotal).toBe(3);
+    expect(task.checklistDone).toBe(1);
+  });
 });

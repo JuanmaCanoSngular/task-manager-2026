@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { UserIcon } from '@heroicons/react/24/solid';
 import { authService } from '../../services/auth.service';
-import { useBoardStore } from '../../stores/board.store';
-import { useTagStore } from '../../stores/tag.store';
 import { nicknameAvatarUrl } from '../../utils/auth-nickname';
-import { ConfirmDialog } from '../common/ConfirmDialog';
 import { TelegramLinkDialog, useTelegramLink } from './TelegramLinkButton';
 
 const authEnabled = () => import.meta.env.VITE_AUTH_ENABLED === 'true';
@@ -18,13 +15,10 @@ const avatarFromUser = (
   return nicknameAvatarUrl(user?.email ?? undefined);
 };
 
-/** Avatar redondo + menú (cerrar sesión / eliminar cuenta). */
+/** Avatar redondo + menú (Telegram / cerrar sesión). */
 export const UserMenu = () => {
   const [open, setOpen] = useState(false);
   const [telegramOpen, setTelegramOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const { linked, refreshLinked, onStatusChange } = useTelegramLink();
@@ -54,21 +48,6 @@ export const UserMenu = () => {
   const handleSignOut = () => {
     setOpen(false);
     void authService.signOut();
-  };
-
-  const handleDelete = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      await authService.deleteAccount();
-      useBoardStore.setState({ boards: [], currentBoardId: null, error: null });
-      useTagStore.setState({ tags: [], boardId: null, loaded: false, error: null, filterTagIds: [] });
-      setConfirmDelete(false);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'No se pudo eliminar la cuenta');
-    } finally {
-      setBusy(false);
-    }
   };
 
   return (
@@ -130,26 +109,9 @@ export const UserMenu = () => {
             >
               Cerrar sesión
             </button>
-            <button
-              type="button"
-              role="menuitem"
-              className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10"
-              onClick={() => {
-                setOpen(false);
-                setConfirmDelete(true);
-              }}
-            >
-              Eliminar cuenta
-            </button>
           </div>
         )}
       </div>
-
-      {error && (
-        <p className="sr-only" role="alert">
-          {error}
-        </p>
-      )}
 
       <TelegramLinkDialog
         open={telegramOpen}
@@ -158,20 +120,6 @@ export const UserMenu = () => {
           void refreshLinked();
         }}
         onStatusChange={onStatusChange}
-      />
-
-      <ConfirmDialog
-        isOpen={confirmDelete}
-        onClose={() => !busy && setConfirmDelete(false)}
-        onConfirm={() => void handleDelete()}
-        title="¿Eliminar tu cuenta?"
-        description={
-          error
-            ? error
-            : 'Se borrarán tu cuenta, tableros, tareas, etiquetas y el vínculo de Telegram. Esta acción no se puede deshacer.'
-        }
-        confirmText={busy ? 'Eliminando…' : 'Eliminar cuenta'}
-        cancelText="Cancelar"
       />
     </>
   );
