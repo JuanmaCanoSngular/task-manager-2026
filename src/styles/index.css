@@ -436,14 +436,26 @@
     }
   }
 
-  .board-column-collapsed-label {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
+  .board-column-shell--collapsed {
+    padding: 0.15rem !important;
   }
 
+  .board-column-collapsed-body {
+    min-height: 0;
+  }
+
+  /* Texto vertical anclado arriba (se lee de abajo hacia arriba). */
   .board-column-collapsed-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
     transform: rotate(180deg);
+    transform-origin: center top;
     white-space: nowrap;
+    max-height: calc(100% - 0.25rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-self: center;
+    margin-top: 0.15rem;
   }
 
   .board-columns-scroll::-webkit-scrollbar {

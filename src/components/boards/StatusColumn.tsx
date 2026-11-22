@@ -42,11 +42,19 @@ export const StatusColumn = ({
 
   if (collapsed) {
     return (
-      <div className="h-full flex flex-col min-h-0 items-center py-1">
+      <div
+        className="board-column-collapsed h-full flex flex-col min-h-0 rounded-xl overflow-hidden"
+        style={{
+          backgroundColor: `color-mix(in srgb, ${column.color} 22%, var(--surface))`,
+          border: `1px solid color-mix(in srgb, ${column.color} 55%, var(--border))`,
+          boxShadow: `inset 3px 0 0 ${column.color}`,
+        }}
+      >
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+          className="mx-auto mt-1.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+          style={{ color: column.color }}
           aria-label={`Expandir columna ${column.name}`}
           title={`Expandir ${column.name}`}
         >
@@ -55,18 +63,21 @@ export const StatusColumn = ({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="board-column-collapsed-label mt-3 flex flex-1 min-h-0 w-full items-center justify-center rounded-lg px-0.5 py-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+          className="board-column-collapsed-body flex flex-1 min-h-0 w-full flex-col items-center justify-start gap-2 px-1 pb-2 pt-1 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-teal-500/40"
           aria-label={`${column.name}, ${tasks.length} tareas. Expandir.`}
           title={column.name}
         >
           <span
-            className="rounded-full w-2.5 h-2.5 mb-2 flex-shrink-0"
+            className="rounded-full w-2.5 h-2.5 flex-shrink-0 ring-2 ring-white/80 dark:ring-black/20"
             style={{ backgroundColor: column.color }}
             aria-hidden
           />
-          <span className="board-column-collapsed-text text-xs font-semibold tracking-wide text-[var(--text-muted)]">
+          <span
+            className="board-column-collapsed-text text-[11px] font-bold tracking-wide"
+            style={{ color: column.color }}
+          >
             {column.name}
-            <span className="opacity-70"> ({tasks.length})</span>
+            <span className="opacity-80 font-semibold"> · {tasks.length}</span>
           </span>
         </button>
       </div>

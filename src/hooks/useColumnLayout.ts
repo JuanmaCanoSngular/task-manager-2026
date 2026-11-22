@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 export const COLUMN_DEFAULT_WIDTH = 280;
-export const COLUMN_COLLAPSED_WIDTH = 48;
+export const COLUMN_COLLAPSED_WIDTH = 56;
 export const COLUMN_MIN_WIDTH = 200;
 export const COLUMN_MAX_WIDTH = 560;
 
