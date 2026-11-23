@@ -39,6 +39,7 @@ const commentRow = {
   body: 'Llamar el martes',
   created_at: '2026-08-12T10:00:00.000Z',
   updated_at: '2026-08-12T10:00:00.000Z',
+  archived_at: null,
 };
 
 beforeEach(() => {
@@ -83,6 +84,7 @@ describe('commentService', () => {
         body: 'Llamar el martes',
         createdAt: '2026-08-12T10:00:00.000Z',
         updatedAt: '2026-08-12T10:00:00.000Z',
+        archivedAt: null,
       },
     ]);
   });
@@ -126,22 +128,49 @@ describe('commentService', () => {
     expect(mocks.eqMock).toHaveBeenCalledWith('id', 'c1');
   });
 
+  test('archive marca archived_at', async () => {
+    const archivedAt = '2026-08-12T12:00:00.000Z';
+    mocks.singleMock.mockResolvedValue({
+      data: { ...commentRow, archived_at: archivedAt },
+      error: null,
+    });
+
+    const archived = await commentService.archive('c1');
+
+    expect(mocks.updateMock).toHaveBeenCalled();
+    expect(archived.archivedAt).toBe(archivedAt);
+  });
+
+  test('unarchive limpia archived_at', async () => {
+    mocks.singleMock.mockResolvedValue({
+      data: { ...commentRow, archived_at: null },
+      error: null,
+    });
+
+    const restored = await commentService.unarchive('c1');
+
+    expect(mocks.updateMock).toHaveBeenCalledWith({ archived_at: null });
+    expect(restored.archivedAt).toBeNull();
+  });
+
   test('summariesByTaskIds agrupa conteos y último comentario', async () => {
+    const isMock = vi.fn().mockResolvedValue({
+      data: [
+        { task_id: 10, body: 'Primero', created_at: '2026-08-12T10:00:00.000Z' },
+        { task_id: 10, body: 'Último comentario largo', created_at: '2026-08-12T11:00:00.000Z' },
+        { task_id: 20, body: 'Otro', created_at: '2026-08-12T09:00:00.000Z' },
+      ],
+      error: null,
+    });
     mocks.fromMock.mockReturnValue({
       select: vi.fn(() => ({
-        in: vi.fn().mockResolvedValue({
-          data: [
-            { task_id: 10, body: 'Primero', created_at: '2026-08-12T10:00:00.000Z' },
-            { task_id: 10, body: 'Último comentario largo', created_at: '2026-08-12T11:00:00.000Z' },
-            { task_id: 20, body: 'Otro', created_at: '2026-08-12T09:00:00.000Z' },
-          ],
-          error: null,
-        }),
+        in: vi.fn(() => ({ is: isMock })),
       })),
     });
 
     const summaries = await commentService.summariesByTaskIds([10, 20]);
 
+    expect(isMock).toHaveBeenCalledWith('archived_at', null);
     expect(summaries[10]).toEqual({
       count: 2,
       latestPreview: 'Último comentario largo',

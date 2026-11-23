@@ -12,6 +12,7 @@ type CommentRow = {
   body: string;
   created_at: string;
   updated_at: string;
+  archived_at?: string | null;
 };
 
 type CommentSummaryRow = {
@@ -25,23 +26,27 @@ export type TaskCommentSummary = {
   latestPreview?: string;
 };
 
+const COMMENT_COLUMNS = 'id, task_id, body, created_at, updated_at, archived_at';
+
 const rowToComment = (row: CommentRow): TaskComment => ({
   id: row.id,
   taskId: row.task_id,
   body: row.body,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
+  archivedAt: row.archived_at ?? null,
 });
 
 export const commentService = {
-  /** Resumen de comentarios por tarea (conteo + último comentario). */
+  /** Resumen de comentarios activos por tarea (conteo + último comentario). */
   async summariesByTaskIds(taskIds: number[]): Promise<Record<number, TaskCommentSummary>> {
     if (taskIds.length === 0) return {};
 
     const { data, error } = await supabase
       .from('task_comments')
       .select('task_id, body, created_at')
-      .in('task_id', taskIds);
+      .in('task_id', taskIds)
+      .is('archived_at', null);
     if (error) throw error;
 
     const summaries: Record<number, TaskCommentSummary & { latestAt?: string }> = {};
@@ -71,10 +76,11 @@ export const commentService = {
     return result;
   },
 
+  /** Lista activos + archivados (orden de creación). */
   async listByTask(taskId: number): Promise<TaskComment[]> {
     const { data, error } = await supabase
       .from('task_comments')
-      .select('id, task_id, body, created_at, updated_at')
+      .select(COMMENT_COLUMNS)
       .eq('task_id', taskId)
       .order('created_at', { ascending: true });
     if (error) throw error;
@@ -93,7 +99,7 @@ export const commentService = {
     const { data, error } = await supabase
       .from('task_comments')
       .insert({ task_id: taskId, user_id: userId, body: trimmed })
-      .select('id, task_id, body, created_at, updated_at')
+      .select(COMMENT_COLUMNS)
       .single();
     if (error) throw error;
     return rowToComment(data);
@@ -107,7 +113,29 @@ export const commentService = {
       .from('task_comments')
       .update({ body: trimmed, updated_at: new Date().toISOString() })
       .eq('id', commentId)
-      .select('id, task_id, body, created_at, updated_at')
+      .select(COMMENT_COLUMNS)
+      .single();
+    if (error) throw error;
+    return rowToComment(data);
+  },
+
+  async archive(commentId: string): Promise<TaskComment> {
+    const { data, error } = await supabase
+      .from('task_comments')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', commentId)
+      .select(COMMENT_COLUMNS)
+      .single();
+    if (error) throw error;
+    return rowToComment(data);
+  },
+
+  async unarchive(commentId: string): Promise<TaskComment> {
+    const { data, error } = await supabase
+      .from('task_comments')
+      .update({ archived_at: null })
+      .eq('id', commentId)
+      .select(COMMENT_COLUMNS)
       .single();
     if (error) throw error;
     return rowToComment(data);

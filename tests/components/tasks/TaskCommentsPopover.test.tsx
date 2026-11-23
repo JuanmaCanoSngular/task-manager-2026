@@ -5,11 +5,17 @@ import { TaskCommentsPopover } from '../../../src/components/tasks/TaskCommentsP
 
 const listByTask = vi.fn();
 const create = vi.fn();
+const archive = vi.fn();
+const remove = vi.fn();
+const unarchive = vi.fn();
 
 vi.mock('../../../src/services/comment.service', () => ({
   commentService: {
     listByTask: (...args: unknown[]) => listByTask(...args),
     create: (...args: unknown[]) => create(...args),
+    archive: (...args: unknown[]) => archive(...args),
+    delete: (...args: unknown[]) => remove(...args),
+    unarchive: (...args: unknown[]) => unarchive(...args),
   },
 }));
 
@@ -50,6 +56,9 @@ vi.mock('../../../src/stores/board.store', () => ({
 beforeEach(() => {
   listByTask.mockReset();
   create.mockReset();
+  archive.mockReset();
+  remove.mockReset();
+  unarchive.mockReset();
   moveTask.mockReset();
   listByTask.mockResolvedValue([
     {
@@ -58,6 +67,7 @@ beforeEach(() => {
       body: 'Llamar el martes',
       createdAt: '2026-08-12T10:00:00.000Z',
       updatedAt: '2026-08-12T10:00:00.000Z',
+      archivedAt: null,
     },
   ]);
 });

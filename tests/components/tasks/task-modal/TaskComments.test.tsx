@@ -11,6 +11,8 @@ const listByTask = vi.fn();
 const create = vi.fn();
 const update = vi.fn();
 const remove = vi.fn();
+const archive = vi.fn();
+const unarchive = vi.fn();
 
 vi.mock('../../../../src/services/comment.service', () => ({
   commentService: {
@@ -18,6 +20,8 @@ vi.mock('../../../../src/services/comment.service', () => ({
     create: (...args: unknown[]) => create(...args),
     update: (...args: unknown[]) => update(...args),
     delete: (...args: unknown[]) => remove(...args),
+    archive: (...args: unknown[]) => archive(...args),
+    unarchive: (...args: unknown[]) => unarchive(...args),
   },
 }));
 
@@ -27,6 +31,7 @@ const sampleComment = {
   body: 'Pasado a bloqueo: falta el listado',
   createdAt: '2026-08-12T10:00:00.000Z',
   updatedAt: '2026-08-12T10:00:00.000Z',
+  archivedAt: null,
 };
 
 beforeEach(() => {
@@ -34,6 +39,8 @@ beforeEach(() => {
   create.mockReset();
   update.mockReset();
   remove.mockReset();
+  archive.mockReset();
+  unarchive.mockReset();
   listByTask.mockResolvedValue([]);
 });
 
@@ -87,6 +94,41 @@ describe('TaskComments', () => {
       expect(update).toHaveBeenCalledWith('c1', 'Texto editado');
     });
     expect(await screen.findByText('Texto editado')).toBeInTheDocument();
+  });
+
+  test('al soltar en Archivar mueve el comentario a archivados', async () => {
+    listByTask.mockResolvedValue([sampleComment]);
+    archive.mockResolvedValue({
+      ...sampleComment,
+      archivedAt: '2026-08-12T12:00:00.000Z',
+    });
+
+    render(<TaskComments taskId={42} />);
+    const body = await screen.findByText(sampleComment.body);
+    const shell = body.closest('[draggable="true"]')!;
+
+    const store: Record<string, string> = {};
+    const dataTransfer = {
+      types: ['application/x-taskblero-comment', 'text/plain'],
+      effectAllowed: 'all',
+      dropEffect: 'move',
+      setData: (type: string, value: string) => {
+        store[type] = value;
+      },
+      getData: (type: string) => store[type] ?? '',
+    };
+
+    fireEvent.dragStart(shell, { dataTransfer });
+    expect(await screen.findByText('Archivar')).toBeInTheDocument();
+
+    const archiveZone = screen.getByText('Archivar').closest('[role="group"]')!
+      .querySelectorAll(':scope > div')[0];
+    fireEvent.drop(archiveZone, { dataTransfer });
+
+    await waitFor(() => {
+      expect(archive).toHaveBeenCalledWith('c1');
+    });
+    expect(await screen.findByText(/archivados \(1\)/i)).toBeInTheDocument();
   });
 
   test('flushPendingDraft guarda el texto escrito sin pulsar Añadir', async () => {

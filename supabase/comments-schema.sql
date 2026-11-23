@@ -4,16 +4,24 @@
 -- (las políticas se recrean con drop policy if exists).
 
 create table if not exists task_comments (
-  id          uuid primary key default gen_random_uuid(),
-  task_id     bigint not null references tasks(id) on delete cascade,
-  user_id     uuid not null references auth.users(id) on delete cascade,
-  body        text not null,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id           uuid primary key default gen_random_uuid(),
+  task_id      bigint not null references tasks(id) on delete cascade,
+  user_id      uuid not null references auth.users(id) on delete cascade,
+  body         text not null,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  archived_at  timestamptz null
 );
+
+-- Si la tabla ya existía sin archived_at:
+alter table task_comments
+  add column if not exists archived_at timestamptz null;
 
 create index if not exists task_comments_task_id_idx on task_comments (task_id);
 create index if not exists task_comments_user_id_idx on task_comments (user_id);
+create index if not exists task_comments_task_active_idx
+  on task_comments (task_id)
+  where archived_at is null;
 
 alter table task_comments enable row level security;
 

@@ -3,10 +3,19 @@ import { createPortal } from 'react-dom';
 import { ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import { commentService } from '../../services/comment.service';
 import type { TaskComment } from '../../interfaces/comment.interface';
-import { MAX_COMMENT_LENGTH } from '../../interfaces/comment.interface';
+import {
+  MAX_COMMENT_LENGTH,
+  activeComments,
+  archivedComments,
+} from '../../interfaces/comment.interface';
 import { getBlockersColumn } from '../../interfaces/column.interface';
 import { formatRelativeCreatedAt } from '../../utils/relativeTime';
 import { useBoardStore, useCurrentBoardColumns } from '../../stores/board.store';
+import {
+  ArchivedCommentActions,
+  CommentDropZones,
+  DraggableCommentShell,
+} from './CommentDragDrop';
 
 interface TaskCommentsPopoverProps {
   taskId: number;
@@ -22,8 +31,8 @@ const POP_W = 320;
 const POP_MAX_H = 420;
 const GAP = 8;
 
-const previewFromComments = (list: TaskComment[]): string | undefined => {
-  const latest = list.at(-1)?.body.trim();
+const previewFromActive = (list: TaskComment[]): string | undefined => {
+  const latest = activeComments(list).at(-1)?.body.trim();
   if (!latest) return undefined;
   return latest.length > 80 ? `${latest.slice(0, 77)}…` : latest;
 };
@@ -44,6 +53,8 @@ export const TaskCommentsPopover = ({
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const columns = useCurrentBoardColumns();
   const moveTask = useBoardStore((s) => s.moveTask);
   const blockers = useMemo(() => getBlockersColumn(columns), [columns]);
@@ -51,9 +62,10 @@ export const TaskCommentsPopover = ({
     Boolean(blockers) && columnId != null && blockers?.id !== columnId;
 
   const syncSummary = (list: TaskComment[]) => {
+    const active = activeComments(list);
     useBoardStore
       .getState()
-      .setTaskCommentSummary(taskId, list.length, previewFromComments(list));
+      .setTaskCommentSummary(taskId, active.length, previewFromActive(list));
   };
 
   useLayoutEffect(() => {
@@ -89,6 +101,8 @@ export const TaskCommentsPopover = ({
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setDragging(false);
+    setShowArchived(false);
     void commentService
       .listByTask(taskId)
       .then((loaded) => {
@@ -177,7 +191,61 @@ export const TaskCommentsPopover = ({
     }
   };
 
+  const handleArchive = async (id: string) => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await commentService.archive(id);
+      const next = comments.map((c) => (c.id === id ? updated : c));
+      setComments(next);
+      syncSummary(next);
+      setShowArchived(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo archivar');
+    } finally {
+      setSaving(false);
+      setDragging(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await commentService.delete(id);
+      const next = comments.filter((c) => c.id !== id);
+      setComments(next);
+      syncSummary(next);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar');
+    } finally {
+      setSaving(false);
+      setDragging(false);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await commentService.unarchive(id);
+      const next = comments.map((c) => (c.id === id ? updated : c));
+      setComments(next);
+      syncSummary(next);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo restaurar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!open || !pos) return null;
+
+  const active = activeComments(comments);
+  const archived = archivedComments(comments);
 
   return createPortal(
     <div
@@ -232,24 +300,31 @@ export const TaskCommentsPopover = ({
           <p className="text-center text-xs text-red-600 dark:text-red-400 py-6" role="alert">
             {error}
           </p>
-        ) : comments.length === 0 ? (
+        ) : active.length === 0 ? (
           <p className="text-center text-xs text-[var(--text-muted)] py-6">
             Aún no hay comentarios
           </p>
         ) : (
           <ul ref={listRef} className="flex flex-col gap-2 max-h-56 overflow-y-auto">
-            {comments.map((comment) => (
+            {active.map((comment) => (
               <li key={comment.id} className="flex flex-col items-start gap-0.5">
-                <div
-                  className="max-w-[92%] rounded-2xl rounded-bl-md px-3 py-2 text-left text-[13px] leading-snug whitespace-pre-wrap break-words"
-                  style={{
-                    backgroundColor: 'var(--surface)',
-                    color: 'var(--text)',
-                    border: '1px solid var(--border)',
-                  }}
+                <DraggableCommentShell
+                  commentId={comment.id}
+                  disabled={saving}
+                  onDragActiveChange={setDragging}
+                  className="max-w-[92%]"
                 >
-                  {comment.body}
-                </div>
+                  <div
+                    className="rounded-2xl rounded-bl-md px-3 py-2 text-left text-[13px] leading-snug whitespace-pre-wrap break-words"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      color: 'var(--text)',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    {comment.body}
+                  </div>
+                </DraggableCommentShell>
                 <time
                   className="pl-1 text-[10px] text-[var(--text-muted)]"
                   dateTime={comment.createdAt}
@@ -261,6 +336,52 @@ export const TaskCommentsPopover = ({
             ))}
           </ul>
         )}
+
+        <CommentDropZones
+          visible={dragging}
+          disabled={saving}
+          onArchive={(id) => void handleArchive(id)}
+          onDelete={(id) => void handleDelete(id)}
+        />
+
+        {archived.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            <button
+              type="button"
+              className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]"
+              onClick={() => setShowArchived((v) => !v)}
+              aria-expanded={showArchived}
+            >
+              Archivados ({archived.length})
+            </button>
+            {showArchived ? (
+              <ul className="flex flex-col gap-2" aria-label="Comentarios archivados">
+                {archived.map((comment) => (
+                  <li key={comment.id} className="flex flex-col items-start gap-0.5 opacity-70">
+                    <div
+                      className="max-w-[92%] rounded-2xl rounded-bl-md px-3 py-2 text-left text-[13px] leading-snug whitespace-pre-wrap break-words"
+                      style={{
+                        backgroundColor: 'var(--surface)',
+                        color: 'var(--text)',
+                        border: '1px dashed var(--border)',
+                      }}
+                    >
+                      {comment.body}
+                    </div>
+                    <div className="flex w-full max-w-[92%] items-center justify-between pl-1">
+                      <span className="text-[10px] text-[var(--text-muted)]">Archivado</span>
+                      <ArchivedCommentActions
+                        disabled={saving}
+                        onRestore={() => void handleRestore(comment.id)}
+                        onDelete={() => void handleDelete(comment.id)}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <form

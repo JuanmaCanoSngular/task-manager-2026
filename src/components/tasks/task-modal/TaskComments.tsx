@@ -9,10 +9,19 @@ import {
 import { PencilIcon, TrashIcon } from '@heroicons/react/20/solid';
 import { commentService } from '../../../services/comment.service';
 import type { TaskComment } from '../../../interfaces/comment.interface';
-import { MAX_COMMENT_LENGTH } from '../../../interfaces/comment.interface';
+import {
+  MAX_COMMENT_LENGTH,
+  activeComments,
+  archivedComments,
+} from '../../../interfaces/comment.interface';
 import { formatRelativeCreatedAt } from '../../../utils/relativeTime';
 import { ConfirmDialog } from '../../common/ConfirmDialog';
 import { useBoardStore } from '../../../stores/board.store';
+import {
+  ArchivedCommentActions,
+  CommentDropZones,
+  DraggableCommentShell,
+} from '../CommentDragDrop';
 
 interface TaskCommentsProps {
   taskId: number;
@@ -26,8 +35,8 @@ export type TaskCommentsHandle = {
   publishSummary: () => void;
 };
 
-const previewFromComments = (list: TaskComment[]): string | undefined => {
-  const latest = list.at(-1)?.body.trim();
+const previewFromActive = (list: TaskComment[]): string | undefined => {
+  const latest = activeComments(list).at(-1)?.body.trim();
   if (!latest) return undefined;
   return latest.length > 80 ? `${latest.slice(0, 77)}…` : latest;
 };
@@ -42,14 +51,17 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editBody, setEditBody] = useState('');
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [dragging, setDragging] = useState(false);
+    const [showArchived, setShowArchived] = useState(false);
     const commentsRef = useRef<TaskComment[]>([]);
 
     const syncSummary = useCallback(
       (list: TaskComment[]) => {
         commentsRef.current = list;
+        const active = activeComments(list);
         useBoardStore
           .getState()
-          .setTaskCommentSummary(taskId, list.length, previewFromComments(list));
+          .setTaskCommentSummary(taskId, active.length, previewFromActive(list));
       },
       [taskId]
     );
@@ -75,9 +87,10 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
     useEffect(() => {
       return () => {
         const list = commentsRef.current;
+        const active = activeComments(list);
         useBoardStore
           .getState()
-          .setTaskCommentSummary(taskId, list.length, previewFromComments(list));
+          .setTaskCommentSummary(taskId, active.length, previewFromActive(list));
       };
     }, [taskId]);
 
@@ -164,31 +177,85 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
       setError(null);
     };
 
-    const confirmDelete = async () => {
-      if (!deleteId || saving) return;
-
+    const applyDelete = async (id: string) => {
+      if (saving) return;
       setSaving(true);
       setError(null);
       try {
-        await commentService.delete(deleteId);
+        await commentService.delete(id);
         let next: TaskComment[] = [];
         setComments((prev) => {
-          next = prev.filter((c) => c.id !== deleteId);
+          next = prev.filter((c) => c.id !== id);
           return next;
         });
         syncSummary(next);
-        if (editingId === deleteId) cancelEdit();
+        if (editingId === id) cancelEdit();
         setDeleteId(null);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'No se pudo eliminar el comentario');
       } finally {
         setSaving(false);
+        setDragging(false);
       }
     };
 
+    const handleArchive = async (id: string) => {
+      if (saving) return;
+      setSaving(true);
+      setError(null);
+      try {
+        const updated = await commentService.archive(id);
+        let next: TaskComment[] = [];
+        setComments((prev) => {
+          next = prev.map((c) => (c.id === id ? updated : c));
+          return next;
+        });
+        syncSummary(next);
+        if (editingId === id) cancelEdit();
+        setShowArchived(true);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'No se pudo archivar el comentario');
+      } finally {
+        setSaving(false);
+        setDragging(false);
+      }
+    };
+
+    const handleRestore = async (id: string) => {
+      if (saving) return;
+      setSaving(true);
+      setError(null);
+      try {
+        const updated = await commentService.unarchive(id);
+        let next: TaskComment[] = [];
+        setComments((prev) => {
+          next = prev.map((c) => (c.id === id ? updated : c));
+          return next;
+        });
+        syncSummary(next);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'No se pudo restaurar el comentario');
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    const confirmDelete = async () => {
+      if (!deleteId) return;
+      await applyDelete(deleteId);
+    };
+
+    const active = activeComments(comments);
+    const archived = archivedComments(comments);
+
     return (
       <div className="space-y-3 border-t pt-6" style={{ borderColor: 'var(--border)' }}>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Comentarios</h4>
+        <div className="flex items-baseline justify-between gap-2">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Comentarios</h4>
+          {active.length > 0 ? (
+            <p className="text-[11px] text-[var(--text-muted)]">Arrastra para archivar o borrar</p>
+          ) : null}
+        </div>
 
         {error && (
           <p className="text-sm text-red-600 dark:text-red-400" role="alert">
@@ -198,24 +265,23 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
 
         {loading ? (
           <p className="text-sm text-[var(--text-muted)]">Cargando comentarios…</p>
-        ) : comments.length === 0 ? (
+        ) : active.length === 0 ? (
           <p className="text-sm text-[var(--text-muted)]">
             Sin comentarios. Añade contexto si la tarea está bloqueada o necesita seguimiento.
           </p>
         ) : (
           <ul className="space-y-2 max-h-48 overflow-y-auto pr-1" aria-label="Comentarios de la tarea">
-            {comments.map((comment) => {
+            {active.map((comment) => {
               const isEditing = editingId === comment.id;
               const edited = comment.updatedAt !== comment.createdAt;
 
               return (
-                <li
-                  key={comment.id}
-                  className="rounded-xl p-3 text-sm"
-                  style={{ backgroundColor: 'var(--surface-2)' }}
-                >
+                <li key={comment.id}>
                   {isEditing ? (
-                    <div className="space-y-2">
+                    <div
+                      className="rounded-xl p-3 text-sm space-y-2"
+                      style={{ backgroundColor: 'var(--surface-2)' }}
+                    >
                       <textarea
                         value={editBody}
                         onChange={(e) => setEditBody(e.target.value)}
@@ -245,43 +311,98 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
                       </div>
                     </div>
                   ) : (
-                    <>
-                      <p className="whitespace-pre-wrap break-words text-left">{comment.body}</p>
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <time
-                          className="text-[11px] text-[var(--text-muted)]"
-                          dateTime={comment.updatedAt}
-                          title={new Date(comment.updatedAt).toLocaleString('es')}
-                        >
-                          {edited ? 'Editado ' : ''}
-                          {formatRelativeCreatedAt(comment.updatedAt)}
-                        </time>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(comment)}
-                            className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
-                            aria-label="Editar comentario"
+                    <DraggableCommentShell
+                      commentId={comment.id}
+                      disabled={saving}
+                      onDragActiveChange={setDragging}
+                    >
+                      <div
+                        className="rounded-xl p-3 text-sm"
+                        style={{ backgroundColor: 'var(--surface-2)' }}
+                      >
+                        <p className="whitespace-pre-wrap break-words text-left">{comment.body}</p>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <time
+                            className="text-[11px] text-[var(--text-muted)]"
+                            dateTime={comment.updatedAt}
+                            title={new Date(comment.updatedAt).toLocaleString('es')}
                           >
-                            <PencilIcon className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteId(comment.id)}
-                            className="p-1 rounded-md text-red-500 hover:text-red-600 dark:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                            aria-label="Eliminar comentario"
-                          >
-                            <TrashIcon className="w-3.5 h-3.5" />
-                          </button>
+                            {edited ? 'Editado ' : ''}
+                            {formatRelativeCreatedAt(comment.updatedAt)}
+                          </time>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(comment)}
+                              className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
+                              aria-label="Editar comentario"
+                            >
+                              <PencilIcon className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteId(comment.id)}
+                              className="p-1 rounded-md text-red-500 hover:text-red-600 dark:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                              aria-label="Eliminar comentario"
+                            >
+                              <TrashIcon className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </>
+                    </DraggableCommentShell>
                   )}
                 </li>
               );
             })}
           </ul>
         )}
+
+        <CommentDropZones
+          visible={dragging}
+          disabled={saving}
+          onArchive={(id) => void handleArchive(id)}
+          onDelete={(id) => void applyDelete(id)}
+        />
+
+        {archived.length > 0 ? (
+          <div className="space-y-2">
+            <button
+              type="button"
+              className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)] hover:text-[var(--text)]"
+              onClick={() => setShowArchived((v) => !v)}
+              aria-expanded={showArchived}
+            >
+              Archivados ({archived.length})
+            </button>
+            {showArchived ? (
+              <ul className="space-y-2 max-h-36 overflow-y-auto pr-1" aria-label="Comentarios archivados">
+                {archived.map((comment) => (
+                  <li
+                    key={comment.id}
+                    className="rounded-xl p-3 text-sm opacity-75"
+                    style={{ backgroundColor: 'var(--surface-2)' }}
+                  >
+                    <p className="whitespace-pre-wrap break-words text-left">{comment.body}</p>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <time
+                        className="text-[11px] text-[var(--text-muted)]"
+                        dateTime={comment.archivedAt ?? comment.updatedAt}
+                      >
+                        Archivado
+                      </time>
+                      <ArchivedCommentActions
+                        disabled={saving}
+                        onRestore={() => void handleRestore(comment.id)}
+                        onDelete={() => setDeleteId(comment.id)}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="space-y-2">
           <label htmlFor="new-comment" className="sr-only">
