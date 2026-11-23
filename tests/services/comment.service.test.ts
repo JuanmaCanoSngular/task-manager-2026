@@ -40,6 +40,7 @@ const commentRow = {
   created_at: '2026-08-12T10:00:00.000Z',
   updated_at: '2026-08-12T10:00:00.000Z',
   archived_at: null,
+  deleted_at: null,
 };
 
 beforeEach(() => {
@@ -85,6 +86,7 @@ describe('commentService', () => {
         createdAt: '2026-08-12T10:00:00.000Z',
         updatedAt: '2026-08-12T10:00:00.000Z',
         archivedAt: null,
+        deletedAt: null,
       },
     ]);
   });
@@ -131,7 +133,7 @@ describe('commentService', () => {
   test('archive marca archived_at', async () => {
     const archivedAt = '2026-08-12T12:00:00.000Z';
     mocks.singleMock.mockResolvedValue({
-      data: { ...commentRow, archived_at: archivedAt },
+      data: { ...commentRow, archived_at: archivedAt, deleted_at: null },
       error: null,
     });
 
@@ -141,20 +143,37 @@ describe('commentService', () => {
     expect(archived.archivedAt).toBe(archivedAt);
   });
 
-  test('unarchive limpia archived_at', async () => {
+  test('softDelete marca deleted_at', async () => {
+    const deletedAt = '2026-08-12T13:00:00.000Z';
     mocks.singleMock.mockResolvedValue({
-      data: { ...commentRow, archived_at: null },
+      data: { ...commentRow, archived_at: null, deleted_at: deletedAt },
       error: null,
     });
 
-    const restored = await commentService.unarchive('c1');
+    const trashed = await commentService.softDelete('c1');
 
-    expect(mocks.updateMock).toHaveBeenCalledWith({ archived_at: null });
+    expect(mocks.updateMock).toHaveBeenCalled();
+    expect(trashed.deletedAt).toBe(deletedAt);
+  });
+
+  test('restore limpia archivo y papelera', async () => {
+    mocks.singleMock.mockResolvedValue({
+      data: { ...commentRow, archived_at: null, deleted_at: null },
+      error: null,
+    });
+
+    const restored = await commentService.restore('c1');
+
+    expect(mocks.updateMock).toHaveBeenCalledWith({
+      archived_at: null,
+      deleted_at: null,
+    });
     expect(restored.archivedAt).toBeNull();
+    expect(restored.deletedAt).toBeNull();
   });
 
   test('summariesByTaskIds agrupa conteos y último comentario', async () => {
-    const isMock = vi.fn().mockResolvedValue({
+    const secondIs = vi.fn().mockResolvedValue({
       data: [
         { task_id: 10, body: 'Primero', created_at: '2026-08-12T10:00:00.000Z' },
         { task_id: 10, body: 'Último comentario largo', created_at: '2026-08-12T11:00:00.000Z' },
@@ -162,15 +181,17 @@ describe('commentService', () => {
       ],
       error: null,
     });
+    const firstIs = vi.fn(() => ({ is: secondIs }));
     mocks.fromMock.mockReturnValue({
       select: vi.fn(() => ({
-        in: vi.fn(() => ({ is: isMock })),
+        in: vi.fn(() => ({ is: firstIs })),
       })),
     });
 
     const summaries = await commentService.summariesByTaskIds([10, 20]);
 
-    expect(isMock).toHaveBeenCalledWith('archived_at', null);
+    expect(firstIs).toHaveBeenCalledWith('archived_at', null);
+    expect(secondIs).toHaveBeenCalledWith('deleted_at', null);
     expect(summaries[10]).toEqual({
       count: 2,
       latestPreview: 'Último comentario largo',

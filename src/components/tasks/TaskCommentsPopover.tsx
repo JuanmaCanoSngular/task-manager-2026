@@ -6,21 +6,17 @@ import type { TaskComment } from '../../interfaces/comment.interface';
 import {
   MAX_COMMENT_LENGTH,
   activeComments,
-  archivedComments,
+  binComments,
+  isCommentTrashed,
 } from '../../interfaces/comment.interface';
 import { getBlockersColumn } from '../../interfaces/column.interface';
 import { formatRelativeCreatedAt } from '../../utils/relativeTime';
 import { useBoardStore, useCurrentBoardColumns } from '../../stores/board.store';
-import {
-  ArchivedCommentActions,
-  CommentDropZones,
-  DraggableCommentShell,
-} from './CommentDragDrop';
+import { BinCommentActions, SwipeableComment } from './CommentSwipe';
 
 interface TaskCommentsPopoverProps {
   taskId: number;
   taskTitle: string;
-  /** Columna actual; si ya es Bloqueos, se oculta el atajo. */
   columnId?: number;
   anchorEl: HTMLElement | null;
   open: boolean;
@@ -53,8 +49,7 @@ export const TaskCommentsPopover = ({
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
+  const [showBin, setShowBin] = useState(false);
   const columns = useCurrentBoardColumns();
   const moveTask = useBoardStore((s) => s.moveTask);
   const blockers = useMemo(() => getBlockersColumn(columns), [columns]);
@@ -101,8 +96,7 @@ export const TaskCommentsPopover = ({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    setDragging(false);
-    setShowArchived(false);
+    setShowBin(false);
     void commentService
       .listByTask(taskId)
       .then((loaded) => {
@@ -191,25 +185,56 @@ export const TaskCommentsPopover = ({
     }
   };
 
+  const patchComment = (updated: TaskComment) => {
+    const next = comments.map((c) => (c.id === updated.id ? updated : c));
+    setComments(next);
+    syncSummary(next);
+    setShowBin(true);
+  };
+
   const handleArchive = async (id: string) => {
     if (saving) return;
     setSaving(true);
     setError(null);
     try {
-      const updated = await commentService.archive(id);
-      const next = comments.map((c) => (c.id === id ? updated : c));
-      setComments(next);
-      syncSummary(next);
-      setShowArchived(true);
+      patchComment(await commentService.archive(id));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudo archivar');
     } finally {
       setSaving(false);
-      setDragging(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleSoftDelete = async (id: string) => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      patchComment(await commentService.softDelete(id));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo mover a la papelera');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await commentService.restore(id);
+      const next = comments.map((c) => (c.id === id ? updated : c));
+      setComments(next);
+      syncSummary(next);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo restaurar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePurge = async (id: string) => {
     if (saving) return;
     setSaving(true);
     setError(null);
@@ -222,30 +247,13 @@ export const TaskCommentsPopover = ({
       setError(err instanceof Error ? err.message : 'No se pudo eliminar');
     } finally {
       setSaving(false);
-      setDragging(false);
-    }
-  };
-
-  const handleRestore = async (id: string) => {
-    if (saving) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const updated = await commentService.unarchive(id);
-      const next = comments.map((c) => (c.id === id ? updated : c));
-      setComments(next);
-      syncSummary(next);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'No se pudo restaurar');
-    } finally {
-      setSaving(false);
     }
   };
 
   if (!open || !pos) return null;
 
   const active = activeComments(comments);
-  const archived = archivedComments(comments);
+  const bin = binComments(comments);
 
   return createPortal(
     <div
@@ -307,24 +315,20 @@ export const TaskCommentsPopover = ({
         ) : (
           <ul ref={listRef} className="flex flex-col gap-2 max-h-56 overflow-y-auto">
             {active.map((comment) => (
-              <li key={comment.id} className="flex flex-col items-start gap-0.5">
-                <DraggableCommentShell
-                  commentId={comment.id}
+              <li key={comment.id} className="flex flex-col items-stretch gap-0.5">
+                <SwipeableComment
                   disabled={saving}
-                  onDragActiveChange={setDragging}
-                  className="max-w-[92%]"
+                  onArchive={() => void handleArchive(comment.id)}
+                  onDelete={() => void handleSoftDelete(comment.id)}
+                  className="rounded-2xl"
                 >
                   <div
-                    className="rounded-2xl rounded-bl-md px-3 py-2 text-left text-[13px] leading-snug whitespace-pre-wrap break-words"
-                    style={{
-                      backgroundColor: 'var(--surface)',
-                      color: 'var(--text)',
-                      border: '1px solid var(--border)',
-                    }}
+                    className="px-3 py-2 text-left text-[13px] leading-snug whitespace-pre-wrap break-words"
+                    style={{ color: 'var(--text)' }}
                   >
                     {comment.body}
                   </div>
-                </DraggableCommentShell>
+                </SwipeableComment>
                 <time
                   className="pl-1 text-[10px] text-[var(--text-muted)]"
                   dateTime={comment.createdAt}
@@ -337,26 +341,19 @@ export const TaskCommentsPopover = ({
           </ul>
         )}
 
-        <CommentDropZones
-          visible={dragging}
-          disabled={saving}
-          onArchive={(id) => void handleArchive(id)}
-          onDelete={(id) => void handleDelete(id)}
-        />
-
-        {archived.length > 0 ? (
+        {bin.length > 0 ? (
           <div className="mt-3 space-y-2">
             <button
               type="button"
               className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]"
-              onClick={() => setShowArchived((v) => !v)}
-              aria-expanded={showArchived}
+              onClick={() => setShowBin((v) => !v)}
+              aria-expanded={showBin}
             >
-              Archivados ({archived.length})
+              Papelera ({bin.length})
             </button>
-            {showArchived ? (
-              <ul className="flex flex-col gap-2" aria-label="Comentarios archivados">
-                {archived.map((comment) => (
+            {showBin ? (
+              <ul className="flex flex-col gap-2" aria-label="Papelera de comentarios">
+                {bin.map((comment) => (
                   <li key={comment.id} className="flex flex-col items-start gap-0.5 opacity-70">
                     <div
                       className="max-w-[92%] rounded-2xl rounded-bl-md px-3 py-2 text-left text-[13px] leading-snug whitespace-pre-wrap break-words"
@@ -369,11 +366,13 @@ export const TaskCommentsPopover = ({
                       {comment.body}
                     </div>
                     <div className="flex w-full max-w-[92%] items-center justify-between pl-1">
-                      <span className="text-[10px] text-[var(--text-muted)]">Archivado</span>
-                      <ArchivedCommentActions
+                      <span className="text-[10px] text-[var(--text-muted)]">
+                        {isCommentTrashed(comment) ? 'Eliminado' : 'Archivado'}
+                      </span>
+                      <BinCommentActions
                         disabled={saving}
                         onRestore={() => void handleRestore(comment.id)}
-                        onDelete={() => void handleDelete(comment.id)}
+                        onPurge={() => void handlePurge(comment.id)}
                       />
                     </div>
                   </li>

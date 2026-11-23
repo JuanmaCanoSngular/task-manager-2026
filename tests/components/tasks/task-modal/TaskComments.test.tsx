@@ -12,7 +12,8 @@ const create = vi.fn();
 const update = vi.fn();
 const remove = vi.fn();
 const archive = vi.fn();
-const unarchive = vi.fn();
+const softDelete = vi.fn();
+const restore = vi.fn();
 
 vi.mock('../../../../src/services/comment.service', () => ({
   commentService: {
@@ -21,7 +22,8 @@ vi.mock('../../../../src/services/comment.service', () => ({
     update: (...args: unknown[]) => update(...args),
     delete: (...args: unknown[]) => remove(...args),
     archive: (...args: unknown[]) => archive(...args),
-    unarchive: (...args: unknown[]) => unarchive(...args),
+    softDelete: (...args: unknown[]) => softDelete(...args),
+    restore: (...args: unknown[]) => restore(...args),
   },
 }));
 
@@ -32,6 +34,7 @@ const sampleComment = {
   createdAt: '2026-08-12T10:00:00.000Z',
   updatedAt: '2026-08-12T10:00:00.000Z',
   archivedAt: null,
+  deletedAt: null,
 };
 
 beforeEach(() => {
@@ -40,7 +43,8 @@ beforeEach(() => {
   update.mockReset();
   remove.mockReset();
   archive.mockReset();
-  unarchive.mockReset();
+  softDelete.mockReset();
+  restore.mockReset();
   listByTask.mockResolvedValue([]);
 });
 
@@ -96,39 +100,20 @@ describe('TaskComments', () => {
     expect(await screen.findByText('Texto editado')).toBeInTheDocument();
   });
 
-  test('al soltar en Archivar mueve el comentario a archivados', async () => {
-    listByTask.mockResolvedValue([sampleComment]);
-    archive.mockResolvedValue({
-      ...sampleComment,
-      archivedAt: '2026-08-12T12:00:00.000Z',
-    });
+  test('muestra papelera con comentarios eliminados o archivados', async () => {
+    listByTask.mockResolvedValue([
+      {
+        ...sampleComment,
+        deletedAt: '2026-08-12T12:00:00.000Z',
+        archivedAt: null,
+      },
+    ]);
 
     render(<TaskComments taskId={42} />);
-    const body = await screen.findByText(sampleComment.body);
-    const shell = body.closest('[draggable="true"]')!;
-
-    const store: Record<string, string> = {};
-    const dataTransfer = {
-      types: ['application/x-taskblero-comment', 'text/plain'],
-      effectAllowed: 'all',
-      dropEffect: 'move',
-      setData: (type: string, value: string) => {
-        store[type] = value;
-      },
-      getData: (type: string) => store[type] ?? '',
-    };
-
-    fireEvent.dragStart(shell, { dataTransfer });
-    expect(await screen.findByText('Archivar')).toBeInTheDocument();
-
-    const archiveZone = screen.getByText('Archivar').closest('[role="group"]')!
-      .querySelectorAll(':scope > div')[0];
-    fireEvent.drop(archiveZone, { dataTransfer });
-
-    await waitFor(() => {
-      expect(archive).toHaveBeenCalledWith('c1');
-    });
-    expect(await screen.findByText(/archivados \(1\)/i)).toBeInTheDocument();
+    expect(await screen.findByText(/papelera \(1\)/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/papelera \(1\)/i));
+    expect(await screen.findByText(/eliminado/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Restaurar comentario')).toBeInTheDocument();
   });
 
   test('flushPendingDraft guarda el texto escrito sin pulsar Añadir', async () => {

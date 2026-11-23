@@ -10,18 +10,22 @@ create table if not exists task_comments (
   body         text not null,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
-  archived_at  timestamptz null
+  archived_at  timestamptz null,
+  deleted_at   timestamptz null
 );
 
--- Si la tabla ya existía sin archived_at:
+-- Si la tabla ya existía sin estas columnas:
 alter table task_comments
   add column if not exists archived_at timestamptz null;
+alter table task_comments
+  add column if not exists deleted_at timestamptz null;
 
 create index if not exists task_comments_task_id_idx on task_comments (task_id);
 create index if not exists task_comments_user_id_idx on task_comments (user_id);
+drop index if exists task_comments_task_active_idx;
 create index if not exists task_comments_task_active_idx
   on task_comments (task_id)
-  where archived_at is null;
+  where archived_at is null and deleted_at is null;
 
 alter table task_comments enable row level security;
 

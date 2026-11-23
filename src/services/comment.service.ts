@@ -13,6 +13,7 @@ type CommentRow = {
   created_at: string;
   updated_at: string;
   archived_at?: string | null;
+  deleted_at?: string | null;
 };
 
 type CommentSummaryRow = {
@@ -26,7 +27,8 @@ export type TaskCommentSummary = {
   latestPreview?: string;
 };
 
-const COMMENT_COLUMNS = 'id, task_id, body, created_at, updated_at, archived_at';
+const COMMENT_COLUMNS =
+  'id, task_id, body, created_at, updated_at, archived_at, deleted_at';
 
 const rowToComment = (row: CommentRow): TaskComment => ({
   id: row.id,
@@ -35,10 +37,11 @@ const rowToComment = (row: CommentRow): TaskComment => ({
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   archivedAt: row.archived_at ?? null,
+  deletedAt: row.deleted_at ?? null,
 });
 
 export const commentService = {
-  /** Resumen de comentarios activos por tarea (conteo + último comentario). */
+  /** Resumen de comentarios activos (ni archivados ni en papelera). */
   async summariesByTaskIds(taskIds: number[]): Promise<Record<number, TaskCommentSummary>> {
     if (taskIds.length === 0) return {};
 
@@ -46,7 +49,8 @@ export const commentService = {
       .from('task_comments')
       .select('task_id, body, created_at')
       .in('task_id', taskIds)
-      .is('archived_at', null);
+      .is('archived_at', null)
+      .is('deleted_at', null);
     if (error) throw error;
 
     const summaries: Record<number, TaskCommentSummary & { latestAt?: string }> = {};
@@ -76,7 +80,7 @@ export const commentService = {
     return result;
   },
 
-  /** Lista activos + archivados (orden de creación). */
+  /** Lista activos + papelera (orden de creación). */
   async listByTask(taskId: number): Promise<TaskComment[]> {
     const { data, error } = await supabase
       .from('task_comments')
@@ -119,10 +123,14 @@ export const commentService = {
     return rowToComment(data);
   },
 
+  /** Swipe izquierda → archivar (recuperable en papelera). */
   async archive(commentId: string): Promise<TaskComment> {
     const { data, error } = await supabase
       .from('task_comments')
-      .update({ archived_at: new Date().toISOString() })
+      .update({
+        archived_at: new Date().toISOString(),
+        deleted_at: null,
+      })
       .eq('id', commentId)
       .select(COMMENT_COLUMNS)
       .single();
@@ -130,10 +138,14 @@ export const commentService = {
     return rowToComment(data);
   },
 
-  async unarchive(commentId: string): Promise<TaskComment> {
+  /** Swipe derecha → papelera (soft-delete). */
+  async softDelete(commentId: string): Promise<TaskComment> {
     const { data, error } = await supabase
       .from('task_comments')
-      .update({ archived_at: null })
+      .update({
+        deleted_at: new Date().toISOString(),
+        archived_at: null,
+      })
       .eq('id', commentId)
       .select(COMMENT_COLUMNS)
       .single();
@@ -141,6 +153,24 @@ export const commentService = {
     return rowToComment(data);
   },
 
+  /** Restaura desde papelera (quita archivo y soft-delete). */
+  async restore(commentId: string): Promise<TaskComment> {
+    const { data, error } = await supabase
+      .from('task_comments')
+      .update({ archived_at: null, deleted_at: null })
+      .eq('id', commentId)
+      .select(COMMENT_COLUMNS)
+      .single();
+    if (error) throw error;
+    return rowToComment(data);
+  },
+
+  /** @deprecated usar restore */
+  async unarchive(commentId: string): Promise<TaskComment> {
+    return this.restore(commentId);
+  },
+
+  /** Borrado definitivo desde la papelera. */
   async delete(commentId: string): Promise<void> {
     const { error } = await supabase.from('task_comments').delete().eq('id', commentId);
     if (error) throw error;

@@ -6,22 +6,19 @@ import {
   useRef,
   useState,
 } from 'react';
-import { PencilIcon, TrashIcon } from '@heroicons/react/20/solid';
+import { PencilIcon } from '@heroicons/react/20/solid';
 import { commentService } from '../../../services/comment.service';
 import type { TaskComment } from '../../../interfaces/comment.interface';
 import {
   MAX_COMMENT_LENGTH,
   activeComments,
-  archivedComments,
+  binComments,
+  isCommentTrashed,
 } from '../../../interfaces/comment.interface';
 import { formatRelativeCreatedAt } from '../../../utils/relativeTime';
 import { ConfirmDialog } from '../../common/ConfirmDialog';
 import { useBoardStore } from '../../../stores/board.store';
-import {
-  ArchivedCommentActions,
-  CommentDropZones,
-  DraggableCommentShell,
-} from '../CommentDragDrop';
+import { BinCommentActions, SwipeableComment } from '../CommentSwipe';
 
 interface TaskCommentsProps {
   taskId: number;
@@ -29,9 +26,7 @@ interface TaskCommentsProps {
 
 export type TaskCommentsHandle = {
   hasPendingDraft: () => boolean;
-  /** Guarda el borrador si hay texto. `true` = ok (vacío o guardado). */
   flushPendingDraft: () => Promise<boolean>;
-  /** Vuelve a publicar el recuento en la card (al cerrar el modal). */
   publishSummary: () => void;
 };
 
@@ -50,9 +45,8 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
     const [saving, setSaving] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editBody, setEditBody] = useState('');
-    const [deleteId, setDeleteId] = useState<string | null>(null);
-    const [dragging, setDragging] = useState(false);
-    const [showArchived, setShowArchived] = useState(false);
+    const [purgeId, setPurgeId] = useState<string | null>(null);
+    const [showBin, setShowBin] = useState(false);
     const commentsRef = useRef<TaskComment[]>([]);
 
     const syncSummary = useCallback(
@@ -177,26 +171,14 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
       setError(null);
     };
 
-    const applyDelete = async (id: string) => {
-      if (saving) return;
-      setSaving(true);
-      setError(null);
-      try {
-        await commentService.delete(id);
-        let next: TaskComment[] = [];
-        setComments((prev) => {
-          next = prev.filter((c) => c.id !== id);
-          return next;
-        });
-        syncSummary(next);
-        if (editingId === id) cancelEdit();
-        setDeleteId(null);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'No se pudo eliminar el comentario');
-      } finally {
-        setSaving(false);
-        setDragging(false);
-      }
+    const replaceComment = (updated: TaskComment) => {
+      let next: TaskComment[] = [];
+      setComments((prev) => {
+        next = prev.map((c) => (c.id === updated.id ? updated : c));
+        return next;
+      });
+      syncSummary(next);
+      setShowBin(true);
     };
 
     const handleArchive = async (id: string) => {
@@ -205,19 +187,27 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
       setError(null);
       try {
         const updated = await commentService.archive(id);
-        let next: TaskComment[] = [];
-        setComments((prev) => {
-          next = prev.map((c) => (c.id === id ? updated : c));
-          return next;
-        });
-        syncSummary(next);
+        replaceComment(updated);
         if (editingId === id) cancelEdit();
-        setShowArchived(true);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'No se pudo archivar el comentario');
       } finally {
         setSaving(false);
-        setDragging(false);
+      }
+    };
+
+    const handleSoftDelete = async (id: string) => {
+      if (saving) return;
+      setSaving(true);
+      setError(null);
+      try {
+        const updated = await commentService.softDelete(id);
+        replaceComment(updated);
+        if (editingId === id) cancelEdit();
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'No se pudo mover a la papelera');
+      } finally {
+        setSaving(false);
       }
     };
 
@@ -226,7 +216,7 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
       setSaving(true);
       setError(null);
       try {
-        const updated = await commentService.unarchive(id);
+        const updated = await commentService.restore(id);
         let next: TaskComment[] = [];
         setComments((prev) => {
           next = prev.map((c) => (c.id === id ? updated : c));
@@ -240,20 +230,37 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
       }
     };
 
-    const confirmDelete = async () => {
-      if (!deleteId) return;
-      await applyDelete(deleteId);
+    const confirmPurge = async () => {
+      if (!purgeId || saving) return;
+      setSaving(true);
+      setError(null);
+      try {
+        await commentService.delete(purgeId);
+        let next: TaskComment[] = [];
+        setComments((prev) => {
+          next = prev.filter((c) => c.id !== purgeId);
+          return next;
+        });
+        syncSummary(next);
+        setPurgeId(null);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'No se pudo eliminar el comentario');
+      } finally {
+        setSaving(false);
+      }
     };
 
     const active = activeComments(comments);
-    const archived = archivedComments(comments);
+    const bin = binComments(comments);
 
     return (
       <div className="space-y-3 border-t pt-6" style={{ borderColor: 'var(--border)' }}>
         <div className="flex items-baseline justify-between gap-2">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Comentarios</h4>
           {active.length > 0 ? (
-            <p className="text-[11px] text-[var(--text-muted)]">Arrastra para archivar o borrar</p>
+            <p className="text-[11px] text-[var(--text-muted)]">
+              Desliza: ← archivar · eliminar →
+            </p>
           ) : null}
         </div>
 
@@ -311,15 +318,12 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
                       </div>
                     </div>
                   ) : (
-                    <DraggableCommentShell
-                      commentId={comment.id}
+                    <SwipeableComment
                       disabled={saving}
-                      onDragActiveChange={setDragging}
+                      onArchive={() => void handleArchive(comment.id)}
+                      onDelete={() => void handleSoftDelete(comment.id)}
                     >
-                      <div
-                        className="rounded-xl p-3 text-sm"
-                        style={{ backgroundColor: 'var(--surface-2)' }}
-                      >
+                      <div className="p-3 text-sm">
                         <p className="whitespace-pre-wrap break-words text-left">{comment.body}</p>
                         <div className="mt-2 flex items-center justify-between gap-2">
                           <time
@@ -330,27 +334,17 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
                             {edited ? 'Editado ' : ''}
                             {formatRelativeCreatedAt(comment.updatedAt)}
                           </time>
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => startEdit(comment)}
-                              className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
-                              aria-label="Editar comentario"
-                            >
-                              <PencilIcon className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteId(comment.id)}
-                              className="p-1 rounded-md text-red-500 hover:text-red-600 dark:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                              aria-label="Eliminar comentario"
-                            >
-                              <TrashIcon className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => startEdit(comment)}
+                            className="p-1 rounded-md text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            aria-label="Editar comentario"
+                          >
+                            <PencilIcon className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
-                    </DraggableCommentShell>
+                    </SwipeableComment>
                   )}
                 </li>
               );
@@ -358,26 +352,19 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
           </ul>
         )}
 
-        <CommentDropZones
-          visible={dragging}
-          disabled={saving}
-          onArchive={(id) => void handleArchive(id)}
-          onDelete={(id) => void applyDelete(id)}
-        />
-
-        {archived.length > 0 ? (
+        {bin.length > 0 ? (
           <div className="space-y-2">
             <button
               type="button"
               className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)] hover:text-[var(--text)]"
-              onClick={() => setShowArchived((v) => !v)}
-              aria-expanded={showArchived}
+              onClick={() => setShowBin((v) => !v)}
+              aria-expanded={showBin}
             >
-              Archivados ({archived.length})
+              Papelera ({bin.length})
             </button>
-            {showArchived ? (
-              <ul className="space-y-2 max-h-36 overflow-y-auto pr-1" aria-label="Comentarios archivados">
-                {archived.map((comment) => (
+            {showBin ? (
+              <ul className="space-y-2 max-h-36 overflow-y-auto pr-1" aria-label="Papelera de comentarios">
+                {bin.map((comment) => (
                   <li
                     key={comment.id}
                     className="rounded-xl p-3 text-sm opacity-75"
@@ -385,16 +372,13 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
                   >
                     <p className="whitespace-pre-wrap break-words text-left">{comment.body}</p>
                     <div className="mt-2 flex items-center justify-between gap-2">
-                      <time
-                        className="text-[11px] text-[var(--text-muted)]"
-                        dateTime={comment.archivedAt ?? comment.updatedAt}
-                      >
-                        Archivado
-                      </time>
-                      <ArchivedCommentActions
+                      <span className="text-[11px] text-[var(--text-muted)]">
+                        {isCommentTrashed(comment) ? 'Eliminado' : 'Archivado'}
+                      </span>
+                      <BinCommentActions
                         disabled={saving}
                         onRestore={() => void handleRestore(comment.id)}
-                        onDelete={() => setDeleteId(comment.id)}
+                        onPurge={() => setPurgeId(comment.id)}
                       />
                     </div>
                   </li>
@@ -440,10 +424,10 @@ export const TaskComments = forwardRef<TaskCommentsHandle, TaskCommentsProps>(
         </div>
 
         <ConfirmDialog
-          isOpen={deleteId !== null}
-          onClose={() => !saving && setDeleteId(null)}
-          onConfirm={() => void confirmDelete()}
-          title="¿Eliminar comentario?"
+          isOpen={purgeId !== null}
+          onClose={() => !saving && setPurgeId(null)}
+          onConfirm={() => void confirmPurge()}
+          title="¿Eliminar definitivamente?"
           description="Esta acción no se puede deshacer."
           confirmText={saving ? 'Eliminando…' : 'Eliminar'}
           cancelText="Cancelar"
